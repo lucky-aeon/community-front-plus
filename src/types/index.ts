@@ -43,3 +43,37 @@ export interface AuthContextType {
   logout: () => void;
   isLoading: boolean;
 }
+
+export interface Post {
+  id: string;
+  title: string;
+  content: string;
+  author: {
+    id: string;
+    name: string;
+    avatar: string;
+    membershipTier: 'guest' | 'basic' | 'premium' | 'vip';
+  };
+  createdAt: Date;
+  updatedAt: Date;
+  likes: number;
+  comments: number;
+  tags: string[];
+  type: 'article' | 'question';
+  isAnswered?: boolean;
+}
+
+export interface Comment {
+  id: string;
+  content: string;
+  author: {
+    id: string;
+    name: string;
+    avatar: string;
+    membershipTier: 'guest' | 'basic' | 'premium' | 'vip';
+  };
+  createdAt: Date;
+  likes: number;
+  postId: string;
+  isAnswer?: boolean;
+}
