@@ -252,3 +252,4 @@ export const membershipPlans: MembershipPlan[] = [
       'Annual VIP events invitation'
     ]
   }
+]
