@@ -15,7 +15,41 @@ export const courses: Course[] = [
     studentCount: 2847,
     tags: ['React', 'JavaScript', 'Frontend'],
     requiredTier: 'premium',
-    isNew: true
+    isNew: true,
+    chapters: [
+      {
+        id: '1-1',
+        title: 'React Hooks 深入理解',
+        description: '学习 useState, useEffect, useContext 等核心 Hooks',
+        duration: '45分钟',
+        order: 1,
+        isCompleted: false
+      },
+      {
+        id: '1-2',
+        title: '自定义 Hooks 开发',
+        description: '创建可复用的自定义 Hooks',
+        duration: '38分钟',
+        order: 2,
+        isCompleted: false
+      },
+      {
+        id: '1-3',
+        title: '性能优化技巧',
+        description: 'React.memo, useMemo, useCallback 优化策略',
+        duration: '52分钟',
+        order: 3,
+        isCompleted: false
+      },
+      {
+        id: '1-4',
+        title: '状态管理最佳实践',
+        description: 'Context API 和第三方状态管理库的使用',
+        duration: '41分钟',
+        order: 4,
+        isCompleted: false
+      }
+    ]
   },
   {
     id: '2',
@@ -30,7 +64,33 @@ export const courses: Course[] = [
     rating: 4.8,
     studentCount: 1923,
     tags: ['TypeScript', 'Node.js', 'Full-Stack'],
-    requiredTier: 'vip'
+    requiredTier: 'vip',
+    chapters: [
+      {
+        id: '2-1',
+        title: 'TypeScript 基础语法',
+        description: '类型系统、接口、泛型等核心概念',
+        duration: '55分钟',
+        order: 1,
+        isCompleted: false
+      },
+      {
+        id: '2-2',
+        title: 'Node.js 与 TypeScript',
+        description: '搭建 TypeScript Node.js 开发环境',
+        duration: '42分钟',
+        order: 2,
+        isCompleted: false
+      },
+      {
+        id: '2-3',
+        title: '数据库集成',
+        description: 'TypeORM 和 Prisma 的使用',
+        duration: '48分钟',
+        order: 3,
+        isCompleted: false
+      }
+    ]
   },
   {
     id: '3',
@@ -45,7 +105,25 @@ export const courses: Course[] = [
     rating: 4.7,
     studentCount: 3421,
     tags: ['CSS', 'Design', 'UI/UX'],
-    requiredTier: 'basic'
+    requiredTier: 'basic',
+    chapters: [
+      {
+        id: '3-1',
+        title: 'CSS Grid 布局系统',
+        description: '掌握现代网格布局技术',
+        duration: '35分钟',
+        order: 1,
+        isCompleted: false
+      },
+      {
+        id: '3-2',
+        title: '设计系统构建',
+        description: '创建可维护的设计系统',
+        duration: '40分钟',
+        order: 2,
+        isCompleted: false
+      }
+    ]
   },
   {
     id: '4',
@@ -60,7 +138,33 @@ export const courses: Course[] = [
     rating: 4.9,
     studentCount: 1654,
     tags: ['AWS', 'DevOps', 'Cloud'],
-    requiredTier: 'vip'
+    requiredTier: 'vip',
+    chapters: [
+      {
+        id: '4-1',
+        title: 'AWS 基础服务',
+        description: 'EC2, S3, RDS 等核心服务介绍',
+        duration: '60分钟',
+        order: 1,
+        isCompleted: false
+      },
+      {
+        id: '4-2',
+        title: 'Docker 容器化',
+        description: '应用容器化和镜像管理',
+        duration: '45分钟',
+        order: 2,
+        isCompleted: false
+      },
+      {
+        id: '4-3',
+        title: 'Kubernetes 编排',
+        description: '容器编排和集群管理',
+        duration: '55分钟',
+        order: 3,
+        isCompleted: false
+      }
+    ]
   },
   {
     id: '5',
@@ -75,7 +179,25 @@ export const courses: Course[] = [
     rating: 4.6,
     studentCount: 5672,
     tags: ['JavaScript', 'Programming', 'Web'],
-    requiredTier: 'basic'
+    requiredTier: 'basic',
+    chapters: [
+      {
+        id: '5-1',
+        title: 'JavaScript 基础语法',
+        description: '变量、函数、对象等基础概念',
+        duration: '50分钟',
+        order: 1,
+        isCompleted: false
+      },
+      {
+        id: '5-2',
+        title: 'ES6+ 新特性',
+        description: '箭头函数、解构、模块化等现代特性',
+        duration: '45分钟',
+        order: 2,
+        isCompleted: false
+      }
+    ]
   },
   {
     id: '6',
@@ -90,7 +212,25 @@ export const courses: Course[] = [
     rating: 4.8,
     studentCount: 2134,
     tags: ['React Native', 'Mobile', 'iOS', 'Android'],
-    requiredTier: 'premium'
+    requiredTier: 'premium',
+    chapters: [
+      {
+        id: '6-1',
+        title: 'React Native 环境搭建',
+        description: '开发环境配置和项目初始化',
+        duration: '30分钟',
+        order: 1,
+        isCompleted: false
+      },
+      {
+        id: '6-2',
+        title: '组件开发',
+        description: '原生组件和自定义组件开发',
+        duration: '50分钟',
+        order: 2,
+        isCompleted: false
+      }
+    ]
   }
 ];
 

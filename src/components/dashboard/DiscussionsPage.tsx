@@ -6,7 +6,11 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { posts } from '../../data/mockData';
 
-export const DiscussionsPage: React.FC = () => {
+interface DiscussionsPageProps {
+  onPostClick: (postId: string) => void;
+}
+
+export const DiscussionsPage: React.FC<DiscussionsPageProps> = ({ onPostClick }) => {
   const [activeTab, setActiveTab] = useState<'all' | 'articles' | 'questions'>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -48,10 +52,6 @@ export const DiscussionsPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">社区讨论</h1>
           <p className="text-gray-600">分享知识，解答疑问，共同成长</p>
         </div>
-        <Button className="flex items-center space-x-2">
-          <Plus className="h-4 w-4" />
-          <span>发布内容</span>
-        </Button>
       </div>
 
       {/* Search and Filter */}
@@ -133,7 +133,9 @@ export const DiscussionsPage: React.FC = () => {
             </div>
             
             <h3 className="text-xl font-semibold text-gray-900 mb-3 hover:text-blue-600 transition-colors">
-              {post.title}
+              <button onClick={() => onPostClick(post.id)} className="text-left">
+                {post.title}
+              </button>
             </h3>
             
             <p className="text-gray-600 mb-4 line-clamp-3">

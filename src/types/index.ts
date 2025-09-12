@@ -22,6 +22,17 @@ export interface Course {
   tags: string[];
   requiredTier: 'basic' | 'premium' | 'vip';
   isNew?: boolean;
+  chapters: Chapter[];
+}
+
+export interface Chapter {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  videoUrl?: string;
+  isCompleted?: boolean;
+  order: number;
 }
 
 export interface MembershipPlan {

@@ -4,7 +4,12 @@ import { Card } from '../ui/Card';
 import { Badge } from '../ui/Badge';
 import { posts, courses, comments } from '../../data/mockData';
 
-export const HomePage: React.FC = () => {
+interface HomePageProps {
+  onPostClick: (postId: string) => void;
+  onCourseClick: (courseId: string) => void;
+}
+
+export const HomePage: React.FC<HomePageProps> = ({ onPostClick, onCourseClick }) => {
   const recentPosts = posts.slice(0, 3);
   const recentCourses = courses.slice(0, 3);
   const recentComments = comments.slice(0, 3);
@@ -119,7 +124,9 @@ export const HomePage: React.FC = () => {
                 </div>
                 
                 <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 cursor-pointer">
-                  {post.title}
+                  <button onClick={() => onPostClick(post.id)} className="text-left">
+                    {post.title}
+                  </button>
                 </h3>
                 
                 <p className="text-gray-600 mb-4 line-clamp-2">
@@ -165,7 +172,7 @@ export const HomePage: React.FC = () => {
             <div className="space-y-4">
               {recentCourses.map((course) => (
                 <Card key={course.id} className="p-4 hover:shadow-md transition-shadow">
-                  <div className="flex space-x-3">
+                  <div className="flex space-x-3 cursor-pointer" onClick={() => onCourseClick(course.id)}>
                     <img
                       src={course.thumbnail}
                       alt={course.title}

@@ -7,19 +7,19 @@ import { Input } from '../ui/Input';
 import { useAuth } from '../../context/AuthContext';
 import { courses } from '../../data/mockData';
 
-export const CoursesPage: React.FC = () => {
+interface CoursesPageProps {
+  onCourseClick: (courseId: string) => void;
+}
+
+export const CoursesPage: React.FC<CoursesPageProps> = ({ onCourseClick }) => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLevel, setSelectedLevel] = useState<string>('all');
-  const [selectedTier, setSelectedTier] = useState<string>('all');
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.instructor.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLevel = selectedLevel === 'all' || course.level === selectedLevel;
-    const matchesTier = selectedTier === 'all' || course.requiredTier === selectedTier;
-    return matchesSearch && matchesLevel && matchesTier;
+    return matchesSearch;
   });
 
   const canAccess = (course: any) => {
@@ -55,7 +55,7 @@ export const CoursesPage: React.FC = () => {
       </div>
 
       {/* Search and Filters */}
-      <div className="flex flex-col lg:flex-row gap-4 mb-6">
+      <div className="mb-6">
         <div className="flex-1 relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           <Input
@@ -65,35 +65,6 @@ export const CoursesPage: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
-        </div>
-        
-        <div className="flex gap-4">
-          <select
-            value={selectedLevel}
-            onChange={(e) => setSelectedLevel(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">所有难度</option>
-            <option value="beginner">初级</option>
-            <option value="intermediate">中级</option>
-            <option value="advanced">高级</option>
-          </select>
-          
-          <select
-            value={selectedTier}
-            onChange={(e) => setSelectedTier(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">所有等级</option>
-            <option value="basic">基础会员</option>
-            <option value="premium">高级会员</option>
-            <option value="vip">VIP会员</option>
-          </select>
-          
-          <Button variant="outline" className="flex items-center space-x-2">
-            <Filter className="h-4 w-4" />
-            <span>更多筛选</span>
-          </Button>
         </div>
       </div>
 
@@ -153,7 +124,7 @@ export const CoursesPage: React.FC = () => {
       {/* Courses Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCourses.map((course) => (
-          <Card key={course.id} hover className="overflow-hidden">
+          <Card key={course.id} hover className="overflow-hidden cursor-pointer" onClick={() => onCourseClick(course.id)}>
             <div className="relative">
               <img
                 src={course.thumbnail}
@@ -234,6 +205,10 @@ export const CoursesPage: React.FC = () => {
               <Button
                 className="w-full"
                 disabled={!canAccess(course)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onCourseClick(course.id);
+                }}
               >
                 {canAccess(course) 
                   ? '开始学习' 

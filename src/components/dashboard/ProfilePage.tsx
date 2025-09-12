@@ -170,27 +170,6 @@ export const ProfilePage: React.FC = () => {
           </Card>
 
           {/* Learning Stats */}
-          <Card className="p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">学习统计</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-xl">
-                <p className="text-2xl font-bold text-blue-600">12</p>
-                <p className="text-sm text-gray-600">已完成课程</p>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-xl">
-                <p className="text-2xl font-bold text-green-600">45h</p>
-                <p className="text-sm text-gray-600">学习时长</p>
-              </div>
-              <div className="text-center p-4 bg-purple-50 rounded-xl">
-                <p className="text-2xl font-bold text-purple-600">8</p>
-                <p className="text-sm text-gray-600">获得证书</p>
-              </div>
-              <div className="text-center p-4 bg-orange-50 rounded-xl">
-                <p className="text-2xl font-bold text-orange-600">156</p>
-                <p className="text-sm text-gray-600">社区积分</p>
-              </div>
-            </div>
-          </Card>
         </div>
 
         {/* Membership Information */}
