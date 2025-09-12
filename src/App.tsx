@@ -3,11 +3,9 @@ import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
 import { Header } from './components/layout/Header';
 import { Hero } from './components/home/Hero';
-import { Features } from './components/home/Features';
 import { CourseGrid } from './components/courses/CourseGrid';
 import { PricingSection } from './components/pricing/PricingSection';
 import { Testimonials } from './components/home/Testimonials';
-import { CTA } from './components/home/CTA';
 import { AuthModal } from './components/auth/AuthModal';
 import { Dashboard } from './components/dashboard/Dashboard';
 
@@ -31,11 +29,9 @@ const AppContent: React.FC = () => {
       
       <main>
         <Hero onGetStarted={handleAuthRequired} />
-        <Features />
         <CourseGrid onAuthRequired={handleAuthRequired} />
         <PricingSection onPlanSelect={handleAuthRequired} />
         <Testimonials />
-        <CTA onGetStarted={handleAuthRequired} />
       </main>
 
       <footer className="bg-gray-900 text-white py-12">
