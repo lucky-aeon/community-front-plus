@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { useAuth } from './context/AuthContext';
-import { Header } from './components/layout/Header';
-import { Hero } from './components/home/Hero';
-import { CourseGrid } from './components/courses/CourseGrid';
-import { PricingSection } from './components/pricing/PricingSection';
-import { Testimonials } from './components/home/Testimonials';
-import { AuthModal } from './components/auth/AuthModal';
-import { Dashboard } from './components/dashboard/Dashboard';
+import { Header } from '@shared/components/common/Header';
+import { Hero } from '@apps/marketing/components/Hero';
+import { CourseGrid } from '@shared/components/business/CourseGrid';
+import { PricingSection } from '@shared/components/business/PricingSection';
+import { Testimonials } from '@apps/marketing/components/Testimonials';
+import { AuthModal } from '@shared/components/business/AuthModal';
+import { Dashboard } from '@apps/user-portal/components/Dashboard';
 
 const AppContent: React.FC = () => {
   const { user } = useAuth();

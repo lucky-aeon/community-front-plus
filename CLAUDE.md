@@ -41,16 +41,26 @@ This is a React + TypeScript + Vite frontend application for a community learnin
 - **Content Types**: Courses with chapters, Posts (articles/questions), Comments, Users
 - **TypeScript**: Full type coverage with interfaces in `src/types/index.ts`
 
-### Component Organization
+### Component Organization (已重构为Apps架构)
 ```
-components/
-├── auth/           # AuthModal for login/register
-├── courses/        # Course display and management
-├── dashboard/      # All authenticated user pages
-├── home/           # Landing page sections
-├── layout/         # Header component
-├── pricing/        # Membership plan components
-└── ui/             # Reusable UI components (Button, Card, etc.)
+src/
+├── apps/                    # 应用模块 (Apps-based Architecture)
+│   ├── marketing/           # 营销前台 - 未登录用户界面
+│   │   └── components/      # Hero, Testimonials, CTA, Features
+│   ├── user-portal/         # 用户门户 - 已登录用户学习界面
+│   │   └── components/      # Dashboard, CoursesPage, DiscussionsPage, ProfilePage
+│   └── user-backend/        # 用户后台 - 内容管理界面
+│       └── components/      # MyArticlesPage, MessageCenterPage, ProfileSettingsPage
+├── shared/                  # 共享资源
+│   ├── components/
+│   │   ├── ui/              # 基础UI组件 (Button, Card, Input, Badge)
+│   │   ├── business/        # 业务组件 (CourseCard, AuthModal, PricingCard)
+│   │   └── common/          # 通用组件 (Header)
+│   ├── constants/           # 常量和模拟数据
+│   ├── types/               # TypeScript 类型定义
+│   └── utils/               # 工具函数
+├── context/                 # React Context
+└── main.tsx, App.tsx        # 应用入口
 ```
 
 ### Key Dependencies
@@ -211,20 +221,26 @@ export const PageName: React.FC = () => {
 - 类型定义：`index.ts` (在 types 目录下)
 - 数据文件：`camelCase.ts` (如 `mockData.ts`)
 
-#### 目录组织
+#### 目录组织 (Apps-based Architecture)
 ```
 src/
-├── components/
-│   ├── ui/           # 基础UI组件 (Button, Card, Input 等)
-│   ├── auth/         # 认证相关组件
-│   ├── dashboard/    # 仪表盘页面组件
-│   ├── courses/      # 课程相关组件
-│   ├── home/         # 首页组件
-│   └── layout/       # 布局组件
-├── context/          # React Context
-├── data/             # 模拟数据
-├── types/            # TypeScript 类型定义
-└── utils/            # 工具函数
+├── apps/                     # 应用模块架构
+│   ├── marketing/            # 营销前台应用
+│   │   └── components/       # Hero, Testimonials, CTA, Features
+│   ├── user-portal/          # 用户门户应用 (学习界面)
+│   │   └── components/       # Dashboard, CoursesPage, DiscussionsPage, ProfilePage
+│   └── user-backend/         # 用户后台应用 (内容管理)
+│       └── components/       # MyArticlesPage, MessageCenterPage, ProfileSettingsPage
+├── shared/                   # 共享资源
+│   ├── components/
+│   │   ├── ui/               # 基础UI组件 (Button, Card, Input, Badge)
+│   │   ├── business/         # 业务组件 (CourseCard, AuthModal, PricingCard)
+│   │   └── common/           # 通用组件 (Header)
+│   ├── constants/            # 常量和模拟数据 (原 data/)
+│   ├── types/                # TypeScript 类型定义
+│   └── utils/                # 工具函数 (cn.ts 等)
+├── context/                  # React Context (AuthContext)
+└── main.tsx, App.tsx         # 应用入口文件
 ```
 
 ### Props 接口设计规范
@@ -408,6 +424,120 @@ const handleAsyncAction = async () => {
   <EmptyState />
 )}
 ```
+
+## 目录结构规范 (Apps-based Architecture)
+
+### 必须遵循的目录架构
+项目采用 Apps-based 架构，**必须**按以下结构组织代码：
+
+```
+src/
+├── apps/                     # 应用模块 - 按业务功能划分
+│   ├── marketing/            # 营销前台 (未登录用户界面)
+│   ├── user-portal/          # 用户门户 (已登录学习界面)  
+│   └── user-backend/         # 用户后台 (内容管理界面)
+├── shared/                   # 共享资源 - 跨应用复用
+│   ├── components/ui/        # 基础UI组件
+│   ├── components/business/  # 业务组件
+│   ├── components/common/    # 通用组件
+│   ├── constants/           # 常量和模拟数据
+│   ├── types/               # TypeScript类型定义
+│   └── utils/               # 工具函数
+└── context/                 # 全局Context
+```
+
+### 路径别名规范 (必须配置)
+**vite.config.ts 中必须配置以下别名：**
+
+```typescript
+resolve: {
+  alias: {
+    '@': path.resolve(__dirname, './src'),
+    '@shared': path.resolve(__dirname, './src/shared'),
+    '@apps': path.resolve(__dirname, './src/apps'),
+    '@marketing': path.resolve(__dirname, './src/apps/marketing'),
+    '@user-portal': path.resolve(__dirname, './src/apps/user-portal'),
+    '@user-backend': path.resolve(__dirname, './src/apps/user-backend'),
+  }
+}
+```
+
+### 导入路径强制规范
+
+#### ✅ 正确的导入方式
+```typescript
+// Apps 中导入 shared 资源 - 必须使用别名
+import { Button } from '@shared/components/ui/Button';
+import { CourseCard } from '@shared/components/business/CourseCard';
+import { mockData } from '@shared/constants/mockData';
+
+// Shared 内部导入 - 必须使用相对路径  
+import { Button } from '../ui/Button';
+import { cn } from '../../utils/cn';
+
+// 应用组件导入 - 必须使用别名
+import { Hero } from '@apps/marketing/components/Hero';
+import { Dashboard } from '@apps/user-portal/components/Dashboard';
+```
+
+#### ❌ 禁止的导入方式
+```typescript
+// 禁止在 apps 中使用长相对路径
+import { Button } from '../../shared/components/ui/Button';
+
+// 禁止在 shared 内部使用别名
+import { Button } from '@shared/components/ui/Button';
+
+// 禁止跨应用直接导入
+import { MarketingComponent } from '../marketing/components/Hero';
+```
+
+### 组件创建规范
+
+#### 新建应用模块组件
+1. **路径**: `src/apps/{app-name}/components/{ComponentName}.tsx`
+2. **导入顺序**: React库 → Context → Shared组件 → 应用内组件 → 数据类型
+3. **必须**遵循项目现有组件模式
+
+#### 新建共享组件  
+1. **UI组件**: `src/shared/components/ui/{ComponentName}.tsx`
+2. **业务组件**: `src/shared/components/business/{ComponentName}.tsx`  
+3. **通用组件**: `src/shared/components/common/{ComponentName}.tsx`
+
+### 开发强制要求
+
+#### Claude Code 必须遵循的规则
+1. **创建新组件时**，必须先检查现有架构，放入正确目录
+2. **修改导入路径时**，必须使用正确的别名或相对路径规范
+3. **重构时**，必须保持架构一致性，不能破坏模块边界
+4. **添加新功能时**，必须评估放在哪个应用模块最合适
+
+#### 路径重构命令 (必要时使用)
+```bash
+# 修复apps中的shared导入
+find src/apps -name "*.tsx" -o -name "*.ts" | xargs sed -i '' "s|from '\.\./\.\./shared/|from '@shared/|g"
+
+# 修复shared内部导入
+find src/shared/components/ui -name "*.tsx" | xargs sed -i '' "s|from '\.\./\.\./shared/utils/|from '../../utils/|g" 
+
+# 构建验证
+npm run build
+```
+
+### 扩展规范
+
+#### 新增应用模块流程
+1. 在 `src/apps/` 创建新目录
+2. 添加 `components/` 子目录
+3. 在 `vite.config.ts` 添加别名
+4. 在 `App.tsx` 集成路由
+5. 更新本规范文档
+
+#### 禁止的操作
+- **禁止**在 apps 之间直接导入组件
+- **禁止**在 shared 中导入 apps 的组件  
+- **禁止**破坏现有的模块边界
+- **禁止**在不合适的目录创建组件
 
 #### 列表渲染模式
 ```typescript
