@@ -38,8 +38,6 @@ export const Dashboard: React.FC = () => {
         return <HomePage onPostClick={setSelectedPost} onCourseClick={setSelectedCourse} />;
       case 'discussions':
         return <DiscussionsPage onPostClick={setSelectedPost} />;
-      case 'create':
-        return <CreatePostPage onPostCreated={() => setActiveTab('discussions')} />;
       case 'courses':
         return <CoursesPage onCourseClick={setSelectedCourse} />;
       case 'profile':

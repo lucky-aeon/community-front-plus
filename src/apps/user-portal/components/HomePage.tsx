@@ -162,9 +162,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onPostClick, onCourseClick }
         <div className="space-y-8">
           {/* Latest Courses */}
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-gray-900">最新课程</h3>
-              <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-gray-900">最新课程</h2>
+              <button className="text-blue-600 hover:text-blue-700 font-medium">
                 查看全部
               </button>
             </div>

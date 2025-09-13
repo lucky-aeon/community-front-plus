@@ -22,7 +22,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const navigation = [
     { id: 'home', name: '首页', icon: Home },
     { id: 'discussions', name: '讨论', icon: MessageSquare },
-    { id: 'create', name: '发布', icon: PenTool },
     { id: 'courses', name: '课程', icon: BookOpen },
     { id: 'profile', name: '个人中心', icon: User }
   ];

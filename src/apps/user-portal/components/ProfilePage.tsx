@@ -39,13 +39,15 @@ export const ProfilePage: React.FC = () => {
     setIsEditing(false);
   };
 
-  const formatDate = (date: Date | undefined) => {
+  const formatDate = (date: Date | string | undefined) => {
     if (!date) return '无';
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return '无效日期';
     return new Intl.DateTimeFormat('zh-CN', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
-    }).format(date);
+    }).format(dateObj);
   };
 
   return (

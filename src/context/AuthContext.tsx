@@ -24,7 +24,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        // Convert membershipExpiry back to Date object if it exists
+        if (parsedUser.membershipExpiry) {
+          parsedUser.membershipExpiry = new Date(parsedUser.membershipExpiry);
+        }
+        setUser(parsedUser);
       } catch (error) {
         console.error('Error parsing stored user:', error);
         localStorage.removeItem('user');
