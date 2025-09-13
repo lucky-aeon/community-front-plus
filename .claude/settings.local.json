@@ -13,7 +13,22 @@
       "Read(/Users/xhy/FrontProjects/community-front/**)",
       "Bash(npm install:*)",
       "Bash(npm run lint)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "WebSearch",
+      "WebFetch(domain:til.simonwillison.net)",
+      "WebFetch(domain:github.com)",
+      "Bash(claude --version)",
+      "Bash(node:*)",
+      "Bash(npm:*)",
+      "Bash(claude mcp:*)",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_evaluate",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_handle_dialog",
+      "mcp__playwright__browser_press_key"
     ],
     "deny": [],
     "ask": []

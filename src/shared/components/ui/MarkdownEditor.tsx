@@ -13,6 +13,7 @@ interface MarkdownEditorProps {
   placeholder?: string;
   toolbar?: boolean | string[];
   className?: string;
+  enableFullscreen?: boolean;
 }
 
 export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
@@ -22,16 +23,44 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   height = 400,
   placeholder = '请输入markdown内容...',
   toolbar = true,
-  className = ''
+  className = '',
+  enableFullscreen = true
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const cherryInstanceRef = useRef<Cherry | null>(null);
   const containerIdRef = useRef(`markdown-editor-${Math.random().toString(36).substr(2, 9)}`);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   // 添加更新来源跟踪，防止循环更新
   const isUserInputRef = useRef(false);
   const lastValueRef = useRef(value);
+
+  // 全屏切换功能
+  const toggleFullscreen = useCallback(() => {
+    setIsFullscreen(prev => !prev);
+  }, []);
+
+  // ESC键盘支持
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+
+    if (isFullscreen) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isFullscreen]);
 
   // 处理图片点击预览
   const handleImageClick = useCallback((e: Event) => {
@@ -127,8 +156,56 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             isUserInputRef.current = false;
           }, 0);
         },
-        afterInit: () => {
+        afterInit: (cherry: Cherry) => {
           setIsInitialized(true);
+          // 添加全屏按钮 - 延迟确保DOM完全渲染
+          setTimeout(() => {
+            if (enableFullscreen) {
+              try {
+                const toolbarElement = document.querySelector(`#${containerIdRef.current} .cherry-toolbar .toolbar-right`);
+                if (toolbarElement) {
+                  // 检查是否已经存在全屏按钮，避免重复添加
+                  const existingBtn = toolbarElement.querySelector('.cherry-fullscreen-btn');
+                  if (!existingBtn) {
+                    // 创建全屏按钮
+                    const fullscreenBtn = document.createElement('span');
+                    fullscreenBtn.className = 'cherry-toolbar-button cherry-fullscreen-btn';
+                    fullscreenBtn.innerHTML = isFullscreen 
+                      ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 0 2-2h3M3 16h3a2 2 0 0 0 2 2v3"/></svg>'
+                      : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
+                    
+                    fullscreenBtn.style.cssText = `
+                      cursor: pointer;
+                      padding: 4px 8px;
+                      border-radius: 4px;
+                      display: inline-flex;
+                      align-items: center;
+                      justify-content: center;
+                      transition: background-color 0.2s;
+                      margin: 0 2px;
+                    `;
+
+                    fullscreenBtn.onmouseenter = () => {
+                      fullscreenBtn.style.backgroundColor = '#f3f4f6';
+                    };
+                    fullscreenBtn.onmouseleave = () => {
+                      fullscreenBtn.style.backgroundColor = 'transparent';
+                    };
+
+                    fullscreenBtn.onclick = (e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleFullscreen();
+                    };
+
+                    toolbarElement.appendChild(fullscreenBtn);
+                  }
+                }
+              } catch (error) {
+                console.warn('Failed to add fullscreen button:', error);
+              }
+            }
+          }, 200);
         }
       },
       fileUpload: handleFileUpload
@@ -144,7 +221,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     }
 
     return config;
-  }, [previewOnly, height, placeholder, toolbar, handleImageClick, handleFileUpload]);
+  }, [previewOnly, height, placeholder, toolbar, handleImageClick, handleFileUpload, enableFullscreen, isFullscreen, toggleFullscreen]);
 
   // 初始化Cherry编辑器
   useEffect(() => {
@@ -205,16 +282,36 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     }
   }, [previewOnly, isInitialized]);
 
+  // 更新全屏按钮图标状态
+  useEffect(() => {
+    if (isInitialized && enableFullscreen) {
+      const fullscreenBtn = document.querySelector(`#${containerIdRef.current} .cherry-fullscreen-btn`);
+      if (fullscreenBtn) {
+        fullscreenBtn.innerHTML = isFullscreen 
+          ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 0 2-2h3M3 16h3a2 2 0 0 0 2 2v3"/></svg>'
+          : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
+      }
+    }
+  }, [isFullscreen, isInitialized, enableFullscreen]);
+
   return (
     <div 
-      className={`markdown-editor-wrapper ${className}`}
-      style={{ height: typeof height === 'number' ? `${height}px` : height }}
+      className={`markdown-editor-wrapper ${className} ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`}
+      style={{ 
+        height: isFullscreen ? '100vh' : (typeof height === 'number' ? `${height}px` : height),
+        width: isFullscreen ? '100vw' : '100%'
+      }}
     >
       <div 
         ref={containerRef}
         id={containerIdRef.current}
         className="cherry-editor-container w-full h-full rounded-xl border border-gray-300 overflow-hidden"
-        style={{ width: '100%', height: '100%' }}
+        style={{ 
+          width: '100%', 
+          height: '100%',
+          borderRadius: isFullscreen ? '0' : undefined,
+          border: isFullscreen ? 'none' : undefined
+        }}
       />
     </div>
   );

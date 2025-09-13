@@ -45,7 +45,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center space-x-4">
           <Button
@@ -82,8 +82,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-3">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <div className="lg:col-span-4">
           <Card className="p-6">
             {!isPreview ? (
               <div className="space-y-6">
@@ -141,9 +141,10 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
                   <MarkdownEditor
                     value={content}
                     onChange={setContent}
-                    height={400}
+                    height={500}
                     placeholder={postType === 'article' ? '请输入文章内容...' : '请详细描述您的问题...'}
                     className="w-full"
+                    enableFullscreen={true}
                   />
                 </div>
 
@@ -201,9 +202,10 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
                     value={content || '内容预览...'}
                     onChange={() => {}} // 预览模式不需要onChange
                     previewOnly={true}
-                    height={400}
+                    height={500}
                     className="w-full"
                     toolbar={false}
+                    enableFullscreen={true}
                   />
                 </div>
                 
@@ -224,8 +226,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
         {/* Sidebar */}
         <div className="space-y-6">
           <Card className="p-4">
-            <h3 className="font-semibold text-gray-900 mb-3">发布指南</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
+            <h3 className="font-semibold text-gray-900 mb-3 text-sm">发布指南</h3>
+            <ul className="space-y-2 text-xs text-gray-600">
               <li>• 标题要简洁明了，突出重点</li>
               <li>• 内容要详细具体，便于理解</li>
               <li>• 添加相关标签，方便其他用户找到</li>
@@ -234,13 +236,13 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
           </Card>
 
           <Card className="p-4">
-            <h3 className="font-semibold text-gray-900 mb-3">常用标签</h3>
+            <h3 className="font-semibold text-gray-900 mb-3 text-sm">常用标签</h3>
             <div className="flex flex-wrap gap-2">
               {['React', 'JavaScript', 'TypeScript', 'Node.js', 'CSS', 'Python', 'Vue', 'Angular'].map((tag) => (
                 <Badge
                   key={tag}
                   variant="secondary"
-                  className="cursor-pointer hover:bg-blue-100 hover:text-blue-800"
+                  className="cursor-pointer hover:bg-blue-100 hover:text-blue-800 text-xs"
                   onClick={() => {
                     if (!tags.includes(tag) && tags.length < 5) {
                       setTags([...tags, tag]);
