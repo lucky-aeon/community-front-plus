@@ -4,6 +4,7 @@ import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
 import { Badge } from '@shared/components/ui/Badge';
+import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 
 interface CreatePostPageProps {
   onPostCreated: () => void;
@@ -137,12 +138,12 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {postType === 'article' ? '文章内容' : '问题描述'}
                   </label>
-                  <textarea
-                    placeholder={postType === 'article' ? '请输入文章内容...' : '请详细描述您的问题...'}
+                  <MarkdownEditor
                     value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    rows={12}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+                    onChange={setContent}
+                    height={400}
+                    placeholder={postType === 'article' ? '请输入文章内容...' : '请详细描述您的问题...'}
+                    className="w-full"
                   />
                 </div>
 
@@ -195,10 +196,15 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
                 
                 <h1 className="text-3xl font-bold text-gray-900">{title || '标题预览'}</h1>
                 
-                <div className="prose max-w-none">
-                  <div className="whitespace-pre-wrap text-gray-700">
-                    {content || '内容预览...'}
-                  </div>
+                <div className="markdown-preview">
+                  <MarkdownEditor
+                    value={content || '内容预览...'}
+                    onChange={() => {}} // 预览模式不需要onChange
+                    previewOnly={true}
+                    height={400}
+                    className="w-full"
+                    toolbar={false}
+                  />
                 </div>
                 
                 {tags.length > 0 && (

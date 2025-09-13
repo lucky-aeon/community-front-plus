@@ -1,0 +1,106 @@
+/* MarkdownEditor 自定义样式 */
+.markdown-editor-wrapper .cherry {
+  box-shadow: none !important;
+  border: none !important;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.markdown-editor-wrapper .cherry-toolbar {
+  background: #f8f9fa;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 8px 12px;
+}
+
+.markdown-editor-wrapper .cherry-editor {
+  background: white;
+}
+
+.markdown-editor-wrapper .cherry-previewer {
+  background: white;
+  padding: 16px;
+  line-height: 1.6;
+}
+
+.markdown-editor-wrapper .cherry-previewer h1,
+.markdown-editor-wrapper .cherry-previewer h2,
+.markdown-editor-wrapper .cherry-previewer h3,
+.markdown-editor-wrapper .cherry-previewer h4,
+.markdown-editor-wrapper .cherry-previewer h5,
+.markdown-editor-wrapper .cherry-previewer h6 {
+  color: #1f2937;
+  font-weight: 600;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.markdown-editor-wrapper .cherry-previewer p {
+  color: #374151;
+  margin-bottom: 1em;
+}
+
+.markdown-editor-wrapper .cherry-previewer img {
+  max-width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.markdown-editor-wrapper .cherry-previewer pre {
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 16px;
+  overflow-x: auto;
+}
+
+.markdown-editor-wrapper .cherry-previewer code {
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+.markdown-editor-wrapper .cherry-previewer blockquote {
+  border-left: 4px solid #3b82f6;
+  padding-left: 16px;
+  color: #6b7280;
+  font-style: italic;
+  margin: 1em 0;
+}
+
+.markdown-editor-wrapper .cherry-editor .CodeMirror {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.markdown-editor-wrapper .cherry-editor .CodeMirror-lines {
+  padding: 16px;
+}
+
+/* 工具栏按钮样式 */
+.markdown-editor-wrapper .cherry-toolbar .cherry-toolbar-button {
+  border-radius: 6px;
+  margin: 0 2px;
+  transition: all 0.2s ease;
+}
+
+.markdown-editor-wrapper .cherry-toolbar .cherry-toolbar-button:hover {
+  background-color: #e5e7eb;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .markdown-editor-wrapper .cherry-toolbar {
+    padding: 6px 8px;
+    overflow-x: auto;
+  }
+  
+  .markdown-editor-wrapper .cherry-toolbar::-webkit-scrollbar {
+    height: 2px;
+  }
+  
+  .markdown-editor-wrapper .cherry-toolbar::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 1px;
+  }
+}

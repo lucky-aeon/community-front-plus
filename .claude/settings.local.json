@@ -7,7 +7,13 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(npm run build:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Read(/Users/xhy/FrontProjects/community-front/**)",
+      "Read(/Users/xhy/FrontProjects/community-front/src/components/**)",
+      "Read(/Users/xhy/FrontProjects/community-front/**)",
+      "Bash(npm install:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run lint:*)"
     ],
     "deny": [],
     "ask": []

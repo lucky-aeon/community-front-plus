@@ -1,0 +1,221 @@
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import Cherry from 'cherry-markdown';
+import 'cherry-markdown/dist/cherry-markdown.css';
+import Viewer from 'viewerjs';
+import 'viewerjs/dist/viewer.css';
+import './MarkdownEditor.css';
+
+interface MarkdownEditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  previewOnly?: boolean;
+  height?: string | number;
+  placeholder?: string;
+  toolbar?: boolean | string[];
+  className?: string;
+}
+
+export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
+  value,
+  onChange,
+  previewOnly = false,
+  height = 400,
+  placeholder = '请输入markdown内容...',
+  toolbar = true,
+  className = ''
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cherryInstanceRef = useRef<Cherry | null>(null);
+  const containerIdRef = useRef(`markdown-editor-${Math.random().toString(36).substr(2, 9)}`);
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  // 添加更新来源跟踪，防止循环更新
+  const isUserInputRef = useRef(false);
+  const lastValueRef = useRef(value);
+
+  // 处理图片点击预览
+  const handleImageClick = useCallback((e: Event) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'IMG') {
+      const imgElement = target as HTMLImageElement;
+      const viewer = new Viewer(imgElement, {
+        button: false,
+        navbar: false,
+        title: [
+          1,
+          (image: HTMLImageElement) => {
+            const imageData = {
+              naturalWidth: image.naturalWidth,
+              naturalHeight: image.naturalHeight
+            };
+            return `${image.alt || 'Image'} (${imageData.naturalWidth} × ${imageData.naturalHeight})`;
+          }
+        ],
+        hidden() {
+          viewer.destroy();
+        }
+      });
+      viewer.show();
+    }
+  }, []);
+
+  // 文件上传处理
+  const handleFileUpload = useCallback(async (file: File, callback: (url: string, params?: Record<string, unknown>) => void) => {
+    // 简单的本地文件预览实现
+    // 在实际项目中，这里应该上传到服务器
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      callback(result, {
+        name: file.name.replace(/\.[^.]+$/, ''),
+        isShadow: true,
+        isRadius: true,
+        width: '100%',
+        height: 'auto'
+      });
+    };
+    reader.readAsDataURL(file);
+  }, []);
+
+  // Cherry编辑器配置
+  const getCherryConfig = useCallback(() => {
+    const config = {
+      id: containerIdRef.current,
+      value: '', // 不在配置中设置初始值，避免重新初始化
+      externals: {
+        echarts: (window as unknown as { echarts?: unknown }).echarts,
+        katex: (window as unknown as { katex?: unknown }).katex,
+        MathJax: (window as unknown as { MathJax?: unknown }).MathJax
+      },
+      engine: {
+        global: {
+          urlProcessor: (url: string) => url
+        },
+        syntax: {
+          fontEmphasis: {
+            allowWhitespace: true
+          },
+          mathBlock: {
+            engine: 'MathJax',
+            src: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js'
+          },
+          inlineMath: {
+            engine: 'MathJax'
+          },
+          codeBlock: {
+            expandCode: true
+          }
+        }
+      },
+      toolbars: {
+        showToolbar: toolbar !== false
+      },
+      editor: {
+        defaultModel: previewOnly ? 'previewOnly' : 'editOnly',
+        keepDocumentScrollAfterInit: true,
+        height: typeof height === 'number' ? `${height}px` : height
+      },
+      callback: {
+        onClickPreview: handleImageClick,
+        afterChange: (content: string) => {
+          // 标记为用户输入，防止循环更新
+          isUserInputRef.current = true;
+          lastValueRef.current = content;
+          onChange(content);
+          // 重置标记，允许后续的外部更新
+          setTimeout(() => {
+            isUserInputRef.current = false;
+          }, 0);
+        },
+        afterInit: () => {
+          setIsInitialized(true);
+        }
+      },
+      fileUpload: handleFileUpload
+    };
+
+    // 工具栏配置
+    if (Array.isArray(toolbar)) {
+      if (toolbar.length === 0) {
+        config.toolbars.showToolbar = false;
+      } else {
+        config.toolbars.toolbar = toolbar;
+      }
+    }
+
+    return config;
+  }, [previewOnly, height, placeholder, toolbar, handleImageClick, handleFileUpload]);
+
+  // 初始化Cherry编辑器
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const initEditor = async () => {
+      try {
+        const config = getCherryConfig();
+        cherryInstanceRef.current = new Cherry(config);
+        
+        // 初始化时设置正确的初始值
+        if (value && value !== placeholder) {
+          cherryInstanceRef.current.setValue(value, false);
+          lastValueRef.current = value;
+        }
+      } catch (error) {
+        console.error('Failed to initialize Cherry editor:', error);
+      }
+    };
+
+    initEditor();
+
+    // 清理函数
+    return () => {
+      if (cherryInstanceRef.current) {
+        try {
+          cherryInstanceRef.current.destroy?.();
+        } catch (error) {
+          console.error('Failed to destroy Cherry editor:', error);
+        }
+        cherryInstanceRef.current = null;
+      }
+    };
+  }, [getCherryConfig]);
+
+  // 同步外部value变化（优化逻辑，避免循环更新）
+  useEffect(() => {
+    if (isInitialized && cherryInstanceRef.current && value !== undefined) {
+      // 如果是用户输入引起的变化，跳过setValue
+      if (isUserInputRef.current) {
+        return;
+      }
+      
+      const currentValue = cherryInstanceRef.current.getValue();
+      // 只有当内容真正不同且不是用户刚刚输入的内容时才调用setValue
+      if (currentValue !== value && lastValueRef.current !== value) {
+        cherryInstanceRef.current.setValue(value, false); // 使用false保持光标位置
+        lastValueRef.current = value;
+      }
+    }
+  }, [value, isInitialized]);
+
+  // 同步previewOnly模式变化
+  useEffect(() => {
+    if (isInitialized && cherryInstanceRef.current) {
+      const targetModel = previewOnly ? 'previewOnly' : 'editOnly';
+      cherryInstanceRef.current.switchModel(targetModel);
+    }
+  }, [previewOnly, isInitialized]);
+
+  return (
+    <div 
+      className={`markdown-editor-wrapper ${className}`}
+      style={{ height: typeof height === 'number' ? `${height}px` : height }}
+    >
+      <div 
+        ref={containerRef}
+        id={containerIdRef.current}
+        className="cherry-editor-container w-full h-full rounded-xl border border-gray-300 overflow-hidden"
+        style={{ width: '100%', height: '100%' }}
+      />
+    </div>
+  );
+};
