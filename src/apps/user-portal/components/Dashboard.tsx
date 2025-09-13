@@ -6,7 +6,6 @@ import { CoursesPage } from './CoursesPage';
 import { CreatePostPage } from './CreatePostPage';
 import { PostDetailPage } from './PostDetailPage';
 import { CourseDetailPage } from './CourseDetailPage';
-import { ProfilePage } from './ProfilePage';
 import { UserBackend } from '../../user-backend/components/UserBackend';
 
 export const Dashboard: React.FC = () => {
@@ -40,8 +39,6 @@ export const Dashboard: React.FC = () => {
         return <DiscussionsPage onPostClick={setSelectedPost} />;
       case 'courses':
         return <CoursesPage onCourseClick={setSelectedCourse} />;
-      case 'profile':
-        return <ProfilePage />;
       default:
         return <HomePage onPostClick={setSelectedPost} onCourseClick={setSelectedCourse} />;
     }

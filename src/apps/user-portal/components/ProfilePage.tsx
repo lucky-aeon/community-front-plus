@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Mail, Calendar, Crown, Edit, Save, X, CreditCard, Clock, CheckCircle } from 'lucide-react';
+import { User, Mail, Calendar, Crown, Edit, Save, X, CreditCard, CheckCircle } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { Badge } from '@shared/components/ui/Badge';
 import { Button } from '@shared/components/ui/Button';
@@ -244,24 +244,6 @@ export const ProfilePage: React.FC = () => {
             )}
           </Card>
 
-          {/* Quick Actions */}
-          <Card className="p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">快捷操作</h2>
-            <div className="space-y-3">
-              <Button variant="outline" className="w-full justify-start">
-                <Clock className="h-4 w-4 mr-3" />
-                学习历史
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <CheckCircle className="h-4 w-4 mr-3" />
-                我的证书
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                <CreditCard className="h-4 w-4 mr-3" />
-                账单记录
-              </Button>
-            </div>
-          </Card>
         </div>
       </div>
     </div>

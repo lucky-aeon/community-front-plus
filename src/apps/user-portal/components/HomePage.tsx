@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, MessageSquare, Heart, TrendingUp, BookOpen, Users } from 'lucide-react';
+import { Clock, MessageSquare, Heart } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { Badge } from '@shared/components/ui/Badge';
 import { posts, courses, comments } from '@shared/constants/mockData';
@@ -31,63 +31,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onPostClick, onCourseClick }
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">社区首页</h1>
-        <p className="text-gray-600">欢迎回到 EduElite 学习社区</p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="bg-blue-100 p-3 rounded-xl">
-              <TrendingUp className="h-6 w-6 text-blue-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-2xl font-bold text-gray-900">1,234</p>
-              <p className="text-sm text-gray-600">今日活跃用户</p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="bg-green-100 p-3 rounded-xl">
-              <MessageSquare className="h-6 w-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-2xl font-bold text-gray-900">89</p>
-              <p className="text-sm text-gray-600">今日新讨论</p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="bg-purple-100 p-3 rounded-xl">
-              <BookOpen className="h-6 w-6 text-purple-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-2xl font-bold text-gray-900">12</p>
-              <p className="text-sm text-gray-600">新增课程</p>
-            </div>
-          </div>
-        </Card>
-        
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="bg-orange-100 p-3 rounded-xl">
-              <Users className="h-6 w-6 text-orange-600" />
-            </div>
-            <div className="ml-4">
-              <p className="text-2xl font-bold text-gray-900">5,678</p>
-              <p className="text-sm text-gray-600">社区成员</p>
-            </div>
-          </div>
-        </Card>
-      </div>
-
+    <div className="pt-12 p-6 max-w-7xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Latest Articles */}
         <div className="lg:col-span-2">
