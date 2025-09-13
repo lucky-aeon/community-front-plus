@@ -79,7 +79,7 @@ export const MyArticlesPage: React.FC = () => {
               <h1 className="text-2xl font-bold text-gray-900">我的文章</h1>
               <p className="text-gray-600 mt-1">管理你发布的所有文章内容</p>
             </div>
-            <Button className="flex items-center space-x-2" onClick={() => setIsWriting(true)}>
+            <Button variant="primary" useCustomTheme={true} className="flex items-center space-x-2" onClick={() => setIsWriting(true)}>
               <Plus className="h-4 w-4" />
               <span>写文章</span>
             </Button>
@@ -169,13 +169,13 @@ export const MyArticlesPage: React.FC = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2 ml-4">
-                    <Button variant="outline" size="sm">
+                    <Button variant="neutral" size="sm">
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button variant="neutral" size="sm">
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                    <Button variant="danger" size="sm">
                       <Trash2 className="h-4 w-4" />
                     </Button>
                     <Button variant="ghost" size="sm">
@@ -190,11 +190,11 @@ export const MyArticlesPage: React.FC = () => {
           {/* 分页 */}
           <div className="flex justify-center">
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" disabled>上一页</Button>
-              <Button variant="outline" size="sm">1</Button>
-              <Button size="sm">2</Button>
-              <Button variant="outline" size="sm">3</Button>
-              <Button variant="outline" size="sm">下一页</Button>
+              <Button variant="neutral" size="sm" disabled>上一页</Button>
+              <Button variant="neutral" size="sm">1</Button>
+              <Button variant="primary" useCustomTheme={true} size="sm">2</Button>
+              <Button variant="neutral" size="sm">3</Button>
+              <Button variant="neutral" size="sm">下一页</Button>
             </div>
           </div>
         </>

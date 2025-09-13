@@ -131,6 +131,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
             <Button
               type="submit"
+              variant="primary"
+              useCustomTheme={true}
               className="w-full"
               size="lg"
               isLoading={isLoading}

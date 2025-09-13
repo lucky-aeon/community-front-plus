@@ -55,13 +55,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           {!isCollapsed && (
             <div className="flex items-center space-x-2">
               <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded" />
-              <h1 className="text-xl font-bold text-yellow-600">
+              <h1 className="text-xl font-bold text-yellow-400">
                 敲鸭
               </h1>
             </div>
           )}
           {isCollapsed && (
-            <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded mx-auto" />
+            <div className="flex justify-center">
+              <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded flex-shrink-0 object-contain" />
+            </div>
           )}
           <button
             onClick={() => setIsSidebarOpen(false)}

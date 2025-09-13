@@ -41,6 +41,8 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
 
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
               <Button 
+                variant="primary"
+                useCustomTheme={true}
                 size="lg" 
                 onClick={onGetStarted}
                 className="text-lg px-8 py-4"
@@ -48,7 +50,7 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
                 {user ? 'Browse Courses' : 'Get Started Today'}
               </Button>
               <Button 
-                variant="outline" 
+                variant="neutral" 
                 size="lg"
                 className="text-lg px-8 py-4 group"
               >

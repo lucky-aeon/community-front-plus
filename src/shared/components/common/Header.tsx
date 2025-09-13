@@ -41,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded" />
-            <h1 className="text-2xl font-bold text-yellow-600">
+            <h1 className="text-2xl font-bold text-yellow-400">
               敲鸭
             </h1>
           </div>
@@ -85,7 +85,7 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
                 </Button>
               </div>
             ) : (
-              <Button onClick={onAuthClick} className="hidden sm:flex">
+              <Button onClick={onAuthClick} variant="primary" useCustomTheme={true} className="hidden sm:flex">
                 <User className="h-4 w-4 mr-2" />
                 Login / Register
               </Button>
@@ -121,6 +121,8 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
                     onAuthClick();
                     setIsMenuOpen(false);
                   }}
+                  variant="primary"
+                  useCustomTheme={true}
                   className="mt-4"
                 >
                   <User className="h-4 w-4 mr-2" />
