@@ -51,7 +51,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         ${isCollapsed ? 'w-16' : 'w-64'}
       `}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+        <div className={`flex items-center h-16 border-b border-gray-200 ${
+          isCollapsed 
+            ? 'justify-center px-2' 
+            : 'justify-between px-6'
+        }`}>
           {!isCollapsed && (
             <div className="flex items-center space-x-2">
               <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded" />
@@ -61,13 +65,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </div>
           )}
           {isCollapsed && (
-            <div className="flex justify-center">
-              <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded flex-shrink-0 object-contain" />
-            </div>
+            <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded flex-shrink-0 object-contain" />
           )}
           <button
             onClick={() => setIsSidebarOpen(false)}
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+            className={`lg:hidden p-2 rounded-lg hover:bg-gray-100 ${isCollapsed ? 'hidden' : ''}`}
           >
             <X className="h-5 w-5" />
           </button>
