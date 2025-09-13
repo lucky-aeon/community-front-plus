@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { useAuth } from './context/AuthContext';
 import { Header } from '@shared/components/common/Header';
 import { Hero } from '@apps/marketing/components/Hero';
@@ -39,10 +40,8 @@ const AppContent: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2">
               <div className="flex items-center space-x-2 mb-4">
-                <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-xl">
-                  <span className="text-white font-bold text-lg">E</span>
-                </div>
-                <h3 className="text-2xl font-bold">EduElite</h3>
+                <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded" />
+                <h3 className="text-2xl font-bold">敲鸭</h3>
               </div>
               <p className="text-gray-400 mb-4">
                 Empowering professionals worldwide with premium courses and expert mentorship.
@@ -85,7 +84,9 @@ const AppContent: React.FC = () => {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
     </AuthProvider>
   );
 }

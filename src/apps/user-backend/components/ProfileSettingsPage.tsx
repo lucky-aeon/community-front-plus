@@ -61,7 +61,7 @@ export const ProfileSettingsPage: React.FC = () => {
                     alt={user?.name}
                     className="w-20 h-20 rounded-full object-cover"
                   />
-                  <button className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 shadow-lg hover:bg-blue-700 transition-colors">
+                  <button className="absolute bottom-0 right-0 bg-orange-500 text-white rounded-full p-2 shadow-lg hover:bg-orange-600 transition-colors">
                     <Camera className="h-4 w-4" />
                   </button>
                 </div>

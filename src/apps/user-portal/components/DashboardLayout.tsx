@@ -30,7 +30,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
     switch (tier) {
       case 'basic': return 'bg-blue-100 text-blue-800';
       case 'premium': return 'bg-purple-100 text-purple-800';
-      case 'vip': return 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white';
+      case 'vip': return 'bg-yellow-200 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -54,18 +54,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           {!isCollapsed && (
             <div className="flex items-center space-x-2">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-xl">
-                <BookOpen className="h-6 w-6 text-white" />
-              </div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                EduElite
+              <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded" />
+              <h1 className="text-xl font-bold text-yellow-600">
+                敲鸭
               </h1>
             </div>
           )}
           {isCollapsed && (
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-xl mx-auto">
-              <BookOpen className="h-6 w-6 text-white" />
-            </div>
+            <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded mx-auto" />
           )}
           <button
             onClick={() => setIsSidebarOpen(false)}
@@ -141,11 +137,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 setIsSidebarOpen(false);
               }}
               className={`
-                w-full flex items-center text-sm font-medium rounded-xl transition-colors duration-200 mb-1
+                w-full flex items-center text-sm font-medium rounded-xl transition-all duration-200 mb-1
                 ${isCollapsed ? 'px-2 py-3 justify-center' : 'px-3 py-3'}
                 ${activeTab === item.id
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'bg-gray-50 text-gray-900 border-l-4 border-yellow-400'
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-l-4 border-transparent'
                 }
               `}
               title={isCollapsed ? item.name : undefined}

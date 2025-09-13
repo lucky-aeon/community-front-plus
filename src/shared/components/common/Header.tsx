@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, BookOpen, Menu, X, LogOut } from 'lucide-react';
+import { User, Menu, X, LogOut } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { Button } from '../ui/Button';
 
@@ -40,11 +40,9 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-xl">
-              <BookOpen className="h-6 w-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              EduElite
+            <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded" />
+            <h1 className="text-2xl font-bold text-yellow-600">
+              敲鸭
             </h1>
           </div>
 

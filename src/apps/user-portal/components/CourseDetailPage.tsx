@@ -282,7 +282,7 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ courseId, on
           <Card className="p-6">
             <h3 className="font-semibold text-gray-900 mb-4">讲师信息</h3>
             <div className="flex items-center space-x-3 mb-4">
-              <div className="h-12 w-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+              <div className="h-12 w-12 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center">
                 <span className="text-white font-semibold text-lg">
                   {course.instructor.charAt(0)}
                 </span>

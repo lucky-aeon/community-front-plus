@@ -1,10 +1,12 @@
 import React from 'react';
 import { cn } from '../../utils/cn';
+import { useTheme } from '../../../context/ThemeContext';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   isLoading?: boolean;
+  useCustomTheme?: boolean; // 新增：控制是否使用自定义主题
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -14,16 +16,38 @@ export const Button: React.FC<ButtonProps> = ({
   size = 'md',
   isLoading = false,
   disabled,
+  useCustomTheme = true,
   ...props
 }) => {
+  // 始终调用 useTheme hook，但允许在非Provider环境中使用
+  const theme = useTheme();
+  
   const baseClasses = 'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
   
-  const variants = {
-    primary: 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl focus:ring-blue-500',
+  // 默认样式（原有的样式）
+  const defaultVariants = {
+    primary: 'bg-gradient-to-r from-yellow-400 to-orange-400 hover:from-yellow-500 hover:to-orange-500 text-white shadow-lg hover:shadow-xl focus:ring-yellow-500',
     secondary: 'bg-gray-100 hover:bg-gray-200 text-gray-900 focus:ring-gray-500',
     outline: 'border-2 border-gray-300 hover:border-gray-400 text-gray-700 hover:bg-gray-50 focus:ring-gray-500',
     ghost: 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:ring-gray-500'
   };
+
+  // 从主题Context获取样式
+  const getThemeVariants = () => {
+    if (!theme?.currentVariant || !useCustomTheme) {
+      return defaultVariants;
+    }
+
+    const currentVariant = theme.currentVariant;
+    return {
+      primary: currentVariant.primary || defaultVariants.primary,
+      secondary: currentVariant.secondary || defaultVariants.secondary,
+      outline: currentVariant.outline || defaultVariants.outline,
+      ghost: currentVariant.ghost || defaultVariants.ghost
+    };
+  };
+
+  const variants = getThemeVariants();
   
   const sizes = {
     sm: 'px-4 py-2 text-sm',
