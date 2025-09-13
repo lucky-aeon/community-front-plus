@@ -140,18 +140,23 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 setIsSidebarOpen(false);
               }}
               className={`
-                w-full flex items-center text-sm font-medium rounded-xl transition-all duration-200 mb-1
-                ${isCollapsed ? 'px-2 py-3 justify-center' : 'px-3 py-3'}
+                w-full flex items-center justify-between text-sm font-medium rounded-lg transition-all duration-200 mb-1
+                ${isCollapsed ? 'px-2 py-3' : 'px-3 py-3'}
                 ${activeTab === item.id
-                  ? 'bg-gray-50 text-gray-900 border-l-4 border-yellow-400'
+                  ? 'bg-yellow-50 text-yellow-800 border-l-4 border-yellow-400'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-l-4 border-transparent'
                 }
               `}
               title={isCollapsed ? item.name : undefined}
             >
-              <item.icon className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'}`} />
-              {!isCollapsed && (
-                <span>{item.name}</span>
+              <div className="flex items-center">
+                <item.icon className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'}`} />
+                {!isCollapsed && (
+                  <span>{item.name}</span>
+                )}
+              </div>
+              {!isCollapsed && activeTab === item.id && (
+                <ChevronRight className="h-4 w-4" />
               )}
             </button>
           ))}

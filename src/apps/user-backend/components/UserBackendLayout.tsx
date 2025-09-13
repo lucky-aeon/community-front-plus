@@ -148,7 +148,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
                   className={`
                     w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 mb-1
                     ${activeTab === item.id
-                      ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-700'
+                      ? 'bg-yellow-50 text-yellow-800 border-l-4 border-yellow-400'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }
                   `}
