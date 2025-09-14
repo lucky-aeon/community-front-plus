@@ -1,8 +1,8 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
-// API 基础配置
-export const API_BASE_URL = 'http://127.0.0.1:8080/api';
+// API 基础配置 - 使用相对路径让Vite代理处理
+export const API_BASE_URL = '/api';
 
 // 创建 axios 实例
 export const apiClient = axios.create({

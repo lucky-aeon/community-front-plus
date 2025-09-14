@@ -35,7 +35,8 @@
       "mcp__playwright__browser_hover",
       "mcp__playwright__browser_console_messages",
       "mcp__playwright__browser_type",
-      "Bash(lsof:*)"
+      "Bash(lsof:*)",
+      "WebFetch(domain:s.apifox.cn)"
     ],
     "deny": [],
     "ask": []

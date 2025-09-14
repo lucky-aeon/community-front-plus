@@ -1,14 +1,20 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const location = useLocation();
+
+  // 如果正在加载用户状态，显示加载动画
+  if (isLoading) {
+    return <LoadingSpinner text="验证用户身份中..." />;
+  }
 
   // 如果用户未登录，重定向到首页
   if (!user) {
@@ -23,7 +29,12 @@ interface PublicOnlyRouteProps {
 }
 
 export const PublicOnlyRoute: React.FC<PublicOnlyRouteProps> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
+
+  // 如果正在加载用户状态，显示加载动画
+  if (isLoading) {
+    return <LoadingSpinner text="加载中..." />;
+  }
 
   // 如果用户已登录，重定向到Dashboard
   if (user) {

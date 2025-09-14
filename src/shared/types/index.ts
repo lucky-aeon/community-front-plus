@@ -156,3 +156,43 @@ export interface LoginResponse {
   token: string;
   user: BackendUser;
 }
+
+// 创建文章请求参数
+export interface CreatePostRequest {
+  title: string;          // 文章标题 (必填, 5-200字符)
+  content: string;        // 文章内容 (必填, 最少10个字符, 支持Markdown)
+  summary?: string;       // 文章概要 (可选, 最多500字符)
+  coverImage?: string;    // 封面图片URL (可选, 最多500字符)
+  categoryId: string;     // 分类ID (必填, 必须是有效的分类UUID)
+}
+
+// 文章分类
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  parentId?: string;        // 父分类ID
+  type: 'ARTICLE' | 'QA';   // 分类类型
+  level: number;            // 分类层级
+  sortOrder: number;        // 排序值
+  icon?: string;            // 图标
+  isActive: boolean;        // 是否激活
+  createTime: string;       // 创建时间
+  updateTime: string;       // 更新时间
+  children?: Category[];    // 子分类（树形结构）
+}
+
+// 创建文章响应
+export interface CreatePostResponse {
+  id: string;
+  title: string;
+  content: string;
+  summary?: string;
+  coverImage?: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  categoryId: string;
+  category?: Category;
+  authorId: string;
+  createdAt: string;
+  updatedAt: string;
+}

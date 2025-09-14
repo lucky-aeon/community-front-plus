@@ -3,8 +3,14 @@ import { ArrowLeft, Save, Eye, Hash, FileText, HelpCircle } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
+import { Textarea } from '@shared/components/ui/Textarea';
+import { ImageUpload } from '@shared/components/ui/ImageUpload';
 import { Badge } from '@shared/components/ui/Badge';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { CategorySelect } from '@shared/components/ui/CategorySelect';
+import { PostsService } from '@shared/services/api/posts.service';
+import { CreatePostRequest } from '@shared/types';
+import { showToast } from '@shared/components/ui/Toast';
 
 interface CreatePostPageProps {
   onPostCreated: () => void;
@@ -14,9 +20,14 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
   const [postType, setPostType] = useState<'article' | 'question'>('article');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [summary, setSummary] = useState('');
+  const [coverImage, setCoverImage] = useState('');
+  const [categoryId, setCategoryId] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [isPreview, setIsPreview] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim()) && tags.length < 5) {
@@ -29,11 +40,70 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
     setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
-  const handleSubmit = () => {
-    if (title.trim() && content.trim()) {
-      // Here you would typically save the post to your backend
-      console.log('Creating post:', { postType, title, content, tags });
+  // 表单验证
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+
+    // 标题验证
+    if (!title.trim()) {
+      newErrors.title = '请输入标题';
+    } else if (title.trim().length < 5) {
+      newErrors.title = '标题至少需要5个字符';
+    } else if (title.trim().length > 200) {
+      newErrors.title = '标题最多200个字符';
+    }
+
+    // 内容验证
+    if (!content.trim()) {
+      newErrors.content = '请输入内容';
+    } else if (content.trim().length < 10) {
+      newErrors.content = '内容至少需要10个字符';
+    }
+
+    // 分类验证
+    if (!categoryId) {
+      newErrors.categoryId = '请选择文章分类';
+    }
+
+    // 概要验证（可选但有长度限制）
+    if (summary.trim().length > 500) {
+      newErrors.summary = '概要最多500个字符';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      showToast.error('请检查表单信息');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      
+      const createPostParams: CreatePostRequest = {
+        title: title.trim(),
+        content: content.trim(),
+        categoryId,
+        ...(summary.trim() && { summary: summary.trim() }),
+        ...(coverImage.trim() && { coverImage: coverImage.trim() }),
+      };
+
+      const createdPost = await PostsService.createPost(createPostParams);
+      
+      showToast.success(`${postType === 'article' ? '文章' : '问题'}发布成功！`);
+      console.log('文章创建成功:', createdPost);
+      
+      // 返回到列表页面
       onPostCreated();
+      
+    } catch (error) {
+      console.error('创建文章失败:', error);
+      showToast.error('发布失败，请稍后再试');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -61,29 +131,11 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
             <p className="text-gray-600">分享您的知识和经验</p>
           </div>
         </div>
-        
-        <div className="flex items-center space-x-3">
-          <Button
-            variant="outline"
-            onClick={() => setIsPreview(!isPreview)}
-            className="flex items-center space-x-2"
-          >
-            <Eye className="h-4 w-4" />
-            <span>{isPreview ? '编辑' : '预览'}</span>
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={!title.trim() || !content.trim()}
-            className="flex items-center space-x-2"
-          >
-            <Save className="h-4 w-4" />
-            <span>发布</span>
-          </Button>
-        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-        <div className="lg:col-span-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* 左侧主编辑区 */}
+        <div className="lg:col-span-2">
           <Card className="p-6">
             {!isPreview ? (
               <div className="space-y-6">
@@ -130,14 +182,22 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     className="text-lg"
+                    error={errors.title}
+                    required
                   />
                 </div>
 
                 {/* Content */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {postType === 'article' ? '文章内容' : '问题描述'}
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-medium text-gray-700">
+                      {postType === 'article' ? '文章内容' : '问题描述'}
+                      <span className="text-red-500 ml-1">*</span>
+                    </label>
+                    {errors.content && (
+                      <span className="text-sm text-red-600">{errors.content}</span>
+                    )}
+                  </div>
                   <MarkdownEditor
                     value={content}
                     onChange={setContent}
@@ -146,43 +206,6 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
                     className="w-full"
                     enableFullscreen={true}
                   />
-                </div>
-
-                {/* Tags */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    标签 (最多5个)
-                  </label>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {tags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant="secondary"
-                        className="flex items-center space-x-1 cursor-pointer hover:bg-red-100 hover:text-red-800"
-                        onClick={() => handleRemoveTag(tag)}
-                      >
-                        <Hash className="h-3 w-3" />
-                        <span>{tag}</span>
-                        <span className="ml-1">×</span>
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex space-x-2">
-                    <Input
-                      placeholder="添加标签..."
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      disabled={tags.length >= 5}
-                    />
-                    <Button
-                      variant="outline"
-                      onClick={handleAddTag}
-                      disabled={!tagInput.trim() || tags.length >= 5}
-                    >
-                      添加
-                    </Button>
-                  </div>
                 </div>
               </div>
             ) : (
@@ -223,37 +246,121 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
           </Card>
         </div>
 
-        {/* Sidebar */}
-        <div className="space-y-6">
-          <Card className="p-4">
-            <h3 className="font-semibold text-gray-900 mb-3 text-sm">发布指南</h3>
-            <ul className="space-y-2 text-xs text-gray-600">
-              <li>• 标题要简洁明了，突出重点</li>
-              <li>• 内容要详细具体，便于理解</li>
-              <li>• 添加相关标签，方便其他用户找到</li>
-              <li>• 遵守社区规范，友善交流</li>
-            </ul>
-          </Card>
-
-          <Card className="p-4">
-            <h3 className="font-semibold text-gray-900 mb-3 text-sm">常用标签</h3>
-            <div className="flex flex-wrap gap-2">
-              {['React', 'JavaScript', 'TypeScript', 'Node.js', 'CSS', 'Python', 'Vue', 'Angular'].map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="secondary"
-                  className="cursor-pointer hover:bg-blue-100 hover:text-blue-800 text-xs"
-                  onClick={() => {
-                    if (!tags.includes(tag) && tags.length < 5) {
-                      setTags([...tags, tag]);
-                    }
-                  }}
+        {/* 右侧边栏 */}
+        <div className="lg:col-span-1">
+          <div className="sticky top-6 space-y-4">
+            {/* 发布操作 */}
+            <Card className="p-4">
+              <div className="space-y-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsPreview(!isPreview)}
+                  className="w-full flex items-center justify-center space-x-2"
                 >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          </Card>
+                  <Eye className="h-4 w-4" />
+                  <span>{isPreview ? '编辑' : '预览'}</span>
+                </Button>
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !title.trim() || !content.trim() || !categoryId}
+                  className="w-full flex items-center justify-center space-x-2"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>{isSubmitting ? '发布中...' : '发布'}</span>
+                </Button>
+              </div>
+            </Card>
+
+            {/* 文章分类 */}
+            <Card className="p-4">
+              <CategorySelect
+                label="文章分类"
+                value={categoryId}
+                onChange={(newCategoryId) => {
+                  setCategoryId(newCategoryId);
+                  // 清除分类相关的错误
+                  if (errors.categoryId) {
+                    setErrors(prev => ({ ...prev, categoryId: '' }));
+                  }
+                }}
+                error={errors.categoryId}
+                required
+                categoryType={postType === 'article' ? 'ARTICLE' : 'QA'}
+                className="w-full"
+              />
+            </Card>
+
+            {/* 文章概要 */}
+            <Card className="p-4">
+              <Textarea
+                label="文章概要"
+                placeholder="请输入文章概要（可选，用于文章列表展示）..."
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
+                error={errors.summary}
+                maxLength={500}
+                showCharCount={true}
+                autoResize={true}
+                minRows={2}
+                maxRows={4}
+              />
+            </Card>
+
+            {/* 封面图片 */}
+            <Card className="p-4">
+              <ImageUpload
+                label="封面图片"
+                value={coverImage}
+                onChange={setCoverImage}
+                error={errors.coverImage}
+                placeholder="上传文章封面图片（可选）"
+                showPreview={true}
+                previewSize="md"
+                onError={(error) => setErrors(prev => ({ ...prev, coverImage: error }))}
+              />
+            </Card>
+
+            {/* 标签管理 */}
+            <Card className="p-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  标签 (最多5个)
+                </label>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {tags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant="secondary"
+                      className="flex items-center space-x-1 cursor-pointer hover:bg-red-100 hover:text-red-800 text-xs"
+                      onClick={() => handleRemoveTag(tag)}
+                    >
+                      <Hash className="h-3 w-3" />
+                      <span>{tag}</span>
+                      <span className="ml-1">×</span>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="space-y-2">
+                  <Input
+                    placeholder="添加标签..."
+                    value={tagInput}
+                    onChange={(e) => setTagInput(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    disabled={tags.length >= 5}
+                    className="text-sm"
+                  />
+                  <Button
+                    variant="outline"
+                    onClick={handleAddTag}
+                    disabled={!tagInput.trim() || tags.length >= 5}
+                    className="w-full text-sm"
+                  >
+                    添加标签
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
