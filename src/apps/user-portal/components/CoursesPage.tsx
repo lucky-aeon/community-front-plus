@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BookOpen, Search, Filter, Play, Clock, Star, Users, Crown, Lock } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { Badge } from '@shared/components/ui/Badge';
@@ -6,14 +7,16 @@ import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
 import { useAuth } from '../../../context/AuthContext';
 import { courses } from '@shared/constants/mockData';
+import { routeUtils } from '@shared/routes/routes';
 
-interface CoursesPageProps {
-  onCourseClick: (courseId: string) => void;
-}
-
-export const CoursesPage: React.FC<CoursesPageProps> = ({ onCourseClick }) => {
+export const CoursesPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+
+  const handleCourseClick = (courseId: string) => {
+    navigate(routeUtils.getCourseDetailRoute(courseId));
+  };
 
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -124,7 +127,7 @@ export const CoursesPage: React.FC<CoursesPageProps> = ({ onCourseClick }) => {
       {/* Courses Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredCourses.map((course) => (
-          <Card key={course.id} hover className="overflow-hidden cursor-pointer" onClick={() => onCourseClick(course.id)}>
+          <Card key={course.id} hover className="overflow-hidden cursor-pointer" onClick={() => handleCourseClick(course.id)}>
             <div className="relative">
               <img
                 src={course.thumbnail}
@@ -207,7 +210,7 @@ export const CoursesPage: React.FC<CoursesPageProps> = ({ onCourseClick }) => {
                 disabled={!canAccess(course)}
                 onClick={(e) => {
                   e.stopPropagation();
-                  onCourseClick(course.id);
+                  handleCourseClick(course.id);
                 }}
               >
                 {canAccess(course) 

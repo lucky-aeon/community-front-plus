@@ -1,59 +1,43 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { DashboardLayout } from './DashboardLayout';
 import { HomePage } from './HomePage';
 import { DiscussionsPage } from './DiscussionsPage';
 import { CoursesPage } from './CoursesPage';
 import { ChangelogPage } from './ChangelogPage';
-import { CreatePostPage } from './CreatePostPage';
 import { PostDetailPage } from './PostDetailPage';
 import { CourseDetailPage } from './CourseDetailPage';
 import { UserBackend } from '../../user-backend/components/UserBackend';
 
 export const Dashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState('home');
-  const [selectedPost, setSelectedPost] = useState<string | null>(null);
-  const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
-  const [isUserBackend, setIsUserBackend] = useState(false);
-
-  // 如果在用户后台模式，显示用户后台
-  if (isUserBackend) {
-    return (
-      <UserBackend 
-        onBackToFrontend={() => setIsUserBackend(false)} 
-      />
-    );
-  }
-
-  const renderContent = () => {
-    if (selectedPost) {
-      return <PostDetailPage postId={selectedPost} onBack={() => setSelectedPost(null)} onPostClick={setSelectedPost} />;
-    }
-    
-    if (selectedCourse) {
-      return <CourseDetailPage courseId={selectedCourse} onBack={() => setSelectedCourse(null)} />;
-    }
-    
-    switch (activeTab) {
-      case 'home':
-        return <HomePage onPostClick={setSelectedPost} onCourseClick={setSelectedCourse} />;
-      case 'discussions':
-        return <DiscussionsPage onPostClick={setSelectedPost} />;
-      case 'courses':
-        return <CoursesPage onCourseClick={setSelectedCourse} />;
-      case 'changelog':
-        return <ChangelogPage />;
-      default:
-        return <HomePage onPostClick={setSelectedPost} onCourseClick={setSelectedCourse} />;
-    }
-  };
-
   return (
-    <DashboardLayout 
-      activeTab={activeTab} 
-      onTabChange={setActiveTab}
-      onEnterUserBackend={() => setIsUserBackend(true)}
-    >
-      {renderContent()}
-    </DashboardLayout>
+    <Routes>
+      {/* 用户后台路由 - 独立布局 */}
+      <Route path="/user-backend/*" element={<UserBackend />} />
+      
+      {/* 其他路由使用 DashboardLayout */}
+      <Route 
+        path="/*" 
+        element={
+          <DashboardLayout>
+            <Routes>
+              {/* 默认重定向到首页 */}
+              <Route path="/" element={<Navigate to="/dashboard/home" replace />} />
+              
+              {/* 主要页面路由 */}
+              <Route path="/home" element={<HomePage />} />
+              <Route path="/discussions" element={<DiscussionsPage />} />
+              <Route path="/discussions/:postId" element={<PostDetailPage />} />
+              <Route path="/courses" element={<CoursesPage />} />
+              <Route path="/courses/:courseId" element={<CourseDetailPage />} />
+              <Route path="/changelog" element={<ChangelogPage />} />
+              
+              {/* 404 处理 */}
+              <Route path="*" element={<Navigate to="/dashboard/home" replace />} />
+            </Routes>
+          </DashboardLayout>
+        } 
+      />
+    </Routes>
   );
 };

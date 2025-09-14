@@ -1,30 +1,38 @@
 import React, { useState } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Home, MessageSquare, BookOpen, Menu, X, ChevronLeft, ChevronRight, PenTool, Settings, FileText } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
+import { navigationConfig } from '@shared/routes/routes';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-  onEnterUserBackend?: () => void;
 }
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
-  children,
-  activeTab,
-  onTabChange,
-  onEnterUserBackend
+  children
 }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const navigation = [
-    { id: 'home', name: '首页', icon: Home },
-    { id: 'discussions', name: '讨论', icon: MessageSquare },
-    { id: 'courses', name: '课程', icon: BookOpen },
-    { id: 'changelog', name: '更新日志', icon: FileText }
-  ];
+  // 映射图标组件
+  const iconMap = {
+    Home,
+    MessageSquare,
+    BookOpen,
+    FileText
+  };
+
+  const navigation = navigationConfig.map(item => ({
+    ...item,
+    icon: iconMap[item.icon as keyof typeof iconMap]
+  }));
+
+  const handleUserBackendClick = () => {
+    navigate('/dashboard/user-backend');
+  };
 
   const getMembershipColor = (tier: string) => {
     switch (tier) {
@@ -106,10 +114,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           </div>
           
           {/* 用户中心按钮 */}
-          {!isCollapsed && onEnterUserBackend && (
+          {!isCollapsed && (
             <div className="mt-4">
               <button
-                onClick={onEnterUserBackend}
+                onClick={handleUserBackendClick}
                 className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
               >
                 <Settings className="h-4 w-4 mr-2" />
@@ -118,10 +126,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             </div>
           )}
           
-          {isCollapsed && onEnterUserBackend && (
+          {isCollapsed && (
             <div className="mt-2">
               <button
-                onClick={onEnterUserBackend}
+                onClick={handleUserBackendClick}
                 className="w-full flex items-center justify-center p-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
                 title="用户中心"
               >
@@ -134,32 +142,34 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
         {/* Navigation */}
         <nav className={`mt-6 ${isCollapsed ? 'px-2' : 'px-3'}`}>
           {navigation.map((item) => (
-            <button
+            <NavLink
               key={item.id}
-              onClick={() => {
-                onTabChange(item.id);
-                setIsSidebarOpen(false);
-              }}
-              className={`
+              to={item.path}
+              onClick={() => setIsSidebarOpen(false)}
+              className={({ isActive }) => `
                 w-full flex items-center justify-between text-sm font-medium rounded-lg transition-all duration-200 mb-1
                 ${isCollapsed ? 'px-2 py-3' : 'px-3 py-3'}
-                ${activeTab === item.id
+                ${isActive
                   ? 'bg-yellow-50 text-yellow-800 border-l-4 border-yellow-400'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-l-4 border-transparent'
                 }
               `}
               title={isCollapsed ? item.name : undefined}
             >
-              <div className="flex items-center">
-                <item.icon className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'}`} />
-                {!isCollapsed && (
-                  <span>{item.name}</span>
-                )}
-              </div>
-              {!isCollapsed && activeTab === item.id && (
-                <ChevronRight className="h-4 w-4" />
+              {({ isActive }) => (
+                <>
+                  <div className="flex items-center">
+                    <item.icon className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'}`} />
+                    {!isCollapsed && (
+                      <span>{item.name}</span>
+                    )}
+                  </div>
+                  {!isCollapsed && isActive && (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </>
               )}
-            </button>
+            </NavLink>
           ))}
         </nav>
       </div>

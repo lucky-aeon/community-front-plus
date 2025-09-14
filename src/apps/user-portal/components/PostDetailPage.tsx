@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, MessageSquare, Share2, Bookmark, Flag, CheckCircle } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
@@ -6,18 +7,24 @@ import { Badge } from '@shared/components/ui/Badge';
 import { Input } from '@shared/components/ui/Input';
 import { posts, comments } from '@shared/constants/mockData';
 import { useAuth } from '../../../context/AuthContext';
+import { routeUtils } from '@shared/routes/routes';
 
-interface PostDetailPageProps {
-  postId: string;
-  onBack: () => void;
-  onPostClick?: (postId: string) => void;
-}
-
-export const PostDetailPage: React.FC<PostDetailPageProps> = ({ postId, onBack, onPostClick }) => {
+export const PostDetailPage: React.FC = () => {
+  const { postId } = useParams<{ postId: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [newComment, setNewComment] = useState('');
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+
+  if (!postId) {
+    return (
+      <div className="p-6 text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">文章ID缺失</h2>
+        <Button onClick={() => navigate('/dashboard/discussions')}>返回讨论区</Button>
+      </div>
+    );
+  }
 
   const post = posts.find(p => p.id === postId);
   const postComments = comments.filter(c => c.postId === postId);
@@ -26,7 +33,7 @@ export const PostDetailPage: React.FC<PostDetailPageProps> = ({ postId, onBack, 
     return (
       <div className="p-6 text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">文章未找到</h2>
-        <Button onClick={onBack}>返回</Button>
+        <Button onClick={() => navigate(-1)}>返回</Button>
       </div>
     );
   }
@@ -64,7 +71,7 @@ export const PostDetailPage: React.FC<PostDetailPageProps> = ({ postId, onBack, 
       <div className="flex items-center space-x-4 mb-6">
         <Button
           variant="ghost"
-          onClick={onBack}
+          onClick={() => navigate(-1)}
           className="flex items-center space-x-2"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -115,7 +122,7 @@ export const PostDetailPage: React.FC<PostDetailPageProps> = ({ postId, onBack, 
                 <div 
                   key={relatedPost.id} 
                   className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                  onClick={() => onPostClick?.(relatedPost.id)}
+                  onClick={() => navigate(routeUtils.getPostDetailRoute(relatedPost.id))}
                 >
                   <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
                     {relatedPost.title}

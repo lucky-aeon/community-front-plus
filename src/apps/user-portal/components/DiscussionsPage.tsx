@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Search, Filter, CheckCircle } from 'lucide-react';
 import { Badge } from '@shared/components/ui/Badge';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
 import { PostCard } from '@shared/components/business/PostCard';
 import { posts } from '@shared/constants/mockData';
+import { routeUtils } from '@shared/routes/routes';
 
-interface DiscussionsPageProps {
-  onPostClick: (postId: string) => void;
-}
-
-export const DiscussionsPage: React.FC<DiscussionsPageProps> = ({ onPostClick }) => {
+export const DiscussionsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'all' | 'articles' | 'questions'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+
+  const handlePostClick = (postId: string) => {
+    navigate(routeUtils.getPostDetailRoute(postId));
+  };
 
   const filteredPosts = posts.filter(post => {
     const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -100,7 +103,7 @@ export const DiscussionsPage: React.FC<DiscussionsPageProps> = ({ onPostClick })
           <PostCard 
             key={post.id}
             post={post}
-            onPostClick={onPostClick}
+            onPostClick={handlePostClick}
             variant="default"
           />
         ))}

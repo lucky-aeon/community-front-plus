@@ -1,93 +1,48 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
-import { useAuth } from './context/AuthContext';
-import { Header } from '@shared/components/common/Header';
-import { Hero } from '@apps/marketing/components/Hero';
-import { CourseGrid } from '@shared/components/business/CourseGrid';
-import { PricingSection } from '@shared/components/business/PricingSection';
-import { Testimonials } from '@apps/marketing/components/Testimonials';
-import { AuthModal } from '@shared/components/business/AuthModal';
+import { ProtectedRoute, PublicOnlyRoute } from '@shared/routes/ProtectedRoute';
+import { MarketingPage } from '@apps/marketing/components/MarketingPage';
 import { Dashboard } from '@apps/user-portal/components/Dashboard';
 
 const AppContent: React.FC = () => {
-  const { user } = useAuth();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
-  const handleAuthRequired = () => {
-    setIsAuthModalOpen(true);
-  };
-
-  // If user is logged in, show dashboard
-  if (user) {
-    return <Dashboard />;
-  }
-
-  // Otherwise show landing page
   return (
-    <div className="min-h-screen bg-white">
-      <Header onAuthClick={() => setIsAuthModalOpen(true)} />
-      
-      <main>
-        <Hero onGetStarted={handleAuthRequired} />
-        <CourseGrid onAuthRequired={handleAuthRequired} />
-        <PricingSection onPlanSelect={handleAuthRequired} />
-        <Testimonials />
-      </main>
-
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center space-x-2 mb-4">
-                <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded" />
-                <h3 className="text-2xl font-bold">敲鸭</h3>
-              </div>
-              <p className="text-gray-400 mb-4">
-                Empowering professionals worldwide with premium courses and expert mentorship.
-              </p>
-              <div className="flex space-x-4 text-sm text-gray-400">
-                <span>© 2025 EduElite. All rights reserved.</span>
-              </div>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Platform</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Courses</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-              </ul>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold mb-4">Support</h4>
-              <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </footer>
-
-      <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
+    <Routes>
+      {/* 公开路由 - 营销首页 */}
+      <Route 
+        path="/" 
+        element={
+          <PublicOnlyRoute>
+            <MarketingPage />
+          </PublicOnlyRoute>
+        } 
       />
-    </div>
+      
+      {/* 受保护路由 - 用户Dashboard */}
+      <Route 
+        path="/dashboard/*" 
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* 默认重定向 */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 };
 function App() {
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <AppContent />
-      </ThemeProvider>
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <ThemeProvider>
+          <AppContent />
+        </ThemeProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   ArrowLeft, 
   FileText, 
@@ -19,48 +20,48 @@ import { useAuth } from '../../../context/AuthContext';
 
 interface UserBackendLayoutProps {
   children: React.ReactNode;
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-  onBackToFrontend: () => void;
 }
 
 export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
-  children,
-  activeTab,
-  onTabChange,
-  onBackToFrontend
+  children
 }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  const handleBackToFrontend = () => {
+    navigate('/dashboard');
+  };
 
   const navigationSections = [
     {
       title: '内容管理',
       items: [
-        { id: 'my-articles', name: '我的文章', icon: FileText },
-        { id: 'my-comments', name: '我的评论', icon: MessageSquare },
-        { id: 'my-favorites', name: '我的收藏', icon: Heart }
+        { id: 'articles', name: '我的文章', icon: FileText, path: '/dashboard/user-backend/articles' },
+        { id: 'comments', name: '我的评论', icon: MessageSquare, path: '/dashboard/user-backend/comments' },
+        { id: 'favorites', name: '我的收藏', icon: Heart, path: '/dashboard/user-backend/favorites' }
       ]
     },
     {
       title: '互动管理',
       items: [
-        { id: 'messages', name: '消息中心', icon: Bell },
-        { id: 'follows', name: '关注管理', icon: Users }
+        { id: 'messages', name: '消息中心', icon: Bell, path: '/dashboard/user-backend/messages' },
+        { id: 'follows', name: '关注管理', icon: Users, path: '/dashboard/user-backend/follows' }
       ]
     },
     {
       title: '数据统计',
       items: [
-        { id: 'analytics', name: '内容数据', icon: BarChart3 }
+        { id: 'analytics', name: '内容数据', icon: BarChart3, path: '/dashboard/user-backend/analytics' }
       ]
     },
     {
       title: '账户设置',
       items: [
-        { id: 'profile', name: '个人信息', icon: User },
-        { id: 'security', name: '安全设置', icon: Shield },
-        { id: 'devices', name: '设备管理', icon: Smartphone }
+        { id: 'profile', name: '个人信息', icon: User, path: '/dashboard/user-backend/profile' },
+        { id: 'security', name: '安全设置', icon: Shield, path: '/dashboard/user-backend/security' },
+        { id: 'devices', name: '设备管理', icon: Smartphone, path: '/dashboard/user-backend/devices' }
       ]
     }
   ];
@@ -93,7 +94,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <button
-              onClick={onBackToFrontend}
+              onClick={handleBackToFrontend}
               className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
               title="返回前台"
             >
@@ -139,28 +140,30 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
                 {section.title}
               </h3>
               {section.items.map((item) => (
-                <button
+                <NavLink
                   key={item.id}
-                  onClick={() => {
-                    onTabChange(item.id);
-                    setIsSidebarOpen(false);
-                  }}
-                  className={`
+                  to={item.path}
+                  onClick={() => setIsSidebarOpen(false)}
+                  className={({ isActive }) => `
                     w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 mb-1
-                    ${activeTab === item.id
+                    ${isActive
                       ? 'bg-yellow-50 text-yellow-800 border-l-4 border-yellow-400'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }
                   `}
                 >
-                  <div className="flex items-center">
-                    <item.icon className="h-5 w-5 mr-3" />
-                    <span>{item.name}</span>
-                  </div>
-                  {activeTab === item.id && (
-                    <ChevronRight className="h-4 w-4" />
+                  {({ isActive }) => (
+                    <>
+                      <div className="flex items-center">
+                        <item.icon className="h-5 w-5 mr-3" />
+                        <span>{item.name}</span>
+                      </div>
+                      {isActive && (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </>
                   )}
-                </button>
+                </NavLink>
               ))}
             </div>
           ))}

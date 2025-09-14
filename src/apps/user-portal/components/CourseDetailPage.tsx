@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, Clock, Users, Star, CheckCircle, Lock, BookOpen } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
@@ -6,14 +7,20 @@ import { Badge } from '@shared/components/ui/Badge';
 import { courses } from '@shared/constants/mockData';
 import { useAuth } from '../../../context/AuthContext';
 
-interface CourseDetailPageProps {
-  courseId: string;
-  onBack: () => void;
-}
-
-export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ courseId, onBack }) => {
+export const CourseDetailPage: React.FC = () => {
+  const { courseId } = useParams<{ courseId: string }>();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
+
+  if (!courseId) {
+    return (
+      <div className="p-6 text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-4">课程ID缺失</h2>
+        <Button onClick={() => navigate('/dashboard/courses')}>返回课程</Button>
+      </div>
+    );
+  }
 
   const course = courses.find(c => c.id === courseId);
 
@@ -21,7 +28,7 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ courseId, on
     return (
       <div className="p-6 text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">课程未找到</h2>
-        <Button onClick={onBack}>返回</Button>
+        <Button onClick={() => navigate(-1)}>返回</Button>
       </div>
     );
   }
@@ -64,7 +71,7 @@ export const CourseDetailPage: React.FC<CourseDetailPageProps> = ({ courseId, on
       <div className="flex items-center space-x-4 mb-8">
         <Button
           variant="ghost"
-          onClick={onBack}
+          onClick={() => navigate(-1)}
           className="flex items-center space-x-2"
         >
           <ArrowLeft className="h-4 w-4" />

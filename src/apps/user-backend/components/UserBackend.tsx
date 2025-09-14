@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { UserBackendLayout } from './UserBackendLayout';
 import { MyArticlesPage } from './MyArticlesPage';
 import { MessageCenterPage } from './MessageCenterPage';
@@ -13,45 +14,29 @@ const ComingSoonPage: React.FC<{ title: string }> = ({ title }) => (
   </div>
 );
 
-interface UserBackendProps {
-  onBackToFrontend: () => void;
-}
-
-export const UserBackend: React.FC<UserBackendProps> = ({ onBackToFrontend }) => {
-  const [activeTab, setActiveTab] = useState('my-articles');
-
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'my-articles':
-        return <MyArticlesPage />;
-      case 'my-comments':
-        return <ComingSoonPage title="我的评论" />;
-      case 'my-favorites':
-        return <ComingSoonPage title="我的收藏" />;
-      case 'messages':
-        return <MessageCenterPage />;
-      case 'follows':
-        return <ComingSoonPage title="关注管理" />;
-      case 'analytics':
-        return <ComingSoonPage title="内容数据" />;
-      case 'profile':
-        return <ProfileSettingsPage />;
-      case 'security':
-        return <ComingSoonPage title="安全设置" />;
-      case 'devices':
-        return <ComingSoonPage title="设备管理" />;
-      default:
-        return <MyArticlesPage />;
-    }
-  };
-
+export const UserBackend: React.FC = () => {
   return (
-    <UserBackendLayout
-      activeTab={activeTab}
-      onTabChange={setActiveTab}
-      onBackToFrontend={onBackToFrontend}
-    >
-      {renderContent()}
+    <UserBackendLayout>
+      <Routes>
+        {/* 默认重定向到我的文章 */}
+        <Route path="/" element={<Navigate to="/dashboard/user-backend/articles" replace />} />
+        
+        {/* 用户后台页面路由 */}
+        <Route path="/articles" element={<MyArticlesPage />} />
+        <Route path="/messages" element={<MessageCenterPage />} />
+        <Route path="/profile" element={<ProfileSettingsPage />} />
+        
+        {/* 临时占位页面 */}
+        <Route path="/comments" element={<ComingSoonPage title="我的评论" />} />
+        <Route path="/favorites" element={<ComingSoonPage title="我的收藏" />} />
+        <Route path="/follows" element={<ComingSoonPage title="关注管理" />} />
+        <Route path="/analytics" element={<ComingSoonPage title="内容数据" />} />
+        <Route path="/security" element={<ComingSoonPage title="安全设置" />} />
+        <Route path="/devices" element={<ComingSoonPage title="设备管理" />} />
+        
+        {/* 404 处理 */}
+        <Route path="*" element={<Navigate to="/dashboard/user-backend/articles" replace />} />
+      </Routes>
     </UserBackendLayout>
   );
 };

@@ -1,18 +1,24 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Heart } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { PostCard } from '@shared/components/business/PostCard';
 import { posts, courses, comments } from '@shared/constants/mockData';
+import { routeUtils } from '@shared/routes/routes';
 
-interface HomePageProps {
-  onPostClick: (postId: string) => void;
-  onCourseClick: (courseId: string) => void;
-}
-
-export const HomePage: React.FC<HomePageProps> = ({ onPostClick, onCourseClick }) => {
+export const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const recentPosts = posts.slice(0, 3);
   const recentCourses = courses.slice(0, 3);
   const recentComments = comments.slice(0, 3);
+
+  const handlePostClick = (postId: string) => {
+    navigate(routeUtils.getPostDetailRoute(postId));
+  };
+
+  const handleCourseClick = (courseId: string) => {
+    navigate(routeUtils.getCourseDetailRoute(courseId));
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -31,7 +37,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onPostClick, onCourseClick }
               <PostCard 
                 key={post.id}
                 post={post}
-                onPostClick={onPostClick}
+                onPostClick={handlePostClick}
                 variant="compact"
               />
             ))}
@@ -51,7 +57,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onPostClick, onCourseClick }
             <div className="space-y-4">
               {recentCourses.map((course) => (
                 <Card key={course.id} className="p-4 hover:shadow-md transition-shadow">
-                  <div className="flex space-x-3 cursor-pointer" onClick={() => onCourseClick(course.id)}>
+                  <div className="flex space-x-3 cursor-pointer" onClick={() => handleCourseClick(course.id)}>
                     <img
                       src={course.thumbnail}
                       alt={course.title}
