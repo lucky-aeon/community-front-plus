@@ -214,6 +214,27 @@ export interface FrontPostDTO {
   publishTime: string;     // 发布时间
 }
 
+// 前端展示的文章详情DTO（公开文章详情）
+export interface FrontPostDetailDTO {
+  id: string;
+  title: string;
+  content: string;         // 完整文章内容
+  summary?: string;
+  coverImage?: string;
+  authorId: string;        // 作者ID
+  authorName: string;      // 作者名称
+  authorAvatar?: string;   // 作者头像
+  categoryId: string;      // 分类ID
+  categoryName: string;    // 分类名称
+  likeCount: number;
+  viewCount: number;
+  commentCount: number;
+  isTop: boolean;
+  publishTime: string;     // 发布时间
+  createTime: string;      // 创建时间
+  updateTime: string;      // 更新时间
+}
+
 // 分页查询响应
 export interface PageResponse<T> {
   records: T[];            // 数据列表

@@ -14,6 +14,7 @@ interface MarkdownEditorProps {
   toolbar?: boolean | string[];
   className?: string;
   enableFullscreen?: boolean;
+  enableToc?: boolean;  // 是否启用目录功能
 }
 
 export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
@@ -24,7 +25,8 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   placeholder = '请输入markdown内容...',
   toolbar = true,
   className = '',
-  enableFullscreen = true
+  enableFullscreen = true,
+  enableToc = false
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const cherryInstanceRef = useRef<Cherry | null>(null);
@@ -125,19 +127,28 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             allowWhitespace: true
           },
           mathBlock: {
-            engine: 'MathJax',
+            engine: 'MathJax' as const,
             src: 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js'
           },
           inlineMath: {
-            engine: 'MathJax'
+            engine: 'MathJax' as const
           },
           codeBlock: {
             expandCode: true
-          }
+          },
+          // 启用TOC功能
+          toc: enableToc ? {
+            allowMultiToc: true
+          } : false
         }
       },
       toolbars: {
-        showToolbar: toolbar !== false
+        showToolbar: toolbar !== false,
+        // 启用TOC悬浮工具栏
+        toc: enableToc ? {
+          updateLocationHash: false, // 不更新URL的hash
+          defaultModel: 'full' // full: 完整模式，会展示所有标题
+        } : false
       },
       editor: {
         defaultModel: previewOnly ? 'previewOnly' : 'editOnly',
@@ -158,6 +169,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         },
         afterInit: (cherry: Cherry) => {
           setIsInitialized(true);
+          
           // 添加全屏按钮 - 延迟确保DOM完全渲染
           setTimeout(() => {
             if (enableFullscreen) {
@@ -215,13 +227,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     if (Array.isArray(toolbar)) {
       if (toolbar.length === 0) {
         config.toolbars.showToolbar = false;
-      } else {
-        config.toolbars.toolbar = toolbar;
       }
     }
 
-    return config;
-  }, [previewOnly, height, placeholder, toolbar, handleImageClick, handleFileUpload, enableFullscreen, isFullscreen, toggleFullscreen]);
+    return config as unknown;
+  }, [previewOnly, height, placeholder, toolbar, handleImageClick, handleFileUpload, enableFullscreen, isFullscreen, toggleFullscreen, enableToc]);
 
   // 初始化Cherry编辑器
   useEffect(() => {
@@ -230,7 +240,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     const initEditor = async () => {
       try {
         const config = getCherryConfig();
-        cherryInstanceRef.current = new Cherry(config);
+        cherryInstanceRef.current = new Cherry(config as never);
         
         // 初始化时设置正确的初始值
         if (value && value !== placeholder) {
@@ -305,12 +315,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       <div 
         ref={containerRef}
         id={containerIdRef.current}
-        className="cherry-editor-container w-full h-full rounded-xl border border-gray-300 overflow-hidden"
+        className={`cherry-editor-container w-full h-full overflow-hidden ${
+          previewOnly ? '' : 'rounded-xl border border-gray-300'
+        }`}
         style={{ 
           width: '100%', 
           height: '100%',
-          borderRadius: isFullscreen ? '0' : undefined,
-          border: isFullscreen ? 'none' : undefined
+          borderRadius: isFullscreen ? '0' : (previewOnly ? '0' : undefined),
+          border: isFullscreen ? 'none' : (previewOnly ? 'none' : undefined)
         }}
       />
     </div>

@@ -104,3 +104,148 @@
     border-radius: 1px;
   }
 }
+
+/* 文章详情页面的只读模式样式 */
+.prose-content .markdown-editor-wrapper .cherry {
+  box-shadow: none !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+.prose-content .markdown-editor-wrapper .cherry-previewer {
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+.prose-content .markdown-editor-wrapper .cherry-previewer > * {
+  max-width: none !important;
+}
+
+/* 更强的边框移除规则 */
+.prose-content .markdown-editor-wrapper .cherry-editor-container {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.prose-content .markdown-editor-wrapper {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* 确保内容区域没有边框 */
+.prose-content .cherry {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.prose-content .cherry .cherry-previewer {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* TOC 目录样式 */
+#cherry-toc {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+#cherry-toc ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+#cherry-toc li {
+  margin: 0.25rem 0;
+}
+
+#cherry-toc a {
+  color: #6b7280;
+  text-decoration: none;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  display: block;
+  transition: all 0.2s ease;
+  border-left: 2px solid transparent;
+}
+
+#cherry-toc a:hover {
+  color: #3b82f6;
+  background-color: #f3f4f6;
+  border-left-color: #3b82f6;
+}
+
+#cherry-toc a.active {
+  color: #3b82f6;
+  background-color: #eff6ff;
+  border-left-color: #3b82f6;
+  font-weight: 500;
+}
+
+/* 不同级别标题的缩进 */
+#cherry-toc li[data-level="1"] {
+  padding-left: 0;
+}
+
+#cherry-toc li[data-level="2"] {
+  padding-left: 1rem;
+}
+
+#cherry-toc li[data-level="3"] {
+  padding-left: 2rem;
+}
+
+#cherry-toc li[data-level="4"] {
+  padding-left: 3rem;
+}
+
+#cherry-toc li[data-level="5"] {
+  padding-left: 4rem;
+}
+
+#cherry-toc li[data-level="6"] {
+  padding-left: 5rem;
+}
+
+/* Cherry 内置 TOC 样式覆盖 */
+.cherry-toc {
+  font-size: 0.875rem !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.cherry-toc ul {
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin: 0 !important;
+}
+
+.cherry-toc li {
+  margin: 0.25rem 0 !important;
+  padding: 0 !important;
+}
+
+.cherry-toc a {
+  color: #6b7280 !important;
+  text-decoration: none !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.375rem !important;
+  display: block !important;
+  transition: all 0.2s ease !important;
+  border-left: 2px solid transparent !important;
+}
+
+.cherry-toc a:hover {
+  color: #3b82f6 !important;
+  background-color: #f3f4f6 !important;
+  border-left-color: #3b82f6 !important;
+}

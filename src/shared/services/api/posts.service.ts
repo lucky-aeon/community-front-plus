@@ -4,6 +4,7 @@ import {
   UpdatePostRequest,
   PostDTO,
   FrontPostDTO,
+  FrontPostDetailDTO,
   PageResponse,
   PublicPostQueryRequest,
   Category
@@ -83,6 +84,15 @@ export class PostsService {
    */
   static async getPublicPosts(params: PublicPostQueryRequest = {}): Promise<PageResponse<FrontPostDTO>> {
     const response = await apiClient.post<ApiResponse<PageResponse<FrontPostDTO>>>('/public/posts/queries', params);
+    return response.data.data;
+  }
+
+  /**
+   * 根据文章ID获取文章详情（公开接口）
+   * GET /api/public/posts/{id}
+   */
+  static async getPublicPostDetail(id: string): Promise<FrontPostDetailDTO> {
+    const response = await apiClient.get<ApiResponse<FrontPostDetailDTO>>(`/public/posts/${id}`);
     return response.data.data;
   }
 
