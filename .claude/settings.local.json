@@ -33,7 +33,9 @@
       "WebFetch(domain:help.aliyun.com)",
       "Read(/Users/xhy/FrontProjects/community-front/public/**)",
       "mcp__playwright__browser_hover",
-      "mcp__playwright__browser_console_messages"
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_type",
+      "Bash(lsof:*)"
     ],
     "deny": [],
     "ask": []

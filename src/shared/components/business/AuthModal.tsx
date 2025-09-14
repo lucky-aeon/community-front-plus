@@ -34,7 +34,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       onClose();
       setFormData({ name: '', email: '', password: '' });
     } catch (error) {
-      setErrors({ submit: (error as Error).message });
+      // 错误消息已经通过 axios 拦截器和 toast 显示了，不需要在组件中重复显示
+      console.error('Authentication error:', error);
     }
   };
 
@@ -124,10 +125,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 )}
               </button>
             </div>
-
-            {errors.submit && (
-              <p className="text-red-600 text-sm text-center">{errors.submit}</p>
-            )}
 
             <Button
               type="submit"

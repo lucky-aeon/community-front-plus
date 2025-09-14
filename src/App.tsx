@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ProtectedRoute, PublicOnlyRoute } from '@shared/routes/ProtectedRoute';
 import { MarketingPage } from '@apps/marketing/components/MarketingPage';
 import { Dashboard } from '@apps/user-portal/components/Dashboard';
+import { CustomToaster } from '@shared/components/ui/Toast';
 
 const AppContent: React.FC = () => {
   return (
@@ -40,6 +41,7 @@ function App() {
       <AuthProvider>
         <ThemeProvider>
           <AppContent />
+          <CustomToaster />
         </ThemeProvider>
       </AuthProvider>
     </Router>

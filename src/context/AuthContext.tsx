@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, AuthContextType } from '../shared/types';
+import { AuthService } from '../shared/services/api/auth.service';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -20,44 +21,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for stored user session
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        // Convert membershipExpiry back to Date object if it exists
-        if (parsedUser.membershipExpiry) {
-          parsedUser.membershipExpiry = new Date(parsedUser.membershipExpiry);
+    // 检查存储的用户会话和 token
+    const initializeAuth = async () => {
+      const storedUser = AuthService.getStoredUser();
+      const storedToken = AuthService.getStoredToken();
+      
+      if (storedUser && storedToken) {
+        // 验证 token 是否仍然有效
+        const isTokenValid = await AuthService.validateToken();
+        if (isTokenValid) {
+          setUser(storedUser);
+        } else {
+          // Token 无效，清除存储的信息
+          AuthService.logout();
         }
-        setUser(parsedUser);
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
-        localStorage.removeItem('user');
       }
-    }
-    setIsLoading(false);
+      
+      setIsLoading(false);
+    };
+    
+    initializeAuth();
   }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Mock user data based on email
-      const mockUser: User = {
-        id: '1',
-        email,
-        name: email.split('@')[0],
-        avatar: `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`,
-        membershipTier: email.includes('vip') ? 'vip' : email.includes('premium') ? 'premium' : 'basic',
-        membershipExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      const user = await AuthService.login({ email, password });
+      setUser(user);
     } catch (error) {
-      throw new Error('Login failed. Please try again.');
+      // 错误已经在 axios 拦截器中处理了，这里重新抛出
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -66,21 +59,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const mockUser: User = {
-        id: '1',
-        email,
-        name,
-        avatar: `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`,
-        membershipTier: 'guest'
-      };
-      
-      setUser(mockUser);
-      localStorage.setItem('user', JSON.stringify(mockUser));
+      const user = await AuthService.register({ name, email, password });
+      setUser(user);
     } catch (error) {
-      throw new Error('Registration failed. Please try again.');
+      // 错误已经在 axios 拦截器中处理了，这里重新抛出
+      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
+    AuthService.logout();
   };
 
   const value: AuthContextType = {

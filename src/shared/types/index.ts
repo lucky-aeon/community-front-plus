@@ -116,3 +116,43 @@ export interface ChangelogChange {
   description: string;
   category?: string;
 }
+
+// API 相关类型定义
+export interface ApiResponse<T = any> {
+  code: number;
+  message: string;
+  data: T;
+}
+
+// 登录请求参数
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+// 注册请求参数
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
+// 后端用户数据结构
+export interface BackendUser {
+  id: string;
+  name: string;
+  description: string | null;
+  avatar: string | null;
+  email: string;
+  status: string;
+  emailNotificationEnabled: boolean;
+  maxConcurrentDevices: number;
+  createTime: string;
+  updateTime: string;
+}
+
+// 登录响应数据
+export interface LoginResponse {
+  token: string;
+  user: BackendUser;
+}
