@@ -2,7 +2,6 @@ import { apiClient, ApiResponse } from './config';
 import {
   CreatePostRequest,
   UpdatePostRequest,
-  PostStatusRequest,
   PostDTO,
   FrontPostDTO,
   PageResponse,

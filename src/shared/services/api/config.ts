@@ -31,8 +31,8 @@ apiClient.interceptors.request.use(
 // 响应拦截器 - 处理错误和响应
 apiClient.interceptors.response.use(
   (response) => {
-    // 如果响应包含 message，显示成功提示
-    if (response.data?.message) {
+    // 如果响应包含 message 且不为空字符串，显示成功提示
+    if (response.data?.message && response.data.message.trim() !== '') {
       toast.success(response.data.message);
     }
     return response;
@@ -58,15 +58,22 @@ apiClient.interceptors.response.use(
         case 500:
           toast.error('服务器错误，请稍后再试');
           break;
-        case 400:
+        case 400: {
           // 客户端请求错误，显示后端返回的具体错误信息
           const badRequestMessage = data?.message || '请求参数有误';
-          toast.error(badRequestMessage);
+          if (badRequestMessage.trim() !== '') {
+            toast.error(badRequestMessage);
+          }
           break;
-        default:
+        }
+        default: {
           // 显示后端返回的错误信息，如果没有则显示默认信息
           const errorMessage = data?.message || '请求失败，请稍后再试';
-          toast.error(errorMessage);
+          if (errorMessage.trim() !== '') {
+            toast.error(errorMessage);
+          }
+          break;
+        }
       }
     } else if (error.request) {
       // 网络错误
@@ -81,7 +88,7 @@ apiClient.interceptors.response.use(
 );
 
 // API 响应包装器类型
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   code: number;
   message: string;
   data: T;

@@ -139,6 +139,30 @@ export class AuthService {
   }
 
   /**
+   * 刷新当前用户信息
+   * 从服务器获取最新的用户信息并更新本地存储
+   */
+  static async refreshUserInfo(): Promise<User | null> {
+    try {
+      // 这里需要导入UserService，但为了避免循环依赖，我们直接使用apiClient
+      const { apiClient } = await import('./config');
+      const response = await apiClient.get('/user');
+      const backendUser = response.data.data;
+      
+      // 映射为前端用户格式
+      const user = this.mapBackendUserToFrontendUser(backendUser);
+      
+      // 更新本地存储
+      localStorage.setItem('user', JSON.stringify(user));
+      
+      return user;
+    } catch (error) {
+      console.error('刷新用户信息失败:', error);
+      return null;
+    }
+  }
+
+  /**
    * 将后端用户数据映射为前端用户数据
    */
   private static mapBackendUserToFrontendUser(backendUser: BackendUser): User {

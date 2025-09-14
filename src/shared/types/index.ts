@@ -118,7 +118,7 @@ export interface ChangelogChange {
 }
 
 // API 相关类型定义
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   code: number;
   message: string;
   data: T;
@@ -271,4 +271,31 @@ export interface CreatePostResponse {
   authorId: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// ================ 用户个人信息管理相关接口 ================
+
+// 更新用户个人简介请求参数
+export interface UpdateProfileRequest {
+  description?: string;      // 个人简介，最大500个字符，可为空
+}
+
+// 修改密码请求参数
+export interface ChangePasswordRequest {
+  oldPassword: string;       // 原密码，用于验证用户身份
+  newPassword: string;       // 新密码，长度6-20位
+}
+
+// 用户DTO（API返回的完整用户数据）
+export interface UserDTO {
+  id: string;
+  name: string;
+  description?: string;
+  avatar?: string;
+  email: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'BANNED';
+  emailNotificationEnabled: boolean;
+  maxConcurrentDevices: number;
+  createTime: string;
+  updateTime: string;
 }

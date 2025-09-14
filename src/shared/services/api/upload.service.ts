@@ -87,17 +87,24 @@ export class UploadService {
       );
 
       return response.data.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('图片上传失败:', error);
       
-      if (error.response?.status === 413) {
-        throw new Error('文件过大，请选择更小的文件');
-      } else if (error.response?.status === 415) {
-        throw new Error('不支持的文件格式');
-      } else if (error.code === 'ECONNABORTED') {
-        throw new Error('上传超时，请检查网络连接');
+      // 类型守卫，检查error是否是AxiosError类型
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: { message?: string } }; code?: string };
+        
+        if (axiosError.response?.status === 413) {
+          throw new Error('文件过大，请选择更小的文件');
+        } else if (axiosError.response?.status === 415) {
+          throw new Error('不支持的文件格式');
+        } else if (axiosError.code === 'ECONNABORTED') {
+          throw new Error('上传超时，请检查网络连接');
+        } else {
+          throw new Error(axiosError.response?.data?.message || '上传失败，请稍后重试');
+        }
       } else {
-        throw new Error(error.response?.data?.message || '上传失败，请稍后重试');
+        throw new Error('上传失败，请稍后重试');
       }
     }
   }

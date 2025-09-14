@@ -289,6 +289,6 @@ export const getVariantsByWhiteThemeScore = (): ButtonVariantConfig[] => {
   return getRecommendedYellowVariants();
 };
 
-export const getVariantsByContrast = (rating: string): ButtonVariantConfig[] => {
+export const getVariantsByContrast = (): ButtonVariantConfig[] => {
   return getRecommendedYellowVariants();
 };
