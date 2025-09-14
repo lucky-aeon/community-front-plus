@@ -3,6 +3,7 @@ import { DashboardLayout } from './DashboardLayout';
 import { HomePage } from './HomePage';
 import { DiscussionsPage } from './DiscussionsPage';
 import { CoursesPage } from './CoursesPage';
+import { ChangelogPage } from './ChangelogPage';
 import { CreatePostPage } from './CreatePostPage';
 import { PostDetailPage } from './PostDetailPage';
 import { CourseDetailPage } from './CourseDetailPage';
@@ -39,6 +40,8 @@ export const Dashboard: React.FC = () => {
         return <DiscussionsPage onPostClick={setSelectedPost} />;
       case 'courses':
         return <CoursesPage onCourseClick={setSelectedCourse} />;
+      case 'changelog':
+        return <ChangelogPage />;
       default:
         return <HomePage onPostClick={setSelectedPost} onCourseClick={setSelectedCourse} />;
     }

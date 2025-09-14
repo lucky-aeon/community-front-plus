@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Home, MessageSquare, BookOpen, Menu, X, ChevronLeft, ChevronRight, PenTool, Settings } from 'lucide-react';
+import { Home, MessageSquare, BookOpen, Menu, X, ChevronLeft, ChevronRight, PenTool, Settings, FileText } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 
 interface DashboardLayoutProps {
@@ -22,7 +22,8 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const navigation = [
     { id: 'home', name: '首页', icon: Home },
     { id: 'discussions', name: '讨论', icon: MessageSquare },
-    { id: 'courses', name: '课程', icon: BookOpen }
+    { id: 'courses', name: '课程', icon: BookOpen },
+    { id: 'changelog', name: '更新日志', icon: FileText }
   ];
 
   const getMembershipColor = (tier: string) => {

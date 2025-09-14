@@ -1,4 +1,4 @@
-import { Course, MembershipPlan, Post, Comment } from '../shared/types';
+import { Course, MembershipPlan, Post, Comment, ChangelogEntry } from '../types';
 
 export const courses: Course[] = [
   {
@@ -392,4 +392,282 @@ export const membershipPlans: MembershipPlan[] = [
       'Annual VIP events invitation'
     ]
   }
-]
+];
+
+export const changelogEntries: ChangelogEntry[] = [
+  {
+    id: '1',
+    version: '2.1.0',
+    title: '新增课程评价系统和学习进度跟踪',
+    description: '本次更新为巧牙社区带来了全新的课程评价功能和更精准的学习进度跟踪系统，让学习体验更加个性化。',
+    releaseDate: new Date('2024-01-15T10:00:00Z'),
+    status: 'published',
+    isImportant: true,
+    author: {
+      id: 'admin-1',
+      name: '巧牙团队',
+      avatar: '/logo.jpg'
+    },
+    viewCount: 1247,
+    feedbackCount: 45,
+    createdAt: new Date('2024-01-15T10:00:00Z'),
+    updatedAt: new Date('2024-01-15T10:00:00Z'),
+    changes: [
+      {
+        id: '1-1',
+        type: 'feature',
+        title: '课程评价和评论功能',
+        description: '学员可以对已完成的课程进行评分和评论，帮助其他用户做出更好的选择',
+        category: '课程系统'
+      },
+      {
+        id: '1-2',
+        type: 'feature',
+        title: '学习进度可视化图表',
+        description: '新增学习进度图表，直观显示个人学习轨迹和完成情况',
+        category: '用户中心'
+      },
+      {
+        id: '1-3',
+        type: 'improvement',
+        title: '优化学习进度统计算法',
+        description: '改进进度计算逻辑，更准确地反映实际学习状态',
+        category: '课程系统'
+      },
+      {
+        id: '1-4',
+        type: 'improvement',
+        title: '改进课程推荐机制',
+        description: '基于用户学习历史和偏好，提供更精准的课程推荐',
+        category: '推荐系统'
+      },
+      {
+        id: '1-5',
+        type: 'bugfix',
+        title: '修复移动端课程播放问题',
+        description: '解决iOS设备上视频播放异常和进度保存失效的问题',
+        category: '移动端'
+      },
+      {
+        id: '1-6',
+        type: 'bugfix',
+        title: '解决用户头像上传异常',
+        description: '修复大尺寸头像上传失败和显示错误的问题',
+        category: '用户中心'
+      }
+    ]
+  },
+  {
+    id: '2',
+    version: '2.0.8',
+    title: '用户体验优化和性能提升',
+    description: '专注于提升平台整体性能和用户交互体验的优化更新。',
+    releaseDate: new Date('2024-01-10T14:30:00Z'),
+    status: 'published',
+    isImportant: false,
+    author: {
+      id: 'admin-1',
+      name: '巧牙团队',
+      avatar: '/logo.jpg'
+    },
+    viewCount: 892,
+    feedbackCount: 23,
+    createdAt: new Date('2024-01-10T14:30:00Z'),
+    updatedAt: new Date('2024-01-10T14:30:00Z'),
+    changes: [
+      {
+        id: '2-1',
+        type: 'improvement',
+        title: '页面加载速度优化',
+        description: '优化资源加载策略，页面首次加载速度提升40%',
+        category: '性能优化'
+      },
+      {
+        id: '2-2',
+        type: 'improvement',
+        title: '搜索功能增强',
+        description: '改进搜索算法，支持模糊匹配和智能提示',
+        category: '搜索系统'
+      },
+      {
+        id: '2-3',
+        type: 'improvement',
+        title: '响应式设计优化',
+        description: '优化移动端和平板端的界面适配效果',
+        category: '界面设计'
+      },
+      {
+        id: '2-4',
+        type: 'bugfix',
+        title: '修复筛选器重置问题',
+        description: '解决课程筛选条件无法正确重置的问题',
+        category: '课程系统'
+      },
+      {
+        id: '2-5',
+        type: 'bugfix',
+        title: '修复消息通知异常',
+        description: '解决部分用户无法接收系统通知的问题',
+        category: '通知系统'
+      }
+    ]
+  },
+  {
+    id: '3',
+    version: '2.0.5',
+    title: '安全性增强和功能完善',
+    description: '重要的安全更新和多项功能完善，建议所有用户及时了解。',
+    releaseDate: new Date('2024-01-05T09:15:00Z'),
+    status: 'published',
+    isImportant: true,
+    author: {
+      id: 'admin-1',
+      name: '巧牙团队',
+      avatar: '/logo.jpg'
+    },
+    viewCount: 1567,
+    feedbackCount: 78,
+    createdAt: new Date('2024-01-05T09:15:00Z'),
+    updatedAt: new Date('2024-01-05T09:15:00Z'),
+    changes: [
+      {
+        id: '3-1',
+        type: 'security',
+        title: '用户密码加密升级',
+        description: '升级密码加密算法，提升账户安全防护等级',
+        category: '安全系统'
+      },
+      {
+        id: '3-2',
+        type: 'security',
+        title: 'API接口安全加固',
+        description: '加强API访问控制和数据验证机制',
+        category: '安全系统'
+      },
+      {
+        id: '3-3',
+        type: 'feature',
+        title: '双因素身份验证',
+        description: '新增短信和邮箱双重验证功能，提升账户安全性',
+        category: '用户中心'
+      },
+      {
+        id: '3-4',
+        type: 'improvement',
+        title: '优化讨论区体验',
+        description: '改进帖子排序和回复机制，提升社区互动体验',
+        category: '社区系统'
+      },
+      {
+        id: '3-5',
+        type: 'bugfix',
+        title: '修复数据统计错误',
+        description: '解决学习时长统计不准确的问题',
+        category: '数据统计'
+      }
+    ]
+  },
+  {
+    id: '4',
+    version: '2.0.2',
+    title: '界面美化和交互优化',
+    description: '全新的界面设计和更流畅的交互体验。',
+    releaseDate: new Date('2023-12-28T16:20:00Z'),
+    status: 'published',
+    isImportant: false,
+    author: {
+      id: 'admin-1',
+      name: '巧牙团队',
+      avatar: '/logo.jpg'
+    },
+    viewCount: 743,
+    feedbackCount: 19,
+    createdAt: new Date('2023-12-28T16:20:00Z'),
+    updatedAt: new Date('2023-12-28T16:20:00Z'),
+    changes: [
+      {
+        id: '4-1',
+        type: 'improvement',
+        title: '界面风格统一',
+        description: '统一整站视觉风格，采用全新的敲鸭黄色系主题',
+        category: '界面设计'
+      },
+      {
+        id: '4-2',
+        type: 'improvement',
+        title: '动画效果优化',
+        description: '添加流畅的页面切换和交互动画效果',
+        category: '用户体验'
+      },
+      {
+        id: '4-3',
+        type: 'feature',
+        title: '夜间模式支持',
+        description: '新增深色主题选项，保护用户视力',
+        category: '界面设计'
+      },
+      {
+        id: '4-4',
+        type: 'bugfix',
+        title: '修复按钮响应问题',
+        description: '解决部分按钮在某些浏览器下点击无响应的问题',
+        category: '兼容性'
+      }
+    ]
+  },
+  {
+    id: '5',
+    version: '2.0.0',
+    title: '全新2.0版本发布',
+    description: '巧牙社区2.0正式发布！全面升级的架构和功能，带来前所未有的学习体验。',
+    releaseDate: new Date('2023-12-20T10:00:00Z'),
+    status: 'published',
+    isImportant: true,
+    author: {
+      id: 'admin-1',
+      name: '巧牙团队',
+      avatar: '/logo.jpg'
+    },
+    viewCount: 3247,
+    feedbackCount: 156,
+    createdAt: new Date('2023-12-20T10:00:00Z'),
+    updatedAt: new Date('2023-12-20T10:00:00Z'),
+    changes: [
+      {
+        id: '5-1',
+        type: 'breaking',
+        title: '全新架构升级',
+        description: '采用最新技术栈重构，提升系统稳定性和扩展性',
+        category: '系统架构'
+      },
+      {
+        id: '5-2',
+        type: 'feature',
+        title: '会员体系重构',
+        description: '全新的三级会员体系，更丰富的权益和学习资源',
+        category: '会员系统'
+      },
+      {
+        id: '5-3',
+        type: 'feature',
+        title: '社区讨论功能',
+        description: '全新的社区讨论区，支持文章分享和问答互动',
+        category: '社区系统'
+      },
+      {
+        id: '5-4',
+        type: 'feature',
+        title: '个人中心重设计',
+        description: '全新的个人中心界面，更直观的学习数据和成就展示',
+        category: '用户中心'
+      },
+      {
+        id: '5-5',
+        type: 'improvement',
+        title: '课程播放体验优化',
+        description: '全新的视频播放器，支持多种清晰度和播放速度',
+        category: '课程系统'
+      }
+    ]
+  }
+];

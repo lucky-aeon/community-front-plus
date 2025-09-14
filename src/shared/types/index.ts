@@ -88,3 +88,31 @@ export interface Comment {
   postId: string;
   isAnswer?: boolean;
 }
+
+export interface ChangelogEntry {
+  id: string;
+  version: string;
+  title: string;
+  description: string;
+  releaseDate: Date;
+  changes: ChangelogChange[];
+  status: 'draft' | 'published' | 'archived';
+  isImportant: boolean;
+  author: {
+    id: string;
+    name: string;
+    avatar: string;
+  };
+  viewCount: number;
+  feedbackCount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ChangelogChange {
+  id: string;
+  type: 'feature' | 'improvement' | 'bugfix' | 'breaking' | 'security';
+  title: string;
+  description: string;
+  category?: string;
+}
