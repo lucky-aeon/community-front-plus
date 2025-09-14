@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Home, MessageSquare, BookOpen, Menu, X, ChevronLeft, ChevronRight, PenTool, Settings, FileText } from 'lucide-react';
+import { Home, MessageSquare, BookOpen, Menu, X, ChevronLeft, ChevronRight, PenTool, Settings, FileText, LogOut } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { navigationConfig } from '@shared/routes/routes';
+import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -11,11 +12,12 @@ interface DashboardLayoutProps {
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   children
 }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   // 映射图标组件
   const iconMap = {
@@ -32,6 +34,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
 
   const handleUserBackendClick = () => {
     navigate('/dashboard/user-backend');
+  };
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    logout();
   };
 
   const getMembershipColor = (tier: string) => {
@@ -115,7 +125,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           
           {/* 用户中心按钮 */}
           {!isCollapsed && (
-            <div className="mt-4">
+            <div className="mt-4 space-y-2">
               <button
                 onClick={handleUserBackendClick}
                 className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
@@ -123,17 +133,33 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 <Settings className="h-4 w-4 mr-2" />
                 用户中心
               </button>
+              
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-200"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                退出登录
+              </button>
             </div>
           )}
           
           {isCollapsed && (
-            <div className="mt-2">
+            <div className="mt-2 space-y-2">
               <button
                 onClick={handleUserBackendClick}
                 className="w-full flex items-center justify-center p-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
                 title="用户中心"
               >
                 <Settings className="h-4 w-4" />
+              </button>
+              
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-200"
+                title="退出登录"
+              >
+                <LogOut className="h-4 w-4" />
               </button>
             </div>
           )}
@@ -191,6 +217,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           {children}
         </main>
       </div>
+
+      {/* 退出登录确认对话框 */}
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        title="退出登录"
+        message="确定要退出当前账户吗？退出后需要重新登录才能访问。"
+        confirmText="退出登录"
+        cancelText="取消"
+        variant="danger"
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </div>
   );
 };

@@ -14,9 +14,11 @@ import {
   Smartphone,
   Menu,
   X,
-  ChevronRight
+  ChevronRight,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
+import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
 
 interface UserBackendLayoutProps {
   children: React.ReactNode;
@@ -25,13 +27,22 @@ interface UserBackendLayoutProps {
 export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
   children
 }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleBackToFrontend = () => {
     navigate('/dashboard');
+  };
+
+  const handleLogout = () => {
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    logout();
   };
 
   const navigationSections = [
@@ -133,40 +144,55 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
         </div>
 
         {/* Navigation */}
-        <nav className="mt-6 px-3">
-          {navigationSections.map((section, sectionIndex) => (
-            <div key={section.title} className="mb-8">
-              <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                {section.title}
-              </h3>
-              {section.items.map((item) => (
-                <NavLink
-                  key={item.id}
-                  to={item.path}
-                  onClick={() => setIsSidebarOpen(false)}
-                  className={({ isActive }) => `
-                    w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 mb-1
-                    ${isActive
-                      ? 'bg-yellow-50 text-yellow-800 border-l-4 border-yellow-400'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                    }
-                  `}
-                >
-                  {({ isActive }) => (
-                    <>
-                      <div className="flex items-center">
-                        <item.icon className="h-5 w-5 mr-3" />
-                        <span>{item.name}</span>
-                      </div>
-                      {isActive && (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                    </>
-                  )}
-                </NavLink>
-              ))}
+        <nav className="mt-6 px-3 flex-1 flex flex-col">
+          <div className="flex-1">
+            {navigationSections.map((section, sectionIndex) => (
+              <div key={section.title} className="mb-8">
+                <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  {section.title}
+                </h3>
+                {section.items.map((item) => (
+                  <NavLink
+                    key={item.id}
+                    to={item.path}
+                    onClick={() => setIsSidebarOpen(false)}
+                    className={({ isActive }) => `
+                      w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 mb-1
+                      ${isActive
+                        ? 'bg-yellow-50 text-yellow-800 border-l-4 border-yellow-400'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }
+                    `}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <div className="flex items-center">
+                          <item.icon className="h-5 w-5 mr-3" />
+                          <span>{item.name}</span>
+                        </div>
+                        {isActive && (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            ))}
+          </div>
+          
+          {/* 退出登录按钮 */}
+          <div className="pb-6">
+            <div className="border-t border-gray-200 pt-4">
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+              >
+                <LogOut className="h-5 w-5 mr-3" />
+                <span>退出登录</span>
+              </button>
             </div>
-          ))}
+          </div>
         </nav>
       </div>
 
@@ -191,6 +217,18 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
           {children}
         </main>
       </div>
+
+      {/* 退出登录确认对话框 */}
+      <ConfirmDialog
+        isOpen={showLogoutConfirm}
+        title="退出登录"
+        message="确定要退出当前账户吗？退出后需要重新登录才能访问。"
+        confirmText="退出登录"
+        cancelText="取消"
+        variant="danger"
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </div>
   );
 };
