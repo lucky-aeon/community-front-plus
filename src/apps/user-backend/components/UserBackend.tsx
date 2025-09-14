@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
 import { UserBackendLayout } from './UserBackendLayout';
 import { MyArticlesPage } from './MyArticlesPage';
 import { MessageCenterPage } from './MessageCenterPage';
 import { ProfileSettingsPage } from './ProfileSettingsPage';
+import { CreatePostPage } from '../../user-portal/components/CreatePostPage';
+import { PostsService } from '@shared/services/api/posts.service';
+import { PostDTO } from '@shared/types';
 
 // 临时的占位页面组件
 const ComingSoonPage: React.FC<{ title: string }> = ({ title }) => (
@@ -14,6 +17,62 @@ const ComingSoonPage: React.FC<{ title: string }> = ({ title }) => (
   </div>
 );
 
+// 创建文章页面包装器
+const CreateArticlePage: React.FC = () => {
+  const navigate = useNavigate();
+  return (
+    <CreatePostPage 
+      onPostCreated={() => {
+        navigate('/dashboard/user-backend/articles');
+      }} 
+    />
+  );
+};
+
+// 编辑文章页面包装器
+const EditArticlePage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const [initialData, setInitialData] = React.useState<PostDTO | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (id) {
+      PostsService.getPostById(id)
+        .then(setInitialData)
+        .catch(() => {
+          navigate('/dashboard/user-backend/articles');
+        })
+        .finally(() => setIsLoading(false));
+    }
+  }, [id, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="text-gray-500">加载中...</div>
+      </div>
+    );
+  }
+
+  if (!initialData) {
+    return (
+      <div className="flex justify-center items-center py-12">
+        <div className="text-red-500">文章不存在</div>
+      </div>
+    );
+  }
+
+  return (
+    <CreatePostPage 
+      onPostCreated={() => {
+        navigate('/dashboard/user-backend/articles');
+      }}
+      initialData={initialData}
+    />
+  );
+};
+
 export const UserBackend: React.FC = () => {
   return (
     <UserBackendLayout>
@@ -23,6 +82,8 @@ export const UserBackend: React.FC = () => {
         
         {/* 用户后台页面路由 */}
         <Route path="/articles" element={<MyArticlesPage />} />
+        <Route path="/articles/create" element={<CreateArticlePage />} />
+        <Route path="/articles/edit/:id" element={<EditArticlePage />} />
         <Route path="/messages" element={<MessageCenterPage />} />
         <Route path="/profile" element={<ProfileSettingsPage />} />
         

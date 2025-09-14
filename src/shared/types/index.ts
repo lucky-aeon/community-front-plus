@@ -166,6 +166,82 @@ export interface CreatePostRequest {
   categoryId: string;     // 分类ID (必填, 必须是有效的分类UUID)
 }
 
+// 更新文章请求参数（与CreatePostRequest相同）
+export interface UpdatePostRequest {
+  title: string;          // 文章标题 (必填, 5-200字符)
+  content: string;        // 文章内容 (必填, 最少10个字符)
+  summary?: string;       // 文章概要 (可选)
+  coverImage?: string;    // 封面图片URL (可选)
+  categoryId: string;     // 分类ID
+}
+
+// 修改文章状态请求参数
+export interface PostStatusRequest {
+  status: 'DRAFT' | 'PUBLISHED'; // 目标状态
+}
+
+// 文章DTO（API返回的详细文章数据）
+export interface PostDTO {
+  id: string;
+  title: string;
+  content: string;
+  summary?: string;
+  coverImage?: string;
+  authorId: string;
+  categoryId: string;
+  status: 'DRAFT' | 'PUBLISHED';
+  likeCount: number;
+  viewCount: number;
+  commentCount: number;
+  isTop: boolean;
+  publishTime?: string;    // 发布时间
+  createTime: string;      // 创建时间
+  updateTime: string;      // 更新时间
+}
+
+// 前端展示的文章DTO（公开文章列表）
+export interface FrontPostDTO {
+  id: string;
+  title: string;
+  summary?: string;
+  coverImage?: string;
+  authorName: string;      // 作者名称
+  categoryName: string;    // 分类名称
+  likeCount: number;
+  viewCount: number;
+  commentCount: number;
+  isTop: boolean;
+  publishTime: string;     // 发布时间
+}
+
+// 分页查询响应
+export interface PageResponse<T> {
+  records: T[];            // 数据列表
+  total: number;           // 总记录数
+  size: number;            // 每页大小
+  current: number;         // 当前页码
+  orders?: OrderItem[];    // 排序信息
+  optimizeCountSql: boolean;
+  searchCount: boolean;
+  optimizeJoinOfCountSql: boolean;
+  maxLimit?: number;
+  countId?: string;
+  pages: number;           // 总页数
+}
+
+// 排序项
+export interface OrderItem {
+  column: string;
+  asc: boolean;
+}
+
+// 公开文章查询请求参数
+export interface PublicPostQueryRequest {
+  pageNum?: number;                    // 页码，从1开始，默认为1
+  pageSize?: number;                   // 每页大小，默认为10，最大为100
+  categoryType?: 'ARTICLE' | 'QA';     // 分类类型过滤（可选）
+}
+
 // 文章分类
 export interface Category {
   id: string;
@@ -182,7 +258,7 @@ export interface Category {
   children?: Category[];    // 子分类（树形结构）
 }
 
-// 创建文章响应
+// 创建文章响应（保持向下兼容）
 export interface CreatePostResponse {
   id: string;
   title: string;

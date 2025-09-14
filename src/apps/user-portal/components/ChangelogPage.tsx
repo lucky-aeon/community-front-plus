@@ -86,7 +86,7 @@ export const ChangelogPage: React.FC<ChangelogPageProps> = ({ onVersionClick }) 
           </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">平台更新日志</h1>
-            <p className="text-gray-600 mt-1">了解巧牙社区的最新功能和改进</p>
+            <p className="text-gray-600 mt-1">了解敲鸭社区的最新功能和改进</p>
           </div>
         </div>
       </div>

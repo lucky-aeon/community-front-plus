@@ -15,6 +15,8 @@ export const ROUTES = {
   // 用户后台路由
   USER_BACKEND: '/dashboard/user-backend',
   USER_BACKEND_ARTICLES: '/dashboard/user-backend/articles',
+  USER_BACKEND_ARTICLES_CREATE: '/dashboard/user-backend/articles/create',
+  USER_BACKEND_ARTICLES_EDIT: '/dashboard/user-backend/articles/edit/:id',
   USER_BACKEND_MESSAGES: '/dashboard/user-backend/messages',
   USER_BACKEND_PROFILE: '/dashboard/user-backend/profile',
 } as const;
@@ -26,6 +28,9 @@ export const routeUtils = {
   
   // 获取课程详情路由
   getCourseDetailRoute: (courseId: string) => `/dashboard/courses/${courseId}`,
+  
+  // 获取编辑文章路由
+  getArticleEditRoute: (articleId: string) => `/dashboard/user-backend/articles/edit/${articleId}`,
   
   // 判断是否为Dashboard路由
   isDashboardRoute: (pathname: string) => pathname.startsWith('/dashboard'),

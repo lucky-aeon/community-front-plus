@@ -18,7 +18,18 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+
+    /* Path mapping */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@shared/*": ["./src/shared/*"],
+      "@apps/*": ["./src/apps/*"],
+      "@marketing/*": ["./src/apps/marketing/*"],
+      "@user-portal/*": ["./src/apps/user-portal/*"],
+      "@user-backend/*": ["./src/apps/user-backend/*"]
+    }
   },
   "include": ["src"]
 }

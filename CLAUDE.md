@@ -20,7 +20,7 @@ npm install      # Install all dependencies
 ## Code Architecture
 
 ### Application Structure
-This is a React + TypeScript + Vite frontend application for a community learning platform called "巧牙社区" (QiaoYa Community).
+This is a React + TypeScript + Vite frontend application for a community learning platform called "敲鸭社区" (QiaoYa Community).
 
 ### Authentication Flow
 - **Dual UI Pattern**: The app renders completely different interfaces based on authentication state

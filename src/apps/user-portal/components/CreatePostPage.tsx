@@ -9,25 +9,28 @@ import { Badge } from '@shared/components/ui/Badge';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { CategorySelect } from '@shared/components/ui/CategorySelect';
 import { PostsService } from '@shared/services/api/posts.service';
-import { CreatePostRequest } from '@shared/types';
+import { CreatePostRequest, PostDTO } from '@shared/types';
 import { showToast } from '@shared/components/ui/Toast';
 
 interface CreatePostPageProps {
   onPostCreated: () => void;
+  initialData?: PostDTO; // 编辑模式的初始数据
 }
 
-export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated }) => {
+export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, initialData }) => {
   const [postType, setPostType] = useState<'article' | 'question'>('article');
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [summary, setSummary] = useState('');
-  const [coverImage, setCoverImage] = useState('');
-  const [categoryId, setCategoryId] = useState('');
+  const [title, setTitle] = useState(initialData?.title || '');
+  const [content, setContent] = useState(initialData?.content || '');
+  const [summary, setSummary] = useState(initialData?.summary || '');
+  const [coverImage, setCoverImage] = useState(initialData?.coverImage || '');
+  const [categoryId, setCategoryId] = useState(initialData?.categoryId || '');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
   const [isPreview, setIsPreview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  const isEditMode = !!initialData;
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim()) && tags.length < 5) {
@@ -83,7 +86,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
     try {
       setIsSubmitting(true);
       
-      const createPostParams: CreatePostRequest = {
+      const postParams = {
         title: title.trim(),
         content: content.trim(),
         categoryId,
@@ -91,17 +94,26 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
         ...(coverImage.trim() && { coverImage: coverImage.trim() }),
       };
 
-      const createdPost = await PostsService.createPost(createPostParams);
+      let result: PostDTO;
       
-      showToast.success(`${postType === 'article' ? '文章' : '问题'}发布成功！`);
-      console.log('文章创建成功:', createdPost);
+      if (isEditMode && initialData) {
+        // 编辑模式
+        result = await PostsService.updatePost(initialData.id, postParams);
+        showToast.success('文章更新成功！');
+      } else {
+        // 创建模式
+        result = await PostsService.createPost(postParams);
+        showToast.success(`${postType === 'article' ? '文章' : '问题'}创建成功！`);
+      }
+      
+      console.log('文章操作成功:', result);
       
       // 返回到列表页面
       onPostCreated();
       
     } catch (error) {
-      console.error('创建文章失败:', error);
-      showToast.error('发布失败，请稍后再试');
+      console.error('文章操作失败:', error);
+      showToast.error(isEditMode ? '更新失败，请稍后再试' : '创建失败，请稍后再试');
     } finally {
       setIsSubmitting(false);
     }
@@ -127,8 +139,12 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
             <span>返回</span>
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">发布内容</h1>
-            <p className="text-gray-600">分享您的知识和经验</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {isEditMode ? '编辑内容' : '发布内容'}
+            </h1>
+            <p className="text-gray-600">
+              {isEditMode ? '修改您的文章内容' : '分享您的知识和经验'}
+            </p>
           </div>
         </div>
       </div>
@@ -266,7 +282,12 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
                   className="w-full flex items-center justify-center space-x-2"
                 >
                   <Save className="h-4 w-4" />
-                  <span>{isSubmitting ? '发布中...' : '发布'}</span>
+                  <span>
+                    {isSubmitting 
+                      ? (isEditMode ? '更新中...' : '发布中...') 
+                      : (isEditMode ? '保存更新' : '发布')
+                    }
+                  </span>
                 </Button>
               </div>
             </Card>
@@ -328,16 +349,15 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated })
                 </label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {tags.map((tag) => (
-                    <Badge
+                    <button
                       key={tag}
-                      variant="secondary"
-                      className="flex items-center space-x-1 cursor-pointer hover:bg-red-100 hover:text-red-800 text-xs"
                       onClick={() => handleRemoveTag(tag)}
+                      className="inline-flex items-center space-x-1 px-2 py-1 bg-gray-100 text-gray-800 rounded-md text-xs hover:bg-red-100 hover:text-red-800 transition-colors cursor-pointer"
                     >
                       <Hash className="h-3 w-3" />
                       <span>{tag}</span>
                       <span className="ml-1">×</span>
-                    </Badge>
+                    </button>
                   ))}
                 </div>
                 <div className="space-y-2">
