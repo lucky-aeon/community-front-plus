@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { MessageSquare, Plus, Search, Filter, Heart, Clock, CheckCircle } from 'lucide-react';
-import { Card } from '@shared/components/ui/Card';
+import { MessageSquare, Search, Filter, CheckCircle } from 'lucide-react';
 import { Badge } from '@shared/components/ui/Badge';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
+import { PostCard } from '@shared/components/business/PostCard';
 import { posts } from '@shared/constants/mockData';
 
 interface DiscussionsPageProps {
@@ -77,7 +77,7 @@ export const DiscussionsPage: React.FC<DiscussionsPageProps> = ({ onPostClick })
         {tabs.map((tab) => (
           <button
             key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
+            onClick={() => setActiveTab(tab.id as 'all' | 'articles' | 'questions')}
             className={`
               flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200
               ${activeTab === tab.id
@@ -97,72 +97,12 @@ export const DiscussionsPage: React.FC<DiscussionsPageProps> = ({ onPostClick })
       {/* Posts List */}
       <div className="space-y-6">
         {filteredPosts.map((post) => (
-          <Card key={post.id} className="p-6 hover:shadow-lg transition-shadow cursor-pointer">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-center space-x-3">
-                <img
-                  src={post.author.avatar}
-                  alt={post.author.name}
-                  className="h-12 w-12 rounded-full object-cover"
-                />
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <p className="font-medium text-gray-900">{post.author.name}</p>
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getMembershipColor(post.author.membershipTier)}`}>
-                      {post.author.membershipTier.toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2 text-sm text-gray-500">
-                    <Clock className="h-4 w-4" />
-                    <span>{formatDate(post.createdAt)}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Badge variant={post.type === 'article' ? 'primary' : 'warning'}>
-                  {post.type === 'article' ? '文章' : '问答'}
-                </Badge>
-                {post.type === 'question' && post.isAnswered && (
-                  <Badge variant="success" className="flex items-center space-x-1">
-                    <CheckCircle className="h-3 w-3" />
-                    <span>已解答</span>
-                  </Badge>
-                )}
-              </div>
-            </div>
-            
-            <h3 className="text-xl font-semibold text-gray-900 mb-3 hover:text-blue-600 transition-colors">
-              <button onClick={() => onPostClick(post.id)} className="text-left">
-                {post.title}
-              </button>
-            </h3>
-            
-            <p className="text-gray-600 mb-4 line-clamp-3">
-              {post.content}
-            </p>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex flex-wrap gap-2">
-                {post.tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" size="sm" className="hover:bg-blue-100 hover:text-blue-800 cursor-pointer">
-                    #{tag}
-                  </Badge>
-                ))}
-              </div>
-              
-              <div className="flex items-center space-x-6 text-sm text-gray-500">
-                <div className="flex items-center space-x-1 hover:text-red-500 cursor-pointer transition-colors">
-                  <Heart className="h-4 w-4" />
-                  <span>{post.likes}</span>
-                </div>
-                <div className="flex items-center space-x-1 hover:text-blue-500 cursor-pointer transition-colors">
-                  <MessageSquare className="h-4 w-4" />
-                  <span>{post.comments}</span>
-                </div>
-              </div>
-            </div>
-          </Card>
+          <PostCard 
+            key={post.id}
+            post={post}
+            onPostClick={onPostClick}
+            variant="default"
+          />
         ))}
       </div>
 

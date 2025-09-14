@@ -5,7 +5,11 @@ import { Button } from '@shared/components/ui/Button';
 import { Badge } from '@shared/components/ui/Badge';
 import { CreatePostPage } from '../../user-portal/components/CreatePostPage';
 
-export const MyArticlesPage: React.FC = () => {
+interface MyArticlesPageProps {
+  onArticleClick?: (articleId: string) => void;
+}
+
+export const MyArticlesPage: React.FC<MyArticlesPageProps> = ({ onArticleClick }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [isWriting, setIsWriting] = useState(false);
@@ -146,7 +150,11 @@ export const MyArticlesPage: React.FC = () => {
           {/* 文章列表 */}
           <div className="space-y-4">
             {articles.map((article) => (
-              <Card key={article.id} className="p-6 hover:shadow-md transition-shadow">
+              <Card 
+                key={article.id} 
+                className="p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                onClick={() => onArticleClick?.(article.id)}
+              >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-3 mb-2">
@@ -168,7 +176,7 @@ export const MyArticlesPage: React.FC = () => {
                       <span>创建于 {article.createdAt}</span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2 ml-4">
+                  <div className="flex items-center space-x-2 ml-4" onClick={(e) => e.stopPropagation()}>
                     <Button variant="neutral" size="sm">
                       <Edit className="h-4 w-4" />
                     </Button>

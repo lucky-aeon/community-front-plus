@@ -1,7 +1,7 @@
 import React from 'react';
-import { Clock, MessageSquare, Heart } from 'lucide-react';
+import { MessageSquare, Heart } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
-import { Badge } from '@shared/components/ui/Badge';
+import { PostCard } from '@shared/components/business/PostCard';
 import { posts, courses, comments } from '@shared/constants/mockData';
 
 interface HomePageProps {
@@ -14,26 +14,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onPostClick, onCourseClick }
   const recentCourses = courses.slice(0, 3);
   const recentComments = comments.slice(0, 3);
 
-  const formatDate = (date: Date) => {
-    return new Intl.RelativeTimeFormat('zh-CN', { numeric: 'auto' }).format(
-      Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24)),
-      'day'
-    );
-  };
-
-  const getMembershipColor = (tier: string) => {
-    switch (tier) {
-      case 'basic': return 'bg-blue-100 text-blue-800';
-      case 'premium': return 'bg-purple-100 text-purple-800';
-      case 'vip': return 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   return (
-    <div className="pt-12 p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Latest Articles */}
+        {/* Latest Posts */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">最新文章</h2>
@@ -44,65 +28,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onPostClick, onCourseClick }
           
           <div className="space-y-6">
             {recentPosts.map((post) => (
-              <Card key={post.id} className="p-6 hover:shadow-lg transition-shadow">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <img
-                      src={post.author.avatar}
-                      alt={post.author.name}
-                      className="h-10 w-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <p className="font-medium text-gray-900">{post.author.name}</p>
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getMembershipColor(post.author.membershipTier)}`}>
-                          {post.author.membershipTier.toUpperCase()}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
-                    </div>
-                  </div>
-                  <Badge variant={post.type === 'article' ? 'primary' : 'warning'}>
-                    {post.type === 'article' ? '文章' : '问答'}
-                  </Badge>
-                </div>
-                
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 hover:text-blue-600 cursor-pointer">
-                  <button onClick={() => onPostClick(post.id)} className="text-left">
-                    {post.title}
-                  </button>
-                </h3>
-                
-                <p className="text-gray-600 mb-4 line-clamp-2">
-                  {post.content}
-                </p>
-                
-                <div className="flex items-center justify-between">
-                  <div className="flex flex-wrap gap-2">
-                    {post.tags.slice(0, 3).map((tag) => (
-                      <Badge key={tag} variant="secondary" size="sm">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <div className="flex items-center space-x-1">
-                      <Heart className="h-4 w-4" />
-                      <span>{post.likes}</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <MessageSquare className="h-4 w-4" />
-                      <span>{post.comments}</span>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+              <PostCard 
+                key={post.id}
+                post={post}
+                onPostClick={onPostClick}
+                variant="compact"
+              />
             ))}
           </div>
         </div>
 
-        {/* Sidebar */}
         <div className="space-y-8">
           {/* Latest Courses */}
           <div>
@@ -120,20 +55,22 @@ export const HomePage: React.FC<HomePageProps> = ({ onPostClick, onCourseClick }
                     <img
                       src={course.thumbnail}
                       alt={course.title}
-                      className="h-16 w-16 rounded-lg object-cover flex-shrink-0"
+                      className="w-16 h-16 rounded-lg object-cover flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 line-clamp-2 mb-1">
+                      <h4 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
                         {course.title}
                       </h4>
                       <p className="text-sm text-gray-600 mb-2">{course.instructor}</p>
                       <div className="flex items-center justify-between">
-                        <Badge variant="secondary" size="sm">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          course.level === 'beginner' ? 'bg-green-100 text-green-800' :
+                          course.level === 'intermediate' ? 'bg-blue-100 text-blue-800' :
+                          'bg-purple-100 text-purple-800'
+                        }`}>
                           {course.level}
-                        </Badge>
-                        <span className="text-sm font-medium text-gray-900">
-                          ${course.price}
                         </span>
+                        <span className="text-lg font-bold text-blue-600">${course.price}</span>
                       </div>
                     </div>
                   </div>
@@ -144,46 +81,44 @@ export const HomePage: React.FC<HomePageProps> = ({ onPostClick, onCourseClick }
 
           {/* Latest Comments */}
           <div>
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-bold text-gray-900">最新评论</h3>
-              <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              <button className="text-blue-600 hover:text-blue-700 font-medium">
                 查看全部
               </button>
             </div>
             
             <div className="space-y-4">
               {recentComments.map((comment) => (
-                <Card key={comment.id} className="p-4">
+                <div key={comment.id} className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-start space-x-3">
                     <img
                       src={comment.author.avatar}
                       alt={comment.author.name}
-                      className="h-8 w-8 rounded-full object-cover flex-shrink-0"
+                      className="h-10 w-10 rounded-full object-cover flex-shrink-0"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-1">
-                        <p className="text-sm font-medium text-gray-900">
-                          {comment.author.name}
-                        </p>
-                        <span className={`px-1.5 py-0.5 rounded text-xs font-semibold ${getMembershipColor(comment.author.membershipTier)}`}>
+                        <p className="font-medium text-gray-900">{comment.author.name}</p>
+                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                          comment.author.membershipTier === 'premium' ? 'bg-purple-100 text-purple-800' :
+                          comment.author.membershipTier === 'vip' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white' :
+                          'bg-blue-100 text-blue-800'
+                        }`}>
                           {comment.author.membershipTier.toUpperCase()}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {comment.content}
-                      </p>
-                      <div className="flex items-center justify-between mt-2">
-                        <p className="text-xs text-gray-500">
-                          {formatDate(comment.createdAt)}
-                        </p>
-                        <div className="flex items-center space-x-1 text-xs text-gray-500">
-                          <Heart className="h-3 w-3" />
+                      <p className="text-gray-700 mb-2">{comment.content}</p>
+                      <div className="flex items-center space-x-4 text-sm text-gray-500">
+                        <span>241天前</span>
+                        <div className="flex items-center space-x-1">
+                          <Heart className="h-4 w-4" />
                           <span>{comment.likes}</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                </Card>
+                </div>
               ))}
             </div>
           </div>

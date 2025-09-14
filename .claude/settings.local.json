@@ -31,7 +31,9 @@
       "mcp__playwright__browser_press_key",
       "WebFetch(domain:help.aliyun.com)",
       "WebFetch(domain:help.aliyun.com)",
-      "Read(/Users/xhy/FrontProjects/community-front/public/**)"
+      "Read(/Users/xhy/FrontProjects/community-front/public/**)",
+      "mcp__playwright__browser_hover",
+      "mcp__playwright__browser_console_messages"
     ],
     "deny": [],
     "ask": []

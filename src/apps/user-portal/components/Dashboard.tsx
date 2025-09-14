@@ -26,7 +26,7 @@ export const Dashboard: React.FC = () => {
 
   const renderContent = () => {
     if (selectedPost) {
-      return <PostDetailPage postId={selectedPost} onBack={() => setSelectedPost(null)} />;
+      return <PostDetailPage postId={selectedPost} onBack={() => setSelectedPost(null)} onPostClick={setSelectedPost} />;
     }
     
     if (selectedCourse) {
