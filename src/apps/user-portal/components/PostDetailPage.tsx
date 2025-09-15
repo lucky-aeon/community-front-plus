@@ -6,6 +6,7 @@ import { Button } from '@shared/components/ui/Button';
 import { Badge } from '@shared/components/ui/Badge';
 import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { CommentsSection } from '@shared/components/business/CommentsSection';
 import { comments } from '@shared/constants/mockData';
 import { useAuth } from '../../../context/AuthContext';
 import { routeUtils } from '@shared/routes/routes';
@@ -16,7 +17,6 @@ export const PostDetailPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [newComment, setNewComment] = useState('');
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [post, setPost] = useState<FrontPostDetailDTO | null>(null);
@@ -108,16 +108,23 @@ export const PostDetailPage: React.FC = () => {
     }
   };
 
-  const handleSubmitComment = () => {
-    if (newComment.trim()) {
+  const handleSubmitComment = (content: string) => {
+    if (content.trim()) {
       // Here you would typically submit the comment to your backend
-      console.log('Submitting comment:', newComment);
-      setNewComment('');
+      console.log('Submitting comment:', content);
     }
   };
 
+  const handleLikeComment = (commentId: string) => {
+    console.log('Liking comment:', commentId);
+  };
+
+  const handleReplyComment = (commentId: string, replyContent: string) => {
+    console.log('Replying to comment:', commentId, 'with content:', replyContent);
+  };
+
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="py-6 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="flex items-center space-x-4 mb-6">
         <Button
@@ -141,9 +148,9 @@ export const PostDetailPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Sidebar - Author Info & Related Posts */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="lg:col-span-3 space-y-6">
           {/* Author Info */}
           <Card className="p-4">
             <h3 className="font-semibold text-gray-900 mb-3">作者信息</h3>
@@ -195,7 +202,7 @@ export const PostDetailPage: React.FC = () => {
         </div>
 
         {/* Main Content */}
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-9 space-y-6">
           <Card className="p-6">
             {/* Post Header */}
             <div className="flex items-start justify-between mb-6">
@@ -306,90 +313,17 @@ export const PostDetailPage: React.FC = () => {
               </div>
             </div>
           </Card>
-        </div>
 
-        {/* Right Sidebar - Comments */}
-        <div className="lg:col-span-3">
-          <Card className="p-4 h-fit">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">
-              评论 ({postComments.length})
-            </h2>
-
-            {/* Add Comment */}
-            {user && (
-              <div className="mb-6">
-                <div className="flex items-start space-x-3">
-                  <img
-                    src={user.avatar || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`}
-                    alt={user.name}
-                    className="h-8 w-8 rounded-full object-cover flex-shrink-0"
-                  />
-                  <div className="flex-1">
-                    <textarea
-                      placeholder="写下您的评论..."
-                      value={newComment}
-                      onChange={(e) => setNewComment(e.target.value)}
-                      rows={3}
-                      className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
-                    />
-                    <div className="flex justify-end mt-2">
-                      <Button
-                        onClick={handleSubmitComment}
-                        disabled={!newComment.trim()}
-                        size="sm"
-                      >
-                        发布评论
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Comments List */}
-            <div className="space-y-4 max-h-96 overflow-y-auto">
-              {postComments.map((comment) => (
-                <div key={comment.id} className="flex items-start space-x-3">
-                  <img
-                    src={comment.author.avatar}
-                    alt={comment.author.name}
-                    className="h-8 w-8 rounded-full object-cover flex-shrink-0"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <h4 className="text-sm font-medium text-gray-900">{comment.author.name}</h4>
-                      <span className="px-1.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                        用户
-                      </span>
-                      {comment.isAnswer && (
-                        <Badge variant="success" size="sm">
-                          最佳答案
-                        </Badge>
-                      )}
-                      <span className="text-xs text-gray-500">{formatDate(comment.createdAt.toISOString())}</span>
-                    </div>
-                    <p className="text-sm text-gray-700 mb-2">{comment.content}</p>
-                    <div className="flex items-center space-x-3">
-                      <Button variant="ghost" size="sm" className="flex items-center space-x-1 text-xs text-gray-500 hover:text-red-500">
-                        <Heart className="h-3 w-3" />
-                        <span>{comment.likes}</span>
-                      </Button>
-                      <Button variant="ghost" size="sm" className="text-xs text-gray-500">
-                        回复
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {postComments.length === 0 && (
-              <div className="text-center py-6 text-gray-500">
-                <MessageSquare className="h-8 w-8 mx-auto mb-3 text-gray-300" />
-                <p className="text-sm">暂无评论，来发表第一个评论吧！</p>
-              </div>
-            )}
-          </Card>
+          {/* Comments Section */}
+          <CommentsSection
+            comments={postComments}
+            currentUser={user}
+            postId={post.id}
+            onSubmitComment={handleSubmitComment}
+            onLikeComment={handleLikeComment}
+            onReplyComment={handleReplyComment}
+            className="mt-6"
+          />
         </div>
       </div>
     </div>
