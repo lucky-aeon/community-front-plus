@@ -320,3 +320,64 @@ export interface UserDTO {
   createTime: string;
   updateTime: string;
 }
+
+// ================ 评论相关接口定义 ================
+
+// 业务类型枚举
+export type BusinessType = 'POST' | 'COURSE';
+
+// 评论DTO（API返回的评论数据）
+export interface CommentDTO {
+  id: string;                    // 评论ID
+  content: string;               // 评论内容
+  businessId: string;            // 业务ID（文章ID或课程ID）
+  businessType: BusinessType;    // 业务类型
+  parentCommentId?: string;      // 父评论ID（用于回复）
+  rootCommentId?: string;        // 根评论ID（用于多级回复）
+  commentUserId: string;         // 评论用户ID
+  commentUserName: string;       // 评论用户名称
+  commentUserAvatar?: string;    // 评论用户头像
+  replyUserId?: string;          // 被回复用户ID
+  replyUserName?: string;        // 被回复用户名称
+  likeCount: number;             // 点赞数
+  replyCount: number;            // 回复数
+  createTime: string;            // 创建时间
+  updateTime: string;            // 更新时间
+  isLiked?: boolean;             // 当前用户是否已点赞（前端使用）
+}
+
+// 创建评论请求参数
+export interface CreateCommentRequest {
+  content: string;               // 评论内容，必填，最大2000字符
+  businessId: string;            // 业务ID，必填
+  businessType: BusinessType;    // 业务类型，必填
+}
+
+// 回复评论请求参数
+export interface ReplyCommentRequest {
+  content: string;               // 回复内容，必填，最大2000字符
+  parentCommentId: string;       // 父评论ID，必填
+  businessId: string;            // 业务ID，必填
+  businessType: BusinessType;    // 业务类型，必填
+  replyUserId: string;           // 被回复用户ID，必填
+}
+
+// 查询评论列表请求参数
+export interface QueryCommentsRequest {
+  pageNum?: number;              // 页码，从1开始，默认为1
+  pageSize?: number;             // 每页大小，默认为10
+  businessId: string;            // 业务ID，必填
+  businessType: BusinessType;    // 业务类型，必填
+}
+
+// 查询用户相关评论请求参数
+export interface QueryUserCommentsRequest {
+  pageNum?: number;              // 页码，从1开始，默认为1
+  pageSize?: number;             // 每页大小，默认为10
+}
+
+// 评论树结构（前端展示用）
+export interface CommentTreeNode extends CommentDTO {
+  children?: CommentTreeNode[];  // 子评论列表
+  level: number;                 // 评论层级，0为根评论
+}

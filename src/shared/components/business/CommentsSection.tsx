@@ -1,79 +1,171 @@
-import React, { useState } from 'react';
-import { Heart, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Heart, MessageSquare, Trash2, AlertCircle } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
 import { Badge } from '@shared/components/ui/Badge';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
-import { Comment, User } from '@shared/types';
+import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
+import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
+import { CommentsService } from '@shared/services/api';
+import { CommentDTO, User, BusinessType } from '@shared/types';
+import toast from 'react-hot-toast';
 
 interface CommentsSectionProps {
-  comments: Comment[];
+  businessId: string;
+  businessType: BusinessType;
   currentUser: User | null;
-  postId: string;
-  onSubmitComment?: (content: string) => void;
-  onLikeComment?: (commentId: string) => void;
-  onReplyComment?: (commentId: string, content: string) => void;
+  onCommentCountChange?: (count: number) => void;
   className?: string;
 }
 
 export const CommentsSection: React.FC<CommentsSectionProps> = ({
-  comments,
+  businessId,
+  businessType,
   currentUser,
-  postId,
-  onSubmitComment,
-  onLikeComment,
-  onReplyComment,
+  onCommentCountChange,
   className = ''
 }) => {
+  const [comments, setComments] = useState<CommentDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalComments, setTotalComments] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
 
-  const formatDate = (dateString: string | Date) => {
-    const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-    return date.toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getMembershipColor = (tier: string) => {
-    switch (tier) {
-      case 'basic': return 'bg-blue-100 text-blue-800';
-      case 'premium': return 'bg-purple-100 text-purple-800';
-      case 'vip': return 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white';
-      default: return 'bg-gray-100 text-gray-800';
+  // 获取评论列表
+  const fetchComments = async (page = 1, append = false) => {
+    try {
+      setLoading(!append);
+      const response = await CommentsService.getBusinessComments({
+        businessId,
+        businessType,
+        pageNum: page,
+        pageSize: 10
+      });
+      
+      const newComments = response.records || [];
+      
+      if (append) {
+        setComments(prev => [...prev, ...newComments]);
+      } else {
+        setComments(newComments);
+      }
+      
+      setTotalComments(response.total || 0);
+      setCurrentPage(page);
+      setHasMore((response.current || 1) < (response.pages || 1));
+      
+      // 通知父组件评论数量变化
+      if (onCommentCountChange) {
+        onCommentCountChange(response.total || 0);
+      }
+    } catch (error) {
+      console.error('获取评论列表失败:', error);
+      toast.error('获取评论列表失败');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSubmitComment = () => {
-    if (newComment.trim() && onSubmitComment) {
-      onSubmitComment(newComment.trim());
+  // 组件加载时获取评论
+  useEffect(() => {
+    fetchComments();
+  }, [businessId, businessType]);
+
+  const formatDate = (dateString: string) => {
+    return CommentsService.formatCommentTime(dateString);
+  };
+
+  const handleSubmitComment = async () => {
+    if (!newComment.trim() || submitting) return;
+    
+    try {
+      setSubmitting(true);
+      await CommentsService.createComment({
+        businessId,
+        businessType,
+        content: newComment.trim()
+      });
+      
       setNewComment('');
+      toast.success('评论发布成功');
+      // 重新获取第一页评论
+      fetchComments(1);
+    } catch (error) {
+      console.error('发布评论失败:', error);
+      toast.error('发布评论失败');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleSubmitReply = (commentId: string) => {
-    if (replyContent.trim() && onReplyComment) {
-      onReplyComment(commentId, replyContent.trim());
+  const handleSubmitReply = async (commentId: string) => {
+    if (!replyContent.trim() || submitting) return;
+    
+    const parentComment = comments.find(c => c.id === commentId);
+    if (!parentComment) return;
+    
+    try {
+      setSubmitting(true);
+      await CommentsService.replyComment(commentId, {
+        parentCommentId: commentId,
+        businessId,
+        businessType,
+        content: replyContent.trim(),
+        replyUserId: parentComment.commentUserId
+      });
+      
       setReplyContent('');
       setReplyingTo(null);
+      toast.success('回复发布成功');
+      // 重新获取第一页评论
+      fetchComments(1);
+    } catch (error) {
+      console.error('发布回复失败:', error);
+      toast.error('发布回复失败');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleLikeComment = (commentId: string) => {
-    if (onLikeComment) {
-      onLikeComment(commentId);
+  const handleDeleteComment = async (commentId: string) => {
+    setCommentToDelete(commentId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteComment = async () => {
+    if (!commentToDelete) return;
+    
+    try {
+      setDeleting(commentToDelete);
+      await CommentsService.deleteComment(commentToDelete);
+      toast.success('评论删除成功');
+      // 重新获取当前页评论
+      fetchComments(currentPage);
+    } catch (error) {
+      console.error('删除评论失败:', error);
+      toast.error('删除评论失败');
+    } finally {
+      setDeleting(null);
+      setCommentToDelete(null);
     }
+  };
+
+  const handleLoadMore = () => {
+    if (!hasMore || loading) return;
+    fetchComments(currentPage + 1, true);
   };
 
   return (
     <Card className={`p-6 ${className}`}>
       <h2 className="text-xl font-bold text-gray-900 mb-6">
-        评论 ({comments.length})
+        评论 ({totalComments})
       </h2>
 
       {/* 添加评论 */}
@@ -103,11 +195,11 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
               <div className="flex justify-end">
                 <Button
                   onClick={handleSubmitComment}
-                  disabled={!newComment.trim()}
+                  disabled={!newComment.trim() || submitting}
                   size="sm"
                   className="ml-4"
                 >
-                  发布评论
+                  {submitting ? '发布中...' : '发布评论'}
                 </Button>
               </div>
             </div>
@@ -124,118 +216,163 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
       )}
 
       {/* 评论列表 */}
-      <div className="space-y-6">
-        {comments.map((comment) => (
-          <div key={comment.id} className="border-b border-gray-100 pb-6 last:border-b-0">
-            <div className="flex items-start space-x-4">
-              <img
-                src={comment.author.avatar}
-                alt={comment.author.name}
-                className="h-10 w-10 rounded-full object-cover flex-shrink-0"
-              />
-              <div className="flex-1">
-                <div className="flex items-center space-x-2 mb-2">
-                  <h4 className="font-medium text-gray-900">{comment.author.name}</h4>
-                  {comment.isAnswer && (
-                    <Badge variant="success" size="sm">
-                      最佳答案
-                    </Badge>
-                  )}
-                  <span className="text-sm text-gray-500">
-                    {formatDate(comment.createdAt)}
-                  </span>
-                </div>
+      {loading && comments.length === 0 ? (
+        <div className="flex justify-center py-8">
+          <LoadingSpinner size="md" />
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {comments.map((comment) => (
+            <div key={comment.id} className="border-b border-gray-100 pb-6 last:border-b-0">
+              <div className="flex items-start space-x-4">
+                <img
+                  src={comment.commentUserAvatar || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`}
+                  alt={comment.commentUserName}
+                  className="h-10 w-10 rounded-full object-cover flex-shrink-0"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-2">
+                      <h4 className="font-medium text-gray-900">{comment.commentUserName}</h4>
+                      <span className="text-sm text-gray-500">
+                        {formatDate(comment.createTime)}
+                      </span>
+                    </div>
+                    
+                    {/* 删除按钮（仅评论作者可见） */}
+                    {CommentsService.canDeleteComment(comment, currentUser?.id) && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteComment(comment.id)}
+                        disabled={deleting === comment.id}
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                      >
+                        {deleting === comment.id ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
 
-                {/* 评论内容 - 使用 MarkdownEditor 预览模式显示 */}
-                <div className="mb-3">
-                  <MarkdownEditor
-                    value={comment.content}
-                    onChange={() => {}} // 只读模式
-                    previewOnly={true}
-                    height="auto"
-                    toolbar={false}
-                    className="!border-none !shadow-none !bg-transparent"
-                    enableFullscreen={false}
-                    enableToc={false}
-                  />
-                </div>
+                  {/* 评论内容 - 使用 MarkdownEditor 预览模式显示 */}
+                  <div className="mb-3">
+                    <MarkdownEditor
+                      value={comment.content}
+                      onChange={() => {}} // 只读模式
+                      previewOnly={true}
+                      height="auto"
+                      toolbar={false}
+                      className="!border-none !shadow-none !bg-transparent"
+                      enableFullscreen={false}
+                      enableToc={false}
+                    />
+                  </div>
 
-                {/* 操作按钮 */}
-                <div className="flex items-center space-x-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleLikeComment(comment.id)}
-                    className="flex items-center space-x-1 text-gray-500 hover:text-red-500"
-                  >
-                    <Heart className="h-4 w-4" />
-                    <span>{comment.likes}</span>
-                  </Button>
-                  
-                  {currentUser && (
+                  {/* 操作按钮 */}
+                  <div className="flex items-center space-x-4">
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
-                      className="text-gray-500 hover:text-blue-500"
+                      className="flex items-center space-x-1 text-gray-500 hover:text-red-500"
                     >
-                      {replyingTo === comment.id ? '取消回复' : '回复'}
+                      <Heart className="h-4 w-4" />
+                      <span>{comment.likeCount || 0}</span>
                     </Button>
-                  )}
-                </div>
+                    
+                    {currentUser && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setReplyingTo(replyingTo === comment.id ? null : comment.id)}
+                        className="text-gray-500 hover:text-blue-500"
+                        disabled={submitting}
+                      >
+                        {replyingTo === comment.id ? '取消回复' : '回复'}
+                      </Button>
+                    )}
+                  </div>
 
-                {/* 回复框 */}
-                {replyingTo === comment.id && currentUser && (
-                  <div className="mt-4 ml-4 pl-4 border-l-2 border-gray-200">
-                    <div className="flex items-start space-x-3">
-                      <img
-                        src={currentUser.avatar || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`}
-                        alt={currentUser.name}
-                        className="h-8 w-8 rounded-full object-cover flex-shrink-0 mt-1"
-                      />
-                      <div className="flex-1">
-                        <div className="mb-2">
-                          <div className="text-sm text-gray-600 mb-2">
-                            回复 <span className="font-medium text-blue-600">@{comment.author.name}</span>：
+                  {/* 回复框 */}
+                  {replyingTo === comment.id && currentUser && (
+                    <div className="mt-4 ml-4 pl-4 border-l-2 border-gray-200">
+                      <div className="flex items-start space-x-3">
+                        <img
+                          src={currentUser.avatar || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`}
+                          alt={currentUser.name}
+                          className="h-8 w-8 rounded-full object-cover flex-shrink-0 mt-1"
+                        />
+                        <div className="flex-1">
+                          <div className="mb-2">
+                            <div className="text-sm text-gray-600 mb-2">
+                              回复 <span className="font-medium text-blue-600">@{comment.commentUserName}</span>：
+                            </div>
+                            <MarkdownEditor
+                              value={replyContent}
+                              onChange={setReplyContent}
+                              height={150}
+                              placeholder={`回复 @${comment.commentUserName}...`}
+                              className="border rounded-lg"
+                              enableFullscreen={false}
+                              enableToc={false}
+                            />
                           </div>
-                          <MarkdownEditor
-                            value={replyContent}
-                            onChange={setReplyContent}
-                            height={150}
-                            placeholder={`回复 @${comment.author.name}...`}
-                            className="border rounded-lg"
-                            enableFullscreen={false}
-                            enableToc={false}
-                          />
-                        </div>
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setReplyingTo(null)}
-                          >
-                            取消
-                          </Button>
-                          <Button
-                            onClick={() => handleSubmitReply(comment.id)}
-                            disabled={!replyContent.trim()}
-                            size="sm"
-                          >
-                            回复
-                          </Button>
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setReplyingTo(null);
+                                setReplyContent('');
+                              }}
+                              disabled={submitting}
+                            >
+                              取消
+                            </Button>
+                            <Button
+                              onClick={() => handleSubmitReply(comment.id)}
+                              disabled={!replyContent.trim() || submitting}
+                              size="sm"
+                            >
+                              {submitting ? '回复中...' : '回复'}
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {/* 加载更多按钮 */}
+      {hasMore && (
+        <div className="text-center py-6">
+          <Button
+            variant="outline"
+            onClick={handleLoadMore}
+            disabled={loading}
+            className="px-6"
+          >
+            {loading ? (
+              <>
+                <LoadingSpinner size="sm" className="mr-2" />
+                加载中...
+              </>
+            ) : (
+              '加载更多评论'
+            )}
+          </Button>
+        </div>
+      )}
 
       {/* 空状态 */}
-      {comments.length === 0 && (
+      {!loading && comments.length === 0 && (
         <div className="text-center py-12 text-gray-500">
           <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">暂无评论</h3>
@@ -244,6 +381,21 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
           </p>
         </div>
       )}
+      
+      {/* 删除确认对话框 */}
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        title="删除评论"
+        message="确定要删除这条评论吗？删除后不可恢复。"
+        confirmText="删除"
+        cancelText="取消"
+        variant="danger"
+        onConfirm={confirmDeleteComment}
+        onCancel={() => {
+          setDeleteConfirmOpen(false);
+          setCommentToDelete(null);
+        }}
+      />
     </Card>
   );
 };

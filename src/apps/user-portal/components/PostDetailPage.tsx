@@ -7,7 +7,6 @@ import { Badge } from '@shared/components/ui/Badge';
 import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { CommentsSection } from '@shared/components/business/CommentsSection';
-import { comments } from '@shared/constants/mockData';
 import { useAuth } from '../../../context/AuthContext';
 import { routeUtils } from '@shared/routes/routes';
 import { PostsService } from '@shared/services/api/posts.service';
@@ -19,6 +18,7 @@ export const PostDetailPage: React.FC = () => {
   const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
   const [post, setPost] = useState<FrontPostDetailDTO | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<FrontPostDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,8 +64,6 @@ export const PostDetailPage: React.FC = () => {
     fetchPostDetail();
   }, [postId]);
 
-  const postComments = comments.filter(c => c.postId === postId);
-
   if (isLoading) {
     return (
       <div className="p-6 max-w-7xl mx-auto">
@@ -108,19 +106,8 @@ export const PostDetailPage: React.FC = () => {
     }
   };
 
-  const handleSubmitComment = (content: string) => {
-    if (content.trim()) {
-      // Here you would typically submit the comment to your backend
-      console.log('Submitting comment:', content);
-    }
-  };
-
-  const handleLikeComment = (commentId: string) => {
-    console.log('Liking comment:', commentId);
-  };
-
-  const handleReplyComment = (commentId: string, replyContent: string) => {
-    console.log('Replying to comment:', commentId, 'with content:', replyContent);
+  const handleCommentCountChange = (count: number) => {
+    setCommentCount(count);
   };
 
   return (
@@ -294,7 +281,7 @@ export const PostDetailPage: React.FC = () => {
                 
                 <Button variant="ghost" size="sm" className="flex items-center space-x-2">
                   <MessageSquare className="h-4 w-4" />
-                  <span>{post.commentCount}</span>
+                  <span>{commentCount > 0 ? commentCount : post.commentCount}</span>
                 </Button>
                 
                 <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -316,12 +303,10 @@ export const PostDetailPage: React.FC = () => {
 
           {/* Comments Section */}
           <CommentsSection
-            comments={postComments}
+            businessId={post.id}
+            businessType="POST"
             currentUser={user}
-            postId={post.id}
-            onSubmitComment={handleSubmitComment}
-            onLikeComment={handleLikeComment}
-            onReplyComment={handleReplyComment}
+            onCommentCountChange={handleCommentCountChange}
             className="mt-6"
           />
         </div>
