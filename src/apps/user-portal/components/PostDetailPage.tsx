@@ -306,6 +306,7 @@ export const PostDetailPage: React.FC = () => {
             businessId={post.id}
             businessType="POST"
             currentUser={user}
+            authorId={post.authorId}
             onCommentCountChange={handleCommentCountChange}
             className="mt-6"
           />

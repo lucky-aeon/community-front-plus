@@ -14,6 +14,7 @@ interface CommentsSectionProps {
   businessId: string;
   businessType: BusinessType;
   currentUser: User | null;
+  authorId?: string; // 文章/内容作者ID，用于显示楼主标识
   onCommentCountChange?: (count: number) => void;
   className?: string;
 }
@@ -22,6 +23,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
   businessId,
   businessType,
   currentUser,
+  authorId,
   onCommentCountChange,
   className = ''
 }) => {
@@ -234,6 +236,22 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
                       <h4 className="font-medium text-gray-900">{comment.commentUserName}</h4>
+                      {/* 楼主标识：必须使用authorId进行比较 */}
+                      {authorId && comment.commentUserId === authorId && (
+                        <Badge variant="primary" className="text-xs px-2 py-0.5">
+                          楼主
+                        </Badge>
+                      )}
+                      {comment.replyUserName && (
+                        <span className="text-sm text-blue-600">
+                          回复 @{comment.replyUserName}
+                          {authorId && comment.replyUserId === authorId && (
+                            <Badge variant="primary" className="text-xs px-1 py-0.5 ml-1">
+                              楼主
+                            </Badge>
+                          )}
+                        </span>
+                      )}
                       <span className="text-sm text-gray-500">
                         {formatDate(comment.createTime)}
                       </span>
@@ -258,7 +276,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                   </div>
 
                   {/* 评论内容 - 使用 MarkdownEditor 预览模式显示 */}
-                  <div className="mb-3">
+                  <div className="mb-3 prose-content">
                     <MarkdownEditor
                       value={comment.content}
                       onChange={() => {}} // 只读模式
