@@ -5,6 +5,7 @@ export { UserService } from './user.service';
 export { UploadService } from './upload.service';
 export { CommentsService } from './comments.service';
 export { CategoriesService } from './categories.service';
+export { CoursesService } from './courses.service';
 export { apiClient, type ApiResponse } from './config';
 
 // 导出类型定义
@@ -19,4 +20,9 @@ export type {
   UpdateProfileRequest,
   ChangePasswordRequest,
   UserDTO,
+  CourseDTO,
+  CreateCourseRequest,
+  UpdateCourseRequest,
+  CourseQueryRequest,
+  CourseStatus,
 } from '../../types';

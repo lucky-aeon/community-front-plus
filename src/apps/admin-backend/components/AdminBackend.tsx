@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { AdminLayout } from './AdminLayout';
 import { OverviewPage } from './OverviewPage';
 import { CategoriesPage } from './CategoriesPage';
+import { CoursesPage } from './CoursesPage';
 
 // 临时的占位页面组件
 const ComingSoonPage: React.FC<{ title: string }> = ({ title }) => (
@@ -32,6 +33,7 @@ export const AdminBackend: React.FC = () => {
         <Route path="/posts" element={<ComingSoonPage title="文章管理" />} />
         <Route path="/comments" element={<ComingSoonPage title="评论管理" />} />
         <Route path="/categories" element={<CategoriesPage />} />
+        <Route path="/courses" element={<CoursesPage />} />
         
         {/* 系统管理 */}
         <Route path="/settings" element={<ComingSoonPage title="系统配置" />} />

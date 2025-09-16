@@ -421,3 +421,50 @@ export interface CategoryDTO {
   updateTime: string;            // 更新时间
   children?: CategoryDTO[];      // 子分类（树形结构用）
 }
+
+// ================ 管理员课程管理相关接口定义 ================
+
+// 课程状态枚举
+export type CourseStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+
+// 管理员课程DTO（API返回的完整课程数据）
+export interface CourseDTO {
+  id: string;                    // 课程ID
+  title: string;                 // 课程标题
+  description?: string;          // 课程描述
+  techStack?: string[];          // 技术栈数组
+  projectUrl?: string;           // 项目URL
+  tags?: string[];               // 标签数组
+  rating: number;                // 评分
+  status: CourseStatus;          // 课程状态
+  authorId: string;              // 作者ID
+  totalReadingTime: number;      // 总阅读时间（分钟）
+  createTime: string;            // 创建时间
+  updateTime: string;            // 更新时间
+}
+
+// 创建课程请求参数
+export interface CreateCourseRequest {
+  title: string;                 // 课程标题，必填
+  description?: string;          // 课程描述，可选
+  techStack?: string[];          // 技术栈数组，可选
+  projectUrl?: string;           // 项目URL，可选
+  tags?: string[];               // 标签数组，可选
+}
+
+// 更新课程请求参数
+export interface UpdateCourseRequest {
+  title: string;                 // 课程标题，必填
+  description?: string;          // 课程描述，可选
+  techStack?: string[];          // 技术栈数组，可选
+  projectUrl?: string;           // 项目URL，可选
+  tags?: string[];               // 标签数组，可选
+}
+
+// 课程查询请求参数
+export interface CourseQueryRequest {
+  pageNum?: number;              // 页码，从1开始，默认为1
+  pageSize?: number;             // 每页大小，默认为10
+  status?: CourseStatus;         // 状态筛选，可选
+  keyword?: string;              // 关键词搜索，可选
+}

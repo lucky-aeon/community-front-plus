@@ -8,6 +8,7 @@ import {
   FileText, 
   MessageSquare, 
   Tag,
+  BookOpen,
   Settings, 
   FileCheck,
   Menu,
@@ -55,7 +56,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       items: [
         { id: 'posts', name: '文章管理', icon: FileText, path: '/dashboard/admin/posts' },
         { id: 'comments', name: '评论管理', icon: MessageSquare, path: '/dashboard/admin/comments' },
-        { id: 'categories', name: '分类管理', icon: Tag, path: '/dashboard/admin/categories' }
+        { id: 'categories', name: '分类管理', icon: Tag, path: '/dashboard/admin/categories' },
+        { id: 'courses', name: '课程管理', icon: BookOpen, path: '/dashboard/admin/courses' }
       ]
     },
     {
