@@ -381,3 +381,43 @@ export interface CommentTreeNode extends CommentDTO {
   children?: CommentTreeNode[];  // 子评论列表
   level: number;                 // 评论层级，0为根评论
 }
+
+// ================ 分类管理相关接口定义 ================
+
+// 创建分类请求参数
+export interface CreateCategoryRequest {
+  name: string;                  // 分类名称，必填，2-50字符
+  type: 'ARTICLE' | 'QA';        // 分类类型，必填
+  sortOrder?: number;            // 排序值，可选
+}
+
+// 更新分类请求参数
+export interface UpdateCategoryRequest {
+  name: string;                  // 分类名称，必填，2-50字符
+  type: 'ARTICLE' | 'QA';        // 分类类型，必填
+  sortOrder?: number;            // 排序值，可选
+}
+
+// 分页查询分类列表请求参数
+export interface CategoryQueryRequest {
+  pageNum?: number;              // 页码，从1开始，默认为1
+  pageSize?: number;             // 每页大小，默认为10
+  type?: 'ARTICLE' | 'QA';       // 分类类型过滤，可选
+  parentId?: string;             // 父分类ID过滤，可选
+}
+
+// 分类DTO（API返回的完整分类数据）
+export interface CategoryDTO {
+  id: string;                    // 分类ID
+  name: string;                  // 分类名称
+  description?: string;          // 分类描述
+  parentId?: string;             // 父分类ID
+  type: 'ARTICLE' | 'QA';        // 分类类型
+  level: number;                 // 分类层级
+  sortOrder: number;             // 排序值
+  icon?: string;                 // 图标
+  isActive: boolean;             // 是否激活
+  createTime: string;            // 创建时间
+  updateTime: string;            // 更新时间
+  children?: CategoryDTO[];      // 子分类（树形结构用）
+}

@@ -83,16 +83,16 @@ export class PostsService {
    * POST /api/public/posts/queries
    */
   static async getPublicPosts(params: PublicPostQueryRequest = {}): Promise<PageResponse<FrontPostDTO>> {
-    const response = await apiClient.post<ApiResponse<PageResponse<FrontPostDTO>>>('/public/posts/queries', params);
+    const response = await apiClient.post<ApiResponse<PageResponse<FrontPostDTO>>>('/app/posts/queries', params);
     return response.data.data;
   }
 
   /**
-   * 根据文章ID获取文章详情（公开接口）
+   * 根据文章ID获取文章详情
    * GET /api/public/posts/{id}
    */
   static async getPublicPostDetail(id: string): Promise<FrontPostDetailDTO> {
-    const response = await apiClient.get<ApiResponse<FrontPostDetailDTO>>(`/public/posts/${id}`);
+    const response = await apiClient.get<ApiResponse<FrontPostDetailDTO>>(`/app/posts/${id}`);
     return response.data.data;
   }
 
@@ -101,11 +101,11 @@ export class PostsService {
    */
 
   /**
-   * 获取文章分类列表（根据类型过滤，无需token验证的公开接口）
+   * 获取文章分类列表
    */
   static async getCategories(type?: 'ARTICLE' | 'QA'): Promise<Category[]> {
     const params = type ? { type } : {};
-    const response = await apiClient.get<ApiResponse<Category[]>>('/public/categories/tree', { params });
+    const response = await apiClient.get<ApiResponse<Category[]>>('/app/categories/tree', { params });
     return response.data.data;
   }
 

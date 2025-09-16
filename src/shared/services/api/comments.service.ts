@@ -6,7 +6,6 @@ import {
   QueryCommentsRequest,
   QueryUserCommentsRequest,
   PageResponse,
-  BusinessType
 } from '../../types';
 
 /**
@@ -24,7 +23,7 @@ export class CommentsService {
    * POST /api/user/comments
    */
   static async createComment(params: CreateCommentRequest): Promise<CommentDTO> {
-    const response = await apiClient.post<ApiResponse<CommentDTO>>('/user/comments', params);
+    const response = await apiClient.post<ApiResponse<CommentDTO>>('/user/app/comments', params);
     return response.data.data;
   }
 
@@ -61,16 +60,12 @@ export class CommentsService {
   }
 
   /**
-   * ============= 公开评论查询接口（无需认证） =============
-   */
-
-  /**
    * 查询业务评论列表（获取指定业务对象的评论列表）
    * GET /api/comments
    */
   static async getBusinessComments(params: QueryCommentsRequest): Promise<PageResponse<CommentDTO>> {
     const response = await apiClient.get<ApiResponse<PageResponse<CommentDTO>>>(
-      '/comments', 
+      '/app/comments',
       { params }
     );
     return response.data.data;

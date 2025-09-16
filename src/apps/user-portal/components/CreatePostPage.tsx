@@ -9,7 +9,7 @@ import { Badge } from '@shared/components/ui/Badge';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { CategorySelect } from '@shared/components/ui/CategorySelect';
 import { PostsService } from '@shared/services/api/posts.service';
-import { CreatePostRequest, PostDTO } from '@shared/types';
+import { PostDTO } from '@shared/types';
 import { showToast } from '@shared/components/ui/Toast';
 
 interface CreatePostPageProps {

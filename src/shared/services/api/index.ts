@@ -4,6 +4,7 @@ export { PostsService } from './posts.service';
 export { UserService } from './user.service';
 export { UploadService } from './upload.service';
 export { CommentsService } from './comments.service';
+export { CategoriesService } from './categories.service';
 export { apiClient, type ApiResponse } from './config';
 
 // 导出类型定义
