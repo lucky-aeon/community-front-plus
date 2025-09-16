@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { X, BookOpen } from 'lucide-react';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
+import { Select, SelectOption } from '@shared/components/ui/Select';
 import { TagInput } from '@shared/components/ui/TagInput';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { CoursesService } from '@shared/services/api';
-import { CourseDTO } from '@shared/types';
+import { CourseDTO, CourseStatus } from '@shared/types';
 import toast from 'react-hot-toast';
 
 interface CourseModalProps {
@@ -28,7 +29,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({
     description: '',
     techStack: [] as string[],
     projectUrl: '',
-    tags: [] as string[]
+    tags: [] as string[],
+    status: 'PENDING' as CourseStatus
   });
 
   // 其他状态
@@ -42,7 +44,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({
         description: editingCourse.description || '',
         techStack: editingCourse.techStack || [],
         projectUrl: editingCourse.projectUrl || '',
-        tags: editingCourse.tags || []
+        tags: editingCourse.tags || [],
+        status: editingCourse.status
       });
     } else {
       setFormData({
@@ -50,7 +53,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({
         description: '',
         techStack: [],
         projectUrl: '',
-        tags: []
+        tags: [],
+        status: 'PENDING' as CourseStatus
       });
     }
   }, [editingCourse, isOpen]);
@@ -98,7 +102,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({
         description: formData.description.trim() || undefined,
         techStack: formData.techStack.length > 0 ? formData.techStack : undefined,
         projectUrl: formData.projectUrl.trim() || undefined,
-        tags: formData.tags.length > 0 ? formData.tags : undefined
+        tags: formData.tags.length > 0 ? formData.tags : undefined,
+        status: formData.status
       };
 
       if (editingCourse) {
@@ -128,6 +133,13 @@ export const CourseModal: React.FC<CourseModalProps> = ({
       [field]: value
     }));
   };
+
+  // 状态选项
+  const statusOptions: SelectOption[] = [
+    { value: 'PENDING', label: '待更新' },
+    { value: 'IN_PROGRESS', label: '更新中' },
+    { value: 'COMPLETED', label: '已完成' }
+  ];
 
   // 处理ESC键关闭
   useEffect(() => {
@@ -204,6 +216,21 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                   enableFullscreen
                   className="border border-gray-300 rounded-lg"
                 />
+              </div>
+
+              {/* 课程状态 */}
+              <div>
+                <Select
+                  label="课程状态"
+                  value={formData.status}
+                  onChange={(value) => handleInputChange('status', value)}
+                  options={statusOptions}
+                  placeholder="请选择课程状态"
+                  size="md"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  选择课程的当前状态
+                </p>
               </div>
             </div>
 

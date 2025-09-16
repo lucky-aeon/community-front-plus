@@ -37,7 +37,8 @@
       "mcp__playwright__browser_type",
       "Bash(lsof:*)",
       "WebFetch(domain:s.apifox.cn)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []

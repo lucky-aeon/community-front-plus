@@ -76,8 +76,8 @@ export class CoursesService {
    */
   static getStatusText(status: string): string {
     const statusMap: Record<string, string> = {
-      'PENDING': '待处理',
-      'IN_PROGRESS': '进行中',
+      'PENDING': '待更新',
+      'IN_PROGRESS': '更新中',
       'COMPLETED': '已完成'
     };
     return statusMap[status] || '未知状态';

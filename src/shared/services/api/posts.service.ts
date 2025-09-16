@@ -7,7 +7,9 @@ import {
   FrontPostDetailDTO,
   PageResponse,
   PublicPostQueryRequest,
-  Category
+  Category,
+  AdminPostQueryRequest,
+  AdminPostDTO
 } from '../../types';
 
 // 文章服务类
@@ -133,5 +135,18 @@ export class PostsService {
   static async createAndPublishPost(params: CreatePostRequest): Promise<PostDTO> {
     const post = await this.createPost(params);
     return this.publishPost(post.id);
+  }
+
+  /**
+   * ============= 管理员文章管理接口 =============
+   */
+
+  /**
+   * 管理员分页查询所有用户的文章列表
+   * GET /api/admin/posts
+   */
+  static async getAdminPosts(params: AdminPostQueryRequest = {}): Promise<PageResponse<AdminPostDTO>> {
+    const response = await apiClient.get<ApiResponse<PageResponse<AdminPostDTO>>>('/admin/posts', { params });
+    return response.data.data;
   }
 }

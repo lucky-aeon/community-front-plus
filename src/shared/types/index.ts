@@ -450,6 +450,7 @@ export interface CreateCourseRequest {
   techStack?: string[];          // 技术栈数组，可选
   projectUrl?: string;           // 项目URL，可选
   tags?: string[];               // 标签数组，可选
+  status: CourseStatus;          // 课程状态，必填
 }
 
 // 更新课程请求参数
@@ -459,6 +460,7 @@ export interface UpdateCourseRequest {
   techStack?: string[];          // 技术栈数组，可选
   projectUrl?: string;           // 项目URL，可选
   tags?: string[];               // 标签数组，可选
+  status?: CourseStatus;         // 课程状态，可选
 }
 
 // 课程查询请求参数
@@ -467,4 +469,32 @@ export interface CourseQueryRequest {
   pageSize?: number;             // 每页大小，默认为10
   status?: CourseStatus;         // 状态筛选，可选
   keyword?: string;              // 关键词搜索，可选
+}
+
+// ================ 管理员文章管理相关接口定义 ================
+
+// 管理员文章查询请求参数
+export interface AdminPostQueryRequest {
+  pageNum?: number;              // 页码，从1开始，默认为1
+  pageSize?: number;             // 每页大小，默认为10
+}
+
+// 管理员文章DTO（API返回的文章数据，包含作者名称和分类名称）
+export interface AdminPostDTO {
+  id: string;                    // 文章ID
+  title: string;                 // 文章标题
+  summary?: string;              // 文章概要
+  coverImage?: string;           // 封面图片URL
+  authorId: string;              // 作者ID
+  authorName: string;            // 作者名称
+  categoryId: string;            // 分类ID
+  categoryName: string;          // 分类名称
+  status: 'DRAFT' | 'PUBLISHED'; // 文章状态
+  likeCount: number;             // 点赞数
+  viewCount: number;             // 浏览数
+  commentCount: number;          // 评论数
+  isTop: boolean;                // 是否置顶
+  publishTime?: string;          // 发布时间
+  createTime: string;            // 创建时间
+  updateTime: string;            // 更新时间
 }

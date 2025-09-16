@@ -4,6 +4,7 @@ import { AdminLayout } from './AdminLayout';
 import { OverviewPage } from './OverviewPage';
 import { CategoriesPage } from './CategoriesPage';
 import { CoursesPage } from './CoursesPage';
+import { PostsPage } from './PostsPage';
 
 // 临时的占位页面组件
 const ComingSoonPage: React.FC<{ title: string }> = ({ title }) => (
@@ -30,7 +31,7 @@ export const AdminBackend: React.FC = () => {
         <Route path="/permissions" element={<ComingSoonPage title="权限管理" />} />
         
         {/* 内容管理 */}
-        <Route path="/posts" element={<ComingSoonPage title="文章管理" />} />
+        <Route path="/posts" element={<PostsPage />} />
         <Route path="/comments" element={<ComingSoonPage title="评论管理" />} />
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/courses" element={<CoursesPage />} />

@@ -25,4 +25,6 @@ export type {
   UpdateCourseRequest,
   CourseQueryRequest,
   CourseStatus,
+  AdminPostQueryRequest,
+  AdminPostDTO,
 } from '../../types';
