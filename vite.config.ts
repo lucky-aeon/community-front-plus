@@ -25,6 +25,7 @@ export default defineConfig({
       '@marketing': path.resolve(__dirname, './src/apps/marketing'),
       '@user-portal': path.resolve(__dirname, './src/apps/user-portal'),
       '@user-backend': path.resolve(__dirname, './src/apps/user-backend'),
+      '@admin-backend': path.resolve(__dirname, './src/apps/admin-backend'),
     },
   },
 });

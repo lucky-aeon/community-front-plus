@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ProtectedRoute, PublicOnlyRoute } from '@shared/routes/ProtectedRoute';
 import { MarketingPage } from '@apps/marketing/components/MarketingPage';
 import { Dashboard } from '@apps/user-portal/components/Dashboard';
+import { AdminBackend } from '@admin-backend/components/AdminBackend';
 import { CustomToaster } from '@shared/components/ui/Toast';
 
 const AppContent: React.FC = () => {
@@ -20,6 +21,16 @@ const AppContent: React.FC = () => {
         } 
       />
       
+      {/* 受保护路由 - 管理员后台 */}
+      <Route 
+        path="/dashboard/admin/*" 
+        element={
+          <ProtectedRoute>
+            <AdminBackend />
+          </ProtectedRoute>
+        } 
+      />
+
       {/* 受保护路由 - 用户Dashboard */}
       <Route 
         path="/dashboard/*" 

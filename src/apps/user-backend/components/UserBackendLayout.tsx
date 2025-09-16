@@ -37,6 +37,10 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
     navigate('/dashboard');
   };
 
+  const handleGoToAdmin = () => {
+    navigate('/dashboard/admin');
+  };
+
   const handleLogout = () => {
     setShowLogoutConfirm(true);
   };
@@ -183,7 +187,16 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
           
           {/* 退出登录按钮 */}
           <div className="pb-6">
-            <div className="border-t border-gray-200 pt-4">
+            <div className="border-t border-gray-200 pt-4 space-y-2">
+              {/* 管理员后台入口 */}
+              <button
+                onClick={handleGoToAdmin}
+                className="w-full flex items-center px-3 py-2 text-sm font-medium text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors duration-200"
+              >
+                <Shield className="h-5 w-5 mr-3" />
+                <span>管理员后台</span>
+              </button>
+              
               <button
                 onClick={handleLogout}
                 className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
