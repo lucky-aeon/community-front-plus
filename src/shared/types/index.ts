@@ -538,3 +538,28 @@ export interface ChapterQueryRequest {
   pageNum?: number;              // 页码，从1开始，默认为1
   pageSize?: number;             // 每页大小，默认为10
 }
+
+// ================ 管理员用户管理相关接口定义 ================
+
+// 管理员用户查询请求参数
+export interface AdminUserQueryRequest {
+  pageNum?: number;              // 页码，从1开始，默认为1
+  pageSize?: number;             // 每页大小，默认为10
+  email?: string;                // 用户邮箱模糊搜索，可选
+  name?: string;                 // 用户昵称模糊搜索，可选
+  status?: 'ACTIVE' | 'INACTIVE'; // 用户状态过滤，可选
+}
+
+// 管理员视角的用户DTO（API返回的用户数据）
+export interface AdminUserDTO {
+  id: string;                    // 用户ID
+  name: string;                  // 用户名称
+  description?: string;          // 用户描述
+  avatar?: string;               // 用户头像
+  email: string;                 // 用户邮箱
+  status: 'ACTIVE' | 'INACTIVE'; // 用户状态
+  emailNotificationEnabled: boolean; // 邮箱通知是否启用
+  maxConcurrentDevices: number;  // 最大并发设备数
+  createTime: string;            // 创建时间
+  updateTime: string;            // 更新时间
+}

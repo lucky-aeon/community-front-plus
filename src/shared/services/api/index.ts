@@ -7,6 +7,7 @@ export { CommentsService } from './comments.service';
 export { CategoriesService } from './categories.service';
 export { CoursesService } from './courses.service';
 export { ChaptersService } from './chapters.service';
+export { AdminUserService } from './admin-user.service';
 export { apiClient, type ApiResponse } from './config';
 
 // 导出类型定义
@@ -32,4 +33,6 @@ export type {
   CreateChapterRequest,
   UpdateChapterRequest,
   ChapterQueryRequest,
+  AdminUserQueryRequest,
+  AdminUserDTO,
 } from '../../types';
