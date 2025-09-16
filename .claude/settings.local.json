@@ -38,7 +38,8 @@
       "Bash(lsof:*)",
       "WebFetch(domain:s.apifox.cn)",
       "Bash(mkdir:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "mcp__playwright__browser_drag"
     ],
     "deny": [],
     "ask": []

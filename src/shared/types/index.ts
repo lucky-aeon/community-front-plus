@@ -498,3 +498,43 @@ export interface AdminPostDTO {
   createTime: string;            // 创建时间
   updateTime: string;            // 更新时间
 }
+
+// ================ 管理员课程章节管理相关接口定义 ================
+
+// 管理员课程章节DTO（API返回的完整章节数据）
+export interface ChapterDTO {
+  id: string;                    // 章节ID
+  title: string;                 // 章节标题
+  content: string;               // 章节内容（Markdown格式）
+  courseId: string;              // 所属课程ID
+  authorId: string;              // 作者ID
+  sortOrder: number;             // 排序值
+  readingTime?: number;          // 阅读时间（分钟），可选
+  createTime: string;            // 创建时间
+  updateTime: string;            // 更新时间
+}
+
+// 创建课程章节请求参数
+export interface CreateChapterRequest {
+  title: string;                 // 章节标题，必填，2-200字符
+  content: string;               // 章节内容，必填，最少10个字符
+  courseId: string;              // 所属课程ID，必填
+  sortOrder: number;             // 排序值，必填
+  readingTime?: number;          // 阅读时间（分钟），可选
+}
+
+// 更新课程章节请求参数
+export interface UpdateChapterRequest {
+  title: string;                 // 章节标题，必填，2-200字符
+  content: string;               // 章节内容，必填，最少10个字符
+  courseId: string;              // 所属课程ID，必填
+  sortOrder: number;             // 排序值，必填
+  readingTime?: number;          // 阅读时间（分钟），可选
+}
+
+// 查询课程章节列表请求参数
+export interface ChapterQueryRequest {
+  courseId: string;              // 课程ID，必填
+  pageNum?: number;              // 页码，从1开始，默认为1
+  pageSize?: number;             // 每页大小，默认为10
+}

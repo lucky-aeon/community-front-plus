@@ -6,7 +6,8 @@ import {
   Search,
   BookOpen,
   Clock,
-  Star
+  Star,
+  List
 } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
@@ -18,6 +19,7 @@ import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { CoursesService } from '@shared/services/api';
 import { CourseDTO, CourseQueryRequest, CourseStatus } from '@shared/types';
 import { CourseModal } from './CourseModal';
+import { ChaptersList } from './ChaptersList';
 import toast from 'react-hot-toast';
 
 export const CoursesPage: React.FC = () => {
@@ -27,6 +29,10 @@ export const CoursesPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<CourseDTO | null>(null);
   const [deletingCourse, setDeletingCourse] = useState<CourseDTO | null>(null);
+  
+  // 章节管理状态
+  const [chaptersListOpen, setChaptersListOpen] = useState(false);
+  const [managingCourse, setManagingCourse] = useState<CourseDTO | null>(null);
 
   // 筛选和分页状态
   const [searchTerm, setSearchTerm] = useState('');
@@ -57,17 +63,35 @@ export const CoursesPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, statusFilter, searchTerm, pageSize]);
+  }, [currentPage, statusFilter, pageSize]);
 
   // 初始化加载
   useEffect(() => {
     loadCourses();
-  }, [loadCourses]);
+  }, [currentPage, statusFilter]);
 
   // 处理搜索
-  const handleSearch = () => {
+  const handleSearch = async () => {
     setCurrentPage(1); // 重置到第一页
-    loadCourses();
+    setIsLoading(true);
+    try {
+      const params: CourseQueryRequest = {
+        pageNum: 1,
+        pageSize,
+        ...(statusFilter !== 'ALL' && { status: statusFilter }),
+        ...(searchTerm.trim() && { keyword: searchTerm.trim() })
+      };
+
+      const response = await CoursesService.getCoursesList(params);
+      setCourses(response.records);
+      setTotalPages(response.pages);
+      setTotalCount(response.total);
+    } catch (error) {
+      console.error('搜索课程失败:', error);
+      toast.error('搜索课程失败');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // 处理创建课程
@@ -85,6 +109,12 @@ export const CoursesPage: React.FC = () => {
   // 处理删除课程
   const handleDelete = async (course: CourseDTO) => {
     setDeletingCourse(course);
+  };
+
+  // 处理管理章节
+  const handleManageChapters = (course: CourseDTO) => {
+    setManagingCourse(course);
+    setChaptersListOpen(true);
   };
 
   // 确认删除
@@ -114,11 +144,6 @@ export const CoursesPage: React.FC = () => {
                 <div className="font-medium text-gray-900 truncate">
                   {course.title}
                 </div>
-                {course.description && (
-                  <div className="text-sm text-gray-600 mt-1 line-clamp-2">
-                    {course.description}
-                  </div>
-                )}
               </div>
             </div>
           </td>
@@ -174,8 +199,18 @@ export const CoursesPage: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
+                onClick={() => handleManageChapters(course)}
+                className="text-green-600 hover:text-green-700"
+                title="管理章节"
+              >
+                <List className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => handleEdit(course)}
                 className="text-blue-600 hover:text-blue-700"
+                title="编辑课程"
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -184,6 +219,7 @@ export const CoursesPage: React.FC = () => {
                 size="sm"
                 onClick={() => handleDelete(course)}
                 className="text-red-600 hover:text-red-700"
+                title="删除课程"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
@@ -254,7 +290,7 @@ export const CoursesPage: React.FC = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  课程信息
+                  课程标题
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   技术栈
@@ -347,6 +383,18 @@ export const CoursesPage: React.FC = () => {
           loadCourses(); // 重新加载课程列表
         }}
       />
+
+      {/* 章节管理弹窗 */}
+      {managingCourse && (
+        <ChaptersList
+          isOpen={chaptersListOpen}
+          course={managingCourse}
+          onClose={() => {
+            setChaptersListOpen(false);
+            setManagingCourse(null);
+          }}
+        />
+      )}
     </div>
   );
 };
