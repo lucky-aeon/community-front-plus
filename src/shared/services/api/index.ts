@@ -35,4 +35,5 @@ export type {
   ChapterQueryRequest,
   AdminUserQueryRequest,
   AdminUserDTO,
+  UpdateUserDeviceCountRequest,
 } from '../../types';

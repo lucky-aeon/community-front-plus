@@ -8,7 +8,9 @@ import { AdminUserService } from '@shared/services/api/admin-user.service';
 import { AdminUserDTO, AdminUserQueryRequest } from '@shared/types';
 import { Select, SelectOption } from '@shared/components/ui/Select';
 import { Input } from '@shared/components/ui/Input';
+import { InlineEditNumber } from '@shared/components/ui/InlineEditNumber';
 import { Search, User, Mail, Shield, ShieldOff } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export const UsersPage: React.FC = () => {
   // 状态管理
@@ -95,21 +97,29 @@ export const UsersPage: React.FC = () => {
     setCurrentPage(1);
   };
 
+  // 处理设备数量更新
+  const handleUpdateDeviceCount = async (userId: string, newDeviceCount: number) => {
+    try {
+      const updatedUser = await AdminUserService.updateUserDeviceCount(userId, newDeviceCount);
+      
+      // 更新本地状态
+      setUsers(prev => prev.map(user => 
+        user.id === userId ? updatedUser : user
+      ));
+      
+      // 成功提示由响应拦截器统一处理
+    } catch (error) {
+      console.error('更新设备数量失败:', error);
+      toast.error('更新设备数量失败');
+      throw error; // 重新抛出错误，让组件处理
+    }
+  };
+
   // 处理回车键搜索
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
     }
-  };
-
-  // 打开确认对话框
-  const openConfirmDialog = (userId: string, currentStatus: string, userName: string) => {
-    setConfirmDialog({
-      isOpen: true,
-      userId,
-      userStatus: currentStatus,
-      userName
-    });
   };
 
   // 关闭确认对话框
@@ -220,7 +230,13 @@ export const UsersPage: React.FC = () => {
         </td>
 
         <td className="py-4 px-6">
-          <div className="text-sm text-gray-900">{user.maxConcurrentDevices}</div>
+          <InlineEditNumber
+            value={user.maxConcurrentDevices}
+            onSave={(newValue) => handleUpdateDeviceCount(user.id, newValue)}
+            min={1}
+            max={99}
+            className="text-sm"
+          />
         </td>
         
         <td className="py-4 px-6 text-sm text-gray-600">

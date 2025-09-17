@@ -2,7 +2,8 @@ import { apiClient, ApiResponse } from './config';
 import { 
   AdminUserQueryRequest,
   AdminUserDTO,
-  PageResponse
+  PageResponse,
+  UpdateUserDeviceCountRequest
 } from '../../types';
 
 /**
@@ -42,6 +43,21 @@ export class AdminUserService {
    */
   static async toggleUserStatus(userId: string): Promise<AdminUserDTO> {
     const response = await apiClient.put<ApiResponse<AdminUserDTO>>(`/admin/users/${userId}/toggle-status`);
+    return response.data.data;
+  }
+
+  /**
+   * 更新用户设备数量
+   * PUT /api/admin/users/{userId}/devices
+   * 
+   * @description 修改用户最大并发设备数量
+   * @param userId 要修改的用户ID
+   * @param deviceCount 新的设备数量
+   * @returns Promise<AdminUserDTO> 更新后的用户信息
+   */
+  static async updateUserDeviceCount(userId: string, deviceCount: number): Promise<AdminUserDTO> {
+    const requestData: UpdateUserDeviceCountRequest = { maxConcurrentDevices: deviceCount };
+    const response = await apiClient.put<ApiResponse<AdminUserDTO>>(`/admin/users/${userId}/devices`, requestData);
     return response.data.data;
   }
 }

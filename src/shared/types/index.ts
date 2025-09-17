@@ -563,3 +563,8 @@ export interface AdminUserDTO {
   createTime: string;            // 创建时间
   updateTime: string;            // 更新时间
 }
+
+// 更新用户设备数量请求参数
+export interface UpdateUserDeviceCountRequest {
+  maxConcurrentDevices: number;  // 新的最大并发设备数，必须为正整数
+}
