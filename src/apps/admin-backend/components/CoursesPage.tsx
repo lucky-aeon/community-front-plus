@@ -1,4 +1,3 @@
-import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Plus, 
   Edit, 
@@ -20,7 +19,6 @@ import { CoursesService } from '@shared/services/api';
 import { CourseDTO, CourseQueryRequest, CourseStatus } from '@shared/types';
 import { CourseModal } from './CourseModal';
 import { ChaptersList } from './ChaptersList';
-import toast from 'react-hot-toast';
 
 export const CoursesPage: React.FC = () => {
   // 状态管理
@@ -59,7 +57,6 @@ export const CoursesPage: React.FC = () => {
       setTotalCount(response.total);
     } catch (error) {
       console.error('加载课程列表失败:', error);
-      toast.error('加载课程列表失败');
     } finally {
       setIsLoading(false);
     }
@@ -88,7 +85,6 @@ export const CoursesPage: React.FC = () => {
       setTotalCount(response.total);
     } catch (error) {
       console.error('搜索课程失败:', error);
-      toast.error('搜索课程失败');
     } finally {
       setIsLoading(false);
     }
@@ -123,12 +119,10 @@ export const CoursesPage: React.FC = () => {
 
     try {
       await CoursesService.deleteCourse(deletingCourse.id);
-      toast.success('课程删除成功');
       setDeletingCourse(null);
       loadCourses(); // 重新加载列表
     } catch (error) {
       console.error('删除课程失败:', error);
-      toast.error('删除课程失败');
     }
   };
 

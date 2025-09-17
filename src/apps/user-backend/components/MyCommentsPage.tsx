@@ -39,7 +39,6 @@ export const MyCommentsPage: React.FC = () => {
       setComments(response.records);
     } catch (error) {
       console.error('获取评论列表失败:', error);
-      showToast.error('获取评论列表失败');
     } finally {
       setIsLoading(false);
     }

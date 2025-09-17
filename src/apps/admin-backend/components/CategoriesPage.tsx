@@ -1,4 +1,3 @@
-import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Plus, 
   Edit, 
@@ -16,7 +15,6 @@ import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { CategoriesService } from '@shared/services/api';
 import { CategoryDTO, CategoryQueryRequest } from '@shared/types';
 import { CategoryModal } from './CategoryModal';
-import toast from 'react-hot-toast';
 
 export const CategoriesPage: React.FC = () => {
   // 状态管理
@@ -50,7 +48,6 @@ export const CategoriesPage: React.FC = () => {
       setTotalCount(response.total);
     } catch (error) {
       console.error('加载分类列表失败:', error);
-      toast.error('加载分类列表失败');
     } finally {
       setIsLoading(false);
     }
@@ -84,12 +81,10 @@ export const CategoriesPage: React.FC = () => {
 
     try {
       await CategoriesService.deleteCategory(deletingCategory.id);
-      toast.success('分类删除成功');
       setDeletingCategory(null);
       loadCategories(); // 重新加载列表
     } catch (error) {
       console.error('删除分类失败:', error);
-      toast.error('删除分类失败');
     }
   };
 

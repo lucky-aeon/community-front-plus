@@ -75,18 +75,15 @@ export const CategoryModal: React.FC<CategoryModalProps> = ({
       if (editingCategory) {
         // 更新分类
         await CategoriesService.updateCategory(editingCategory.id, payload);
-        toast.success('分类更新成功');
       } else {
         // 创建分类
         await CategoriesService.createCategory(payload);
-        toast.success('分类创建成功');
       }
 
       onSuccess();
       onClose();
     } catch (error) {
       console.error('操作失败:', error);
-      toast.error(editingCategory ? '更新分类失败' : '创建分类失败');
     } finally {
       setIsLoading(false);
     }

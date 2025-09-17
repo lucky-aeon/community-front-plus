@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, MessageSquare, Trash2, AlertCircle } from 'lucide-react';
+import { Heart, MessageSquare, Trash2 } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
 import { Badge } from '@shared/components/ui/Badge';
@@ -8,7 +8,6 @@ import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
 import { CommentsService } from '@shared/services/api';
 import { CommentDTO, User, BusinessType } from '@shared/types';
-import toast from 'react-hot-toast';
 
 interface CommentsSectionProps {
   businessId: string;
@@ -69,7 +68,6 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
       }
     } catch (error) {
       console.error('获取评论列表失败:', error);
-      toast.error('获取评论列表失败');
     } finally {
       setLoading(false);
     }
@@ -96,12 +94,10 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
       });
       
       setNewComment('');
-      toast.success('评论发布成功');
       // 重新获取第一页评论
       fetchComments(1);
     } catch (error) {
       console.error('发布评论失败:', error);
-      toast.error('发布评论失败');
     } finally {
       setSubmitting(false);
     }
@@ -125,12 +121,10 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
       
       setReplyContent('');
       setReplyingTo(null);
-      toast.success('回复发布成功');
       // 重新获取第一页评论
       fetchComments(1);
     } catch (error) {
       console.error('发布回复失败:', error);
-      toast.error('发布回复失败');
     } finally {
       setSubmitting(false);
     }
@@ -147,12 +141,10 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
     try {
       setDeleting(commentToDelete);
       await CommentsService.deleteComment(commentToDelete);
-      toast.success('评论删除成功');
       // 重新获取当前页评论
       fetchComments(currentPage);
     } catch (error) {
       console.error('删除评论失败:', error);
-      toast.error('删除评论失败');
     } finally {
       setDeleting(null);
       setCommentToDelete(null);
