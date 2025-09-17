@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Save, Eye, Hash, FileText, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Save, Hash, FileText, HelpCircle } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
@@ -26,7 +26,6 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
   const [categoryId, setCategoryId] = useState(initialData?.categoryId || '');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
-  const [isPreview, setIsPreview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
@@ -99,11 +98,9 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
       if (isEditMode && initialData) {
         // 编辑模式
         result = await PostsService.updatePost(initialData.id, postParams);
-        showToast.success('文章更新成功！');
       } else {
         // 创建模式
         result = await PostsService.createPost(postParams);
-        showToast.success(`${postType === 'article' ? '文章' : '问题'}创建成功！`);
       }
       
       console.log('文章操作成功:', result);
@@ -113,7 +110,6 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
       
     } catch (error) {
       console.error('文章操作失败:', error);
-      showToast.error(isEditMode ? '更新失败，请稍后再试' : '创建失败，请稍后再试');
     } finally {
       setIsSubmitting(false);
     }
@@ -153,145 +149,82 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
         {/* 左侧主编辑区 */}
         <div className="lg:col-span-2">
           <Card className="p-6">
-            {!isPreview ? (
-              <div className="space-y-6">
-                {/* Post Type Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    内容类型
+            <div className="space-y-6">
+              {/* Post Type Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  内容类型
+                </label>
+                <div className="flex space-x-4">
+                  <button
+                    onClick={() => setPostType('article')}
+                    className={`
+                      flex items-center space-x-2 px-4 py-2 rounded-xl border-2 transition-all duration-200
+                      ${postType === 'article'
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 hover:border-gray-300'
+                      }
+                    `}
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>文章</span>
+                  </button>
+                  <button
+                    onClick={() => setPostType('question')}
+                    className={`
+                      flex items-center space-x-2 px-4 py-2 rounded-xl border-2 transition-all duration-200
+                      ${postType === 'question'
+                        ? 'border-orange-500 bg-orange-50 text-orange-700'
+                        : 'border-gray-200 hover:border-gray-300'
+                      }
+                    `}
+                  >
+                    <HelpCircle className="h-4 w-4" />
+                    <span>问答</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Title */}
+              <div>
+                <Input
+                  label={postType === 'article' ? '文章标题' : '问题标题'}
+                  placeholder={postType === 'article' ? '请输入文章标题...' : '请输入您的问题...'}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="text-lg"
+                  error={errors.title}
+                  required
+                />
+              </div>
+
+              {/* Content */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    {postType === 'article' ? '文章内容' : '问题描述'}
+                    <span className="text-red-500 ml-1">*</span>
                   </label>
-                  <div className="flex space-x-4">
-                    <button
-                      onClick={() => setPostType('article')}
-                      className={`
-                        flex items-center space-x-2 px-4 py-2 rounded-xl border-2 transition-all duration-200
-                        ${postType === 'article'
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-200 hover:border-gray-300'
-                        }
-                      `}
-                    >
-                      <FileText className="h-4 w-4" />
-                      <span>文章</span>
-                    </button>
-                    <button
-                      onClick={() => setPostType('question')}
-                      className={`
-                        flex items-center space-x-2 px-4 py-2 rounded-xl border-2 transition-all duration-200
-                        ${postType === 'question'
-                          ? 'border-orange-500 bg-orange-50 text-orange-700'
-                          : 'border-gray-200 hover:border-gray-300'
-                        }
-                      `}
-                    >
-                      <HelpCircle className="h-4 w-4" />
-                      <span>问答</span>
-                    </button>
-                  </div>
+                  {errors.content && (
+                    <span className="text-sm text-red-600">{errors.content}</span>
+                  )}
                 </div>
-
-                {/* Title */}
-                <div>
-                  <Input
-                    label={postType === 'article' ? '文章标题' : '问题标题'}
-                    placeholder={postType === 'article' ? '请输入文章标题...' : '请输入您的问题...'}
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="text-lg"
-                    error={errors.title}
-                    required
-                  />
-                </div>
-
-                {/* Content */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-medium text-gray-700">
-                      {postType === 'article' ? '文章内容' : '问题描述'}
-                      <span className="text-red-500 ml-1">*</span>
-                    </label>
-                    {errors.content && (
-                      <span className="text-sm text-red-600">{errors.content}</span>
-                    )}
-                  </div>
-                  <MarkdownEditor
-                    value={content}
-                    onChange={setContent}
-                    height={500}
-                    placeholder={postType === 'article' ? '请输入文章内容...' : '请详细描述您的问题...'}
-                    className="w-full"
-                    enableFullscreen={true}
-                  />
-                </div>
+                <MarkdownEditor
+                  value={content}
+                  onChange={setContent}
+                  height={500}
+                  placeholder={postType === 'article' ? '请输入文章内容...' : '请详细描述您的问题...'}
+                  className="w-full"
+                  enableFullscreen={true}
+                />
               </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Preview */}
-                <div className="flex items-center space-x-2 mb-4">
-                  <Badge variant={postType === 'article' ? 'primary' : 'warning'}>
-                    {postType === 'article' ? '文章' : '问答'}
-                  </Badge>
-                  <span className="text-sm text-gray-500">预览模式</span>
-                </div>
-                
-                <h1 className="text-3xl font-bold text-gray-900">{title || '标题预览'}</h1>
-                
-                <div className="markdown-preview">
-                  <MarkdownEditor
-                    value={content || '内容预览...'}
-                    onChange={() => {}} // 预览模式不需要onChange
-                    previewOnly={true}
-                    height={500}
-                    className="w-full"
-                    toolbar={false}
-                    enableFullscreen={true}
-                  />
-                </div>
-                
-                {tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {tags.map((tag) => (
-                      <Badge key={tag} variant="secondary">
-                        #{tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+            </div>
           </Card>
         </div>
 
         {/* 右侧边栏 */}
         <div className="lg:col-span-1">
           <div className="sticky top-6 space-y-4">
-            {/* 发布操作 */}
-            <Card className="p-4">
-              <div className="space-y-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsPreview(!isPreview)}
-                  className="w-full flex items-center justify-center space-x-2"
-                >
-                  <Eye className="h-4 w-4" />
-                  <span>{isPreview ? '编辑' : '预览'}</span>
-                </Button>
-                <Button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting || !title.trim() || !content.trim() || !categoryId}
-                  className="w-full flex items-center justify-center space-x-2"
-                >
-                  <Save className="h-4 w-4" />
-                  <span>
-                    {isSubmitting 
-                      ? (isEditMode ? '更新中...' : '发布中...') 
-                      : (isEditMode ? '保存更新' : '发布')
-                    }
-                  </span>
-                </Button>
-              </div>
-            </Card>
-
             {/* 文章分类 */}
             <Card className="p-4">
               <CategorySelect
@@ -308,36 +241,6 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
                 required
                 categoryType={postType === 'article' ? 'ARTICLE' : 'QA'}
                 className="w-full"
-              />
-            </Card>
-
-            {/* 文章概要 */}
-            <Card className="p-4">
-              <Textarea
-                label="文章概要"
-                placeholder="请输入文章概要（可选，用于文章列表展示）..."
-                value={summary}
-                onChange={(e) => setSummary(e.target.value)}
-                error={errors.summary}
-                maxLength={500}
-                showCharCount={true}
-                autoResize={true}
-                minRows={2}
-                maxRows={4}
-              />
-            </Card>
-
-            {/* 封面图片 */}
-            <Card className="p-4">
-              <ImageUpload
-                label="封面图片"
-                value={coverImage}
-                onChange={setCoverImage}
-                error={errors.coverImage}
-                placeholder="上传文章封面图片（可选）"
-                showPreview={true}
-                previewSize="md"
-                onError={(error) => setErrors(prev => ({ ...prev, coverImage: error }))}
               />
             </Card>
 
@@ -378,6 +281,55 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
                     添加标签
                   </Button>
                 </div>
+              </div>
+            </Card>
+
+            {/* 文章概要 */}
+            <Card className="p-4">
+              <Textarea
+                label="文章概要"
+                placeholder="请输入文章概要（可选，用于文章列表展示）..."
+                value={summary}
+                onChange={(e) => setSummary(e.target.value)}
+                error={errors.summary}
+                maxLength={500}
+                showCharCount={true}
+                autoResize={true}
+                minRows={2}
+                maxRows={4}
+              />
+            </Card>
+
+            {/* 封面图片 */}
+            <Card className="p-4">
+              <ImageUpload
+                label="封面图片"
+                value={coverImage}
+                onChange={setCoverImage}
+                error={errors.coverImage}
+                placeholder="上传文章封面图片（可选）"
+                showPreview={true}
+                previewSize="md"
+                onError={(error) => setErrors(prev => ({ ...prev, coverImage: error }))}
+              />
+            </Card>
+
+            {/* 发布操作 */}
+            <Card className="p-4">
+              <div className="space-y-3">
+                <Button
+                  onClick={handleSubmit}
+                  disabled={isSubmitting || !title.trim() || !content.trim() || !categoryId}
+                  className="w-full flex items-center justify-center space-x-2"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>
+                    {isSubmitting 
+                      ? (isEditMode ? '更新中...' : '发布中...') 
+                      : (isEditMode ? '保存更新' : '发布')
+                    }
+                  </span>
+                </Button>
               </div>
             </Card>
           </div>

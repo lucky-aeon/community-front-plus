@@ -102,18 +102,15 @@ export const ChapterModal: React.FC<ChapterModalProps> = ({
       if (editingChapter) {
         // 更新章节
         await ChaptersService.updateChapter(editingChapter.id, payload);
-        toast.success('章节更新成功');
       } else {
         // 创建章节
         await ChaptersService.createChapter(payload);
-        toast.success('章节创建成功');
       }
 
       onSuccess();
       onClose();
     } catch (error) {
       console.error('操作失败:', error);
-      toast.error(editingChapter ? '更新章节失败' : '创建章节失败');
     } finally {
       setIsLoading(false);
     }

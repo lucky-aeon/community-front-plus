@@ -10,7 +10,6 @@ import { Select, SelectOption } from '@shared/components/ui/Select';
 import { Input } from '@shared/components/ui/Input';
 import { InlineEditNumber } from '@shared/components/ui/InlineEditNumber';
 import { Search, User, Mail, Shield, ShieldOff } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 export const UsersPage: React.FC = () => {
   // 状态管理
@@ -68,7 +67,6 @@ export const UsersPage: React.FC = () => {
       setTotalCount(response.total);
     } catch (error) {
       console.error('加载用户列表失败:', error);
-      toast.error('加载用户列表失败');
     } finally {
       setIsLoading(false);
     }
@@ -110,7 +108,6 @@ export const UsersPage: React.FC = () => {
       // 成功提示由响应拦截器统一处理
     } catch (error) {
       console.error('更新设备数量失败:', error);
-      toast.error('更新设备数量失败');
       throw error; // 重新抛出错误，让组件处理
     }
   };
@@ -120,6 +117,16 @@ export const UsersPage: React.FC = () => {
     if (e.key === 'Enter') {
       handleSearch();
     }
+  };
+
+  // 打开确认对话框
+  const openConfirmDialog = (userId: string, userStatus: string, userName: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      userId,
+      userStatus,
+      userName
+    });
   };
 
   // 关闭确认对话框
@@ -132,8 +139,6 @@ export const UsersPage: React.FC = () => {
     if (!confirmDialog.userId || !confirmDialog.userStatus) return;
     
     const userId = confirmDialog.userId;
-    const currentStatus = confirmDialog.userStatus;
-    const action = currentStatus === 'ACTIVE' ? '禁用' : '启用';
 
     setIsToggling(userId);
     try {
@@ -143,11 +148,8 @@ export const UsersPage: React.FC = () => {
       setUsers(prev => prev.map(user => 
         user.id === userId ? updatedUser : user
       ));
-      
-      toast.success(`用户状态已${action === '禁用' ? '禁用' : '启用'}`);
     } catch (error) {
       console.error('切换用户状态失败:', error);
-      toast.error(`${action}用户失败`);
     } finally {
       setIsToggling(null);
       closeConfirmDialog();

@@ -109,18 +109,15 @@ export const CourseModal: React.FC<CourseModalProps> = ({
       if (editingCourse) {
         // 更新课程
         await CoursesService.updateCourse(editingCourse.id, payload);
-        toast.success('课程更新成功');
       } else {
         // 创建课程
         await CoursesService.createCourse(payload);
-        toast.success('课程创建成功');
       }
 
       onSuccess();
       onClose();
     } catch (error) {
       console.error('操作失败:', error);
-      toast.error(editingCourse ? '更新课程失败' : '创建课程失败');
     } finally {
       setIsLoading(false);
     }

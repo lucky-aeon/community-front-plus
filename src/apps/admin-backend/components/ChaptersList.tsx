@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Plus,
-  Edit,
-  Trash2,
   Clock,
-  Hash,
   FileText,
   BookOpen,
   X,
@@ -25,11 +22,6 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from '@dnd-kit/sortable';
-import {
-  useSortable
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
 import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
@@ -39,7 +31,6 @@ import { ChapterDTO, CourseDTO } from '@shared/types';
 import { Z_INDEX } from '@shared/constants/z-index';
 import { ChapterModal } from './ChapterModal';
 import { SortableChapterItem } from './SortableChapterItem';
-import toast from 'react-hot-toast';
 
 interface ChaptersListProps {
   course: CourseDTO;
@@ -71,7 +62,6 @@ export const ChaptersList: React.FC<ChaptersListProps> = ({
       setChapters(sortedChapters);
     } catch (error) {
       console.error('加载章节列表失败:', error);
-      toast.error('加载章节列表失败');
     } finally {
       setIsLoading(false);
     }
@@ -105,12 +95,10 @@ export const ChaptersList: React.FC<ChaptersListProps> = ({
 
     try {
       await ChaptersService.deleteChapter(deletingChapter.id);
-      toast.success('章节删除成功');
       setDeletingChapter(null);
       loadChapters(); // 重新加载列表
     } catch (error) {
       console.error('删除章节失败:', error);
-      toast.error('删除章节失败');
     }
   };
 
@@ -143,10 +131,8 @@ export const ChaptersList: React.FC<ChaptersListProps> = ({
       
       // 调用批量排序API
       await ChaptersService.updateChaptersOrder(chapterIds);
-      toast.success('章节顺序调整成功');
     } catch (error) {
       console.error('调整章节顺序失败:', error);
-      toast.error('调整章节顺序失败');
       // 发生错误时，重新加载章节列表恢复原状态
       loadChapters();
     }

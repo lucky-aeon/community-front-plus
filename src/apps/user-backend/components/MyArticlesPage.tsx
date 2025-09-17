@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, Trash2, MoreVertical, Plus, Search, Filter, AlertCircle, Send, Archive } from 'lucide-react';
+import { Edit, Trash2, Plus, Search, Filter, AlertCircle, Send, Archive } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
@@ -49,11 +49,9 @@ export const MyArticlesPage: React.FC<MyArticlesPageProps> = ({ onArticleClick }
   const handleDeleteArticle = async (articleId: string) => {
     try {
       await PostsService.deletePost(articleId);
-      showToast.success('🗑️ 文章已删除');
       fetchArticles(currentPage, statusFilter !== 'all' ? statusFilter : undefined);
     } catch (error) {
       console.error('删除文章失败:', error);
-      showToast.error('删除失败，请稍后再试');
     }
   };
 
@@ -63,18 +61,9 @@ export const MyArticlesPage: React.FC<MyArticlesPageProps> = ({ onArticleClick }
       const newStatus = currentStatus === 'DRAFT' ? 'PUBLISHED' : 'DRAFT';
       await PostsService.updatePostStatus(articleId, newStatus);
       
-      // 更清晰的成功提示
-      if (newStatus === 'PUBLISHED') {
-        showToast.success('🎉 文章已成功发布！读者现在可以看到您的文章了');
-      } else {
-        showToast.success('📝 文章已撤回为草稿，只有您能看到');
-      }
-      
       fetchArticles(currentPage, statusFilter !== 'all' ? statusFilter : undefined);
     } catch (error) {
       console.error('更新文章状态失败:', error);
-      const operation = currentStatus === 'DRAFT' ? '发布' : '撤回';
-      showToast.error(`${operation}失败，请稍后再试`);
     }
   };
 

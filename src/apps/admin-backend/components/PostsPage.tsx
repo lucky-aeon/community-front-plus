@@ -5,7 +5,6 @@ import { Badge } from '@shared/components/ui/Badge';
 import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { PostsService } from '@shared/services/api';
 import { AdminPostDTO, AdminPostQueryRequest } from '@shared/types';
-import toast from 'react-hot-toast';
 
 export const PostsPage: React.FC = () => {
   // 状态管理
@@ -33,7 +32,6 @@ export const PostsPage: React.FC = () => {
       setTotalCount(response.total);
     } catch (error) {
       console.error('加载文章列表失败:', error);
-      toast.error('加载文章列表失败');
     } finally {
       setIsLoading(false);
     }
