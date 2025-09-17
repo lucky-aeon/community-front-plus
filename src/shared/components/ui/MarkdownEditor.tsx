@@ -33,6 +33,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const containerIdRef = useRef(`markdown-editor-${Math.random().toString(36).substr(2, 9)}`);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isEchartsLoaded, setIsEchartsLoaded] = useState(false);
   
   // 添加更新来源跟踪，防止循环更新
   const isUserInputRef = useRef(false);
@@ -41,6 +42,33 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   // 全屏切换功能
   const toggleFullscreen = useCallback(() => {
     setIsFullscreen(prev => !prev);
+  }, []);
+
+  // 动态加载 echarts
+  useEffect(() => {
+    const loadEcharts = async () => {
+      try {
+        // 检查是否已经加载
+        if ((window as unknown as { echarts?: unknown }).echarts) {
+          setIsEchartsLoaded(true);
+          return;
+        }
+
+        // 动态导入 echarts
+        const echarts = await import('echarts');
+        
+        // 将 echarts 挂载到 window 对象上
+        (window as unknown as { echarts: unknown }).echarts = echarts;
+        
+        setIsEchartsLoaded(true);
+      } catch (error) {
+        console.warn('Failed to load echarts:', error);
+        // 即使加载失败也设置为 true，让编辑器继续工作（只是图表功能不可用）
+        setIsEchartsLoaded(true);
+      }
+    };
+
+    loadEcharts();
   }, []);
 
   // ESC键盘支持
@@ -231,11 +259,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     }
 
     return config as unknown;
-  }, [previewOnly, height, placeholder, toolbar, handleImageClick, handleFileUpload, enableFullscreen, isFullscreen, toggleFullscreen, enableToc]);
+  }, [previewOnly, height, placeholder, toolbar, enableFullscreen, enableToc]);
 
   // 初始化Cherry编辑器
   useEffect(() => {
-    if (!containerRef.current) return;
+    // 只有在容器可用且 echarts 加载完成后才初始化
+    if (!containerRef.current || !isEchartsLoaded) return;
 
     const initEditor = async () => {
       try {
@@ -265,7 +294,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         cherryInstanceRef.current = null;
       }
     };
-  }, [getCherryConfig]);
+  }, [getCherryConfig, isEchartsLoaded]);
 
   // 同步外部value变化（优化逻辑，避免循环更新）
   useEffect(() => {
