@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Trash2, Search, FileText, GraduationCap } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { MessageSquare, Trash2, Search, FileText, GraduationCap, Reply, Send, X } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
 import { Badge } from '@shared/components/ui/Badge';
@@ -10,19 +9,23 @@ import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
 import { CommentsService } from '@shared/services/api/comments.service';
 import { CommentDTO, PageResponse, BusinessType } from '@shared/types';
 import { showToast } from '@shared/components/ui/Toast';
+import { useAuth } from '@/context/AuthContext';
 
-interface MyCommentsPageProps {
-  onCommentClick?: (commentId: string) => void;
-}
-
-export const MyCommentsPage: React.FC<MyCommentsPageProps> = ({ onCommentClick }) => {
-  const navigate = useNavigate();
+export const MyCommentsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [comments, setComments] = useState<CommentDTO[]>([]);
   const [pageInfo, setPageInfo] = useState<PageResponse<CommentDTO> | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; commentId: string | null }>({ isOpen: false, commentId: null });
+
+  // 回复相关状态
+  const [replyingCommentId, setReplyingCommentId] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState('');
+  const [replySubmitting, setReplySubmitting] = useState(false);
+
+  // 获取当前用户信息
+  const { user } = useAuth();
 
   // 获取评论列表
   const fetchComments = async (page: number = 1) => {
@@ -46,11 +49,67 @@ export const MyCommentsPage: React.FC<MyCommentsPageProps> = ({ onCommentClick }
   const handleDeleteComment = async (commentId: string) => {
     try {
       await CommentsService.deleteComment(commentId);
-      showToast.success('🗑️ 评论已删除');
-      fetchComments(currentPage);
+      
+      // 直接从本地状态中移除删除的评论，避免重新请求接口
+      setComments(prevComments => prevComments.filter(comment => comment.id !== commentId));
+      
+      // 同时更新总数
+      if (pageInfo) {
+        setPageInfo(prevPageInfo => ({
+          ...prevPageInfo!,
+          total: prevPageInfo!.total - 1
+        }));
+      }
+      
     } catch (error) {
       console.error('删除评论失败:', error);
-      showToast.error('删除失败，请稍后再试');
+    }
+  };
+
+  // 开始回复评论
+  const handleStartReply = (commentId: string) => {
+    setReplyingCommentId(commentId);
+    setReplyContent('');
+  };
+
+  // 取消回复
+  const handleCancelReply = () => {
+    setReplyingCommentId(null);
+    setReplyContent('');
+  };
+
+  // 提交回复
+  const handleSubmitReply = async (comment: CommentDTO) => {
+    if (!replyContent.trim()) {
+      showToast.warning('请输入回复内容');
+      return;
+    }
+
+    if (!user) {
+      showToast.error('请先登录');
+      return;
+    }
+
+    try {
+      setReplySubmitting(true);
+      await CommentsService.replyComment(comment.id, {
+        content: replyContent.trim(),
+        parentCommentId: comment.id,
+        businessId: comment.businessId,
+        businessType: comment.businessType,
+        replyUserId: comment.commentUserId
+      });
+
+      // 重置回复状态
+      setReplyingCommentId(null);
+      setReplyContent('');
+      
+      // 刷新评论列表
+      fetchComments(currentPage);
+    } catch (error) {
+      console.error('回复评论失败:', error);
+    } finally {
+      setReplySubmitting(false);
     }
   };
 
@@ -58,6 +117,23 @@ export const MyCommentsPage: React.FC<MyCommentsPageProps> = ({ onCommentClick }
   useEffect(() => {
     fetchComments(currentPage);
   }, [currentPage]);
+
+  // ESC键取消回复
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && replyingCommentId) {
+        handleCancelReply();
+      }
+    };
+
+    if (replyingCommentId) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [replyingCommentId]);
 
   // 搜索过滤处理
   const filteredComments = comments.filter(comment => 
@@ -173,15 +249,75 @@ export const MyCommentsPage: React.FC<MyCommentsPageProps> = ({ onCommentClick }
                 </div>
 
                 {/* 评论统计信息 */}
-                <div className="flex items-center space-x-6 text-sm text-gray-500 pt-2 border-t border-gray-100">
-                  <span>{comment.likeCount || 0} 点赞</span>
-                  <span>{comment.replyCount || 0} 回复</span>
-                  {comment.replyUserName && (
-                    <span className="text-blue-600">
-                      回复 @{comment.replyUserName}
-                    </span>
-                  )}
+                <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                  <div className="flex items-center space-x-6 text-sm text-gray-500">
+                    <span>{comment.likeCount || 0} 点赞</span>
+                    <span>{comment.replyCount || 0} 回复</span>
+                    {comment.replyUserName && (
+                      <span className="text-blue-600">
+                        回复 @{comment.replyUserName}
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* 回复按钮 */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleStartReply(comment.id)}
+                    className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
+                  >
+                    <Reply className="h-4 w-4" />
+                    <span>回复</span>
+                  </Button>
                 </div>
+
+                {/* 回复编辑器区域 */}
+                {replyingCommentId === comment.id && (
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="mb-3">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">
+                        回复 @{comment.commentUserName}
+                      </h4>
+                      <MarkdownEditor
+                        value={replyContent}
+                        onChange={setReplyContent}
+                        height={200}
+                        placeholder="请输入你的回复内容..."
+                        toolbar={true}
+                        className="!border-gray-300"
+                        enableFullscreen={false}
+                        enableToc={false}
+                      />
+                    </div>
+                    
+                    <div className="flex justify-end space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleCancelReply}
+                        className="flex items-center space-x-1"
+                      >
+                        <X className="h-4 w-4" />
+                        <span>取消</span>
+                      </Button>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => handleSubmitReply(comment)}
+                        disabled={replySubmitting || !replyContent.trim()}
+                        className="flex items-center space-x-1"
+                      >
+                        {replySubmitting ? (
+                          <LoadingSpinner size="sm" />
+                        ) : (
+                          <Send className="h-4 w-4" />
+                        )}
+                        <span>{replySubmitting ? '发送中...' : '发送回复'}</span>
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
           ))}
