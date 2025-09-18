@@ -1,3 +1,4 @@
+import React, { useState, useCallback, useEffect } from 'react';
 import { 
   Plus, 
   Edit, 
@@ -6,7 +7,8 @@ import {
   BookOpen,
   Clock,
   Star,
-  List
+  List,
+  DollarSign
 } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
@@ -131,9 +133,30 @@ export const CoursesPage: React.FC = () => {
     return (
       <React.Fragment key={course.id}>
         <tr className="hover:bg-gray-50 transition-colors">
+          {/* 封面图片 */}
+          <td className="py-4 px-6">
+            <div className="w-16 h-12 rounded-lg overflow-hidden border border-gray-200">
+              {course.coverImage ? (
+                <img
+                  src={course.coverImage}
+                  alt={course.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div className={`w-full h-full bg-gray-100 flex items-center justify-center ${course.coverImage ? 'hidden' : ''}`}>
+                <BookOpen className="h-6 w-6 text-gray-400" />
+              </div>
+            </div>
+          </td>
+
+          {/* 课程标题 */}
           <td className="py-4 px-6">
             <div className="flex items-start space-x-3">
-              <BookOpen className="h-5 w-5 text-gray-500 mt-1" />
               <div className="min-w-0 flex-1">
                 <div className="font-medium text-gray-900 truncate">
                   {course.title}
@@ -169,6 +192,32 @@ export const CoursesPage: React.FC = () => {
             >
               {CoursesService.getStatusText(course.status)}
             </Badge>
+          </td>
+
+          {/* 价格信息 */}
+          <td className="py-4 px-6">
+            <div className="text-sm">
+              {course.price !== undefined && course.price > 0 ? (
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-1">
+                    <DollarSign className="h-4 w-4 text-green-600" />
+                    <span className="font-medium text-gray-900">¥{course.price.toFixed(2)}</span>
+                  </div>
+                  {course.originalPrice && course.originalPrice > course.price && (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-gray-500 line-through">
+                        ¥{course.originalPrice.toFixed(2)}
+                      </span>
+                      <span className="text-xs bg-red-100 text-red-600 px-1 py-0.5 rounded">
+                        {Math.round((1 - course.price / course.originalPrice) * 100)}%折
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <span className="text-sm text-green-600 font-medium">免费</span>
+              )}
+            </div>
           </td>
 
           <td className="py-4 px-6">
@@ -284,6 +333,9 @@ export const CoursesPage: React.FC = () => {
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  封面
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   课程标题
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -291,6 +343,9 @@ export const CoursesPage: React.FC = () => {
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   状态
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  价格
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   评分/时长
@@ -306,13 +361,13 @@ export const CoursesPage: React.FC = () => {
             <tbody className="bg-white divide-y divide-gray-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center">
+                  <td colSpan={8} className="py-12 text-center">
                     <LoadingSpinner />
                   </td>
                 </tr>
               ) : courses.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-gray-500">
+                  <td colSpan={8} className="py-12 text-center text-gray-500">
                     {searchTerm || statusFilter !== 'ALL' ? '未找到符合条件的课程' : '暂无课程数据'}
                   </td>
                 </tr>

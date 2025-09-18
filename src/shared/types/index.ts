@@ -432,10 +432,13 @@ export interface CourseDTO {
   id: string;                    // 课程ID
   title: string;                 // 课程标题
   description?: string;          // 课程描述
+  coverImage?: string;           // 封面图片URL
   techStack?: string[];          // 技术栈数组
   projectUrl?: string;           // 项目URL
   tags?: string[];               // 标签数组
   rating: number;                // 评分
+  price?: number;                // 课程售价
+  originalPrice?: number;        // 课程原价
   status: CourseStatus;          // 课程状态
   authorId: string;              // 作者ID
   totalReadingTime: number;      // 总阅读时间（分钟）
@@ -447,9 +450,13 @@ export interface CourseDTO {
 export interface CreateCourseRequest {
   title: string;                 // 课程标题，必填
   description?: string;          // 课程描述，可选
+  coverImage?: string;           // 封面图片URL，可选
   techStack?: string[];          // 技术栈数组，可选
   projectUrl?: string;           // 项目URL，可选
   tags?: string[];               // 标签数组，可选
+  rating?: number;               // 课程评分，可选（0-5）
+  price?: number;                // 课程售价，可选
+  originalPrice?: number;        // 课程原价，可选
   status: CourseStatus;          // 课程状态，必填
 }
 
@@ -457,9 +464,13 @@ export interface CreateCourseRequest {
 export interface UpdateCourseRequest {
   title: string;                 // 课程标题，必填
   description?: string;          // 课程描述，可选
+  coverImage?: string;           // 封面图片URL，可选
   techStack?: string[];          // 技术栈数组，可选
   projectUrl?: string;           // 项目URL，可选
   tags?: string[];               // 标签数组，可选
+  rating?: number;               // 课程评分，可选（0-5）
+  price?: number;                // 课程售价，可选
+  originalPrice?: number;        // 课程原价，可选
   status?: CourseStatus;         // 课程状态，可选
 }
 

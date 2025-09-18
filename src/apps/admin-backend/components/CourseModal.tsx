@@ -4,6 +4,7 @@ import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
 import { Select, SelectOption } from '@shared/components/ui/Select';
 import { TagInput } from '@shared/components/ui/TagInput';
+import { ImageUpload } from '@shared/components/ui/ImageUpload';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { CoursesService } from '@shared/services/api';
@@ -27,9 +28,13 @@ export const CourseModal: React.FC<CourseModalProps> = ({
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    coverImage: '',
     techStack: [] as string[],
     projectUrl: '',
     tags: [] as string[],
+    rating: 5.0,
+    price: 0,
+    originalPrice: 0,
     status: 'PENDING' as CourseStatus
   });
 
@@ -42,18 +47,26 @@ export const CourseModal: React.FC<CourseModalProps> = ({
       setFormData({
         title: editingCourse.title,
         description: editingCourse.description || '',
+        coverImage: editingCourse.coverImage || '',
         techStack: editingCourse.techStack || [],
         projectUrl: editingCourse.projectUrl || '',
         tags: editingCourse.tags || [],
+        rating: editingCourse.rating || 5.0,
+        price: editingCourse.price || 0,
+        originalPrice: editingCourse.originalPrice || 0,
         status: editingCourse.status
       });
     } else {
       setFormData({
         title: '',
         description: '',
+        coverImage: '',
         techStack: [],
         projectUrl: '',
         tags: [],
+        rating: 5.0,
+        price: 0,
+        originalPrice: 0,
         status: 'PENDING' as CourseStatus
       });
     }
@@ -84,6 +97,28 @@ export const CourseModal: React.FC<CourseModalProps> = ({
       return;
     }
 
+    // 验证价格相关字段
+    if (formData.price < 0) {
+      toast.error('课程售价不能为负数');
+      return;
+    }
+
+    if (formData.originalPrice < 0) {
+      toast.error('课程原价不能为负数');
+      return;
+    }
+
+    if (formData.originalPrice > 0 && formData.price > formData.originalPrice) {
+      toast.error('课程售价不能高于原价');
+      return;
+    }
+
+    // 验证评分字段
+    if (formData.rating < 0 || formData.rating > 5) {
+      toast.error('评分必须在0-5之间');
+      return;
+    }
+
     // 验证URL格式（如果提供了项目URL）
     if (formData.projectUrl && formData.projectUrl.trim()) {
       try {
@@ -100,9 +135,13 @@ export const CourseModal: React.FC<CourseModalProps> = ({
       const payload = {
         title: formData.title.trim(),
         description: formData.description.trim() || undefined,
+        coverImage: formData.coverImage.trim() || undefined,
         techStack: formData.techStack.length > 0 ? formData.techStack : undefined,
         projectUrl: formData.projectUrl.trim() || undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined,
+        rating: formData.rating,
+        price: formData.price > 0 ? formData.price : undefined,
+        originalPrice: formData.originalPrice > 0 ? formData.originalPrice : undefined,
         status: formData.status
       };
 
@@ -124,7 +163,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
   };
 
   // 处理输入变化
-  const handleInputChange = (field: string, value: string | string[]) => {
+  const handleInputChange = (field: string, value: string | string[] | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -137,20 +176,6 @@ export const CourseModal: React.FC<CourseModalProps> = ({
     { value: 'IN_PROGRESS', label: '更新中' },
     { value: 'COMPLETED', label: '已完成' }
   ];
-
-  // 处理ESC键关闭
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isOpen) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
-    }
-  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -198,6 +223,21 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                   placeholder="请输入课程标题"
                   required
                 />
+              </div>
+
+              {/* 课程封面 */}
+              <div>
+                <ImageUpload
+                  label="课程封面"
+                  value={formData.coverImage}
+                  onChange={(url) => handleInputChange('coverImage', url)}
+                  placeholder="上传课程封面图片（可选）"
+                  previewSize="md"
+                  showPreview={true}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  建议尺寸：16:9 比例，如 1200x675 像素
+                </p>
               </div>
 
               {/* 课程描述 */}
@@ -287,6 +327,82 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                   标签数量：{formData.tags.length}/15（可选，用于课程分类和搜索）
                 </p>
               </div>
+            </div>
+
+            {/* 课程信息 */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium text-gray-900">课程信息</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* 课程评分 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    课程评分
+                  </label>
+                  <Input
+                    type="number"
+                    value={formData.rating}
+                    onChange={(e) => handleInputChange('rating', parseFloat(e.target.value) || 0)}
+                    placeholder="5.0"
+                    min={0}
+                    max={5}
+                    step={0.1}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    0-5分，支持一位小数
+                  </p>
+                </div>
+
+                {/* 课程售价 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    课程售价（元）
+                  </label>
+                  <Input
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => handleInputChange('price', parseFloat(e.target.value) || 0)}
+                    placeholder="0.00"
+                    min={0}
+                    step={0.01}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    可选，设置为0表示免费课程
+                  </p>
+                </div>
+
+                {/* 课程原价 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    课程原价（元）
+                  </label>
+                  <Input
+                    type="number"
+                    value={formData.originalPrice}
+                    onChange={(e) => handleInputChange('originalPrice', parseFloat(e.target.value) || 0)}
+                    placeholder="0.00"
+                    min={0}
+                    step={0.01}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    可选，用于显示折扣信息
+                  </p>
+                </div>
+              </div>
+
+              {/* 价格提示 */}
+              {formData.originalPrice > 0 && formData.price > 0 && formData.originalPrice !== formData.price && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center space-x-2 text-sm">
+                    <span className="text-blue-700">
+                      折扣：{Math.round((1 - formData.price / formData.originalPrice) * 100)}%
+                    </span>
+                    <span className="text-gray-500">
+                      （节省 ¥{(formData.originalPrice - formData.price).toFixed(2)}）
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
