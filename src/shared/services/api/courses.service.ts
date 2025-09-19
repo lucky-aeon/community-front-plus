@@ -4,12 +4,43 @@ import {
   UpdateCourseRequest,
   CourseQueryRequest,
   CourseDTO,
-  PageResponse
+  PageResponse,
+  AppCourseQueryRequest,
+  FrontCourseDTO,
+  FrontCourseDetailDTO
 } from '../../types';
 
 // 课程管理服务类
 export class CoursesService {
   
+  /**
+   * ============= 前台课程查询接口 =============
+   */
+
+  /**
+   * 分页查询前台课程列表
+   * POST /api/app/courses/queries
+   */
+  static async getFrontCoursesList(params?: AppCourseQueryRequest): Promise<PageResponse<FrontCourseDTO>> {
+    const response = await apiClient.post<ApiResponse<PageResponse<FrontCourseDTO>>>('/app/courses/queries', {
+      pageNum: params?.pageNum || 1,
+      pageSize: params?.pageSize || 10,
+      ...(params?.keyword && { keyword: params.keyword }),
+      ...(params?.techStack && { techStack: params.techStack }),
+      ...(params?.tags && { tags: params.tags })
+    });
+    return response.data.data;
+  }
+
+  /**
+   * 根据课程ID获取前台课程详情
+   * GET /api/app/courses/{id}
+   */
+  static async getFrontCourseDetail(id: string): Promise<FrontCourseDetailDTO> {
+    const response = await apiClient.get<ApiResponse<FrontCourseDetailDTO>>(`/app/courses/${id}`);
+    return response.data.data;
+  }
+
   /**
    * ============= 管理员课程管理接口 =============
    */

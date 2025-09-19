@@ -580,10 +580,66 @@ export interface UpdateUserDeviceCountRequest {
   maxConcurrentDevices: number;  // 新的最大并发设备数，必须为正整数
 }
 
+// ================ 前台课程相关接口定义 ================
+
+// 前台课程查询请求参数
+export interface AppCourseQueryRequest {
+  pageNum?: number;              // 页码，从1开始，默认为1
+  pageSize?: number;             // 每页大小，默认为10，最大为100
+  keyword?: string;              // 课程标题关键词搜索，可选
+  techStack?: string;            // 技术栈筛选，可选
+  tags?: string;                 // 标签筛选，可选
+}
+
+// 前台课程列表DTO（API返回的课程数据）
+export interface FrontCourseDTO {
+  id: string;                    // 课程ID
+  title: string;                 // 课程标题
+  description: string;           // 课程描述
+  techStack: string[];           // 技术栈列表
+  projectUrl?: string;           // 项目地址
+  tags: string[];                // 标签列表
+  rating: number;                // 评分
+  status: CourseStatus;          // 课程状态
+  authorName: string;            // 作者名称
+  totalReadingTime: number;      // 总阅读时间（分钟）
+  chapterCount: number;          // 章节数量
+  price?: number;                // 当前售价（可选）
+  originalPrice?: number;        // 原价（可选）
+  createTime: string;            // 创建时间
+}
+
+// 前台课程详情章节信息
+export interface FrontChapterDTO {
+  id: string;                    // 章节ID
+  title: string;                 // 章节标题
+  sortOrder: number;             // 章节排序
+  readingTime: number;           // 章节阅读时长（分钟）
+  createTime: string;            // 章节创建时间
+}
+
+// 前台课程详情DTO（API返回的课程详细信息）
+export interface FrontCourseDetailDTO {
+  id: string;                    // 课程ID
+  title: string;                 // 课程标题
+  description: string;           // 课程描述
+  techStack: string[];           // 技术栈列表
+  projectUrl?: string;           // 项目地址
+  tags: string[];                // 标签列表
+  rating: number;                // 评分
+  status: CourseStatus;          // 课程状态
+  authorName: string;            // 作者名称
+  authorId: string;              // 作者ID
+  totalReadingTime: number;      // 总阅读时长（分钟）
+  createTime: string;            // 创建时间
+  updateTime: string;            // 更新时间
+  chapters: FrontChapterDTO[];   // 章节列表
+}
+
 // ================ 管理员用户活动日志相关接口定义 ================
 
 // 活动类型枚举
-export type ActivityType = 
+export type ActivityType =
   | 'LOGIN_SUCCESS'     // 登录成功
   | 'LOGIN_FAILED'      // 登录失败
   | 'LOGOUT'            // 退出登录
@@ -599,7 +655,7 @@ export type ActivityType =
   | 'OTHER';            // 其他活动
 
 // 活动分类枚举
-export type ActivityCategory = 
+export type ActivityCategory =
   | 'AUTHENTICATION'    // 认证相关
   | 'BROWSING'          // 浏览相关
   | 'CONTENT_CREATION'  // 内容创建
@@ -609,7 +665,7 @@ export type ActivityCategory =
   | 'OTHER';            // 其他
 
 // 目标类型枚举
-export type TargetType = 
+export type TargetType =
   | 'POST'          // 文章相关操作
   | 'COURSE'        // 课程相关操作
   | 'USER'          // 用户相关操作
