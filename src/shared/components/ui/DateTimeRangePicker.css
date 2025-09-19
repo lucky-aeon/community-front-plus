@@ -1,0 +1,148 @@
+/* DateTimeRangePicker 样式定制 */
+.date-time-range-picker {
+  /* 容器样式 */
+}
+
+/* 自定义 react-datepicker 样式 */
+.date-picker-popper {
+  z-index: 9999;
+}
+
+/* 日期选择器弹窗 */
+.react-datepicker {
+  @apply border-gray-200 rounded-xl shadow-lg;
+  font-family: inherit;
+}
+
+/* 头部导航 */
+.react-datepicker__header {
+  @apply bg-gray-50 border-b-gray-200 rounded-t-xl;
+}
+
+.react-datepicker__current-month {
+  @apply text-gray-900 font-semibold;
+}
+
+/* 导航按钮 */
+.react-datepicker__navigation {
+  @apply top-3;
+}
+
+.react-datepicker__navigation--previous {
+  @apply left-3 border-r-gray-600;
+}
+
+.react-datepicker__navigation--next {
+  @apply right-3 border-l-gray-600;
+}
+
+.react-datepicker__navigation:hover {
+  @apply border-r-gray-800 border-l-gray-800;
+}
+
+/* 星期标题 */
+.react-datepicker__day-names {
+  @apply border-b border-gray-200;
+}
+
+.react-datepicker__day-name {
+  @apply text-gray-600 font-medium text-sm;
+}
+
+/* 日期单元格 */
+.react-datepicker__day {
+  @apply text-gray-700 hover:bg-blue-50 rounded-lg m-0.5;
+}
+
+.react-datepicker__day--selected {
+  @apply bg-blue-500 text-white hover:bg-blue-600;
+}
+
+.react-datepicker__day--keyboard-selected {
+  @apply bg-blue-100 text-blue-900;
+}
+
+.react-datepicker__day--in-range {
+  @apply bg-blue-100 text-blue-900;
+}
+
+.react-datepicker__day--in-selecting-range {
+  @apply bg-blue-200 text-blue-900;
+}
+
+.react-datepicker__day--range-start,
+.react-datepicker__day--range-end {
+  @apply bg-blue-500 text-white;
+}
+
+.react-datepicker__day--today {
+  @apply bg-yellow-100 text-yellow-800 font-semibold;
+}
+
+.react-datepicker__day--disabled {
+  @apply text-gray-300 cursor-not-allowed;
+}
+
+.react-datepicker__day--outside-month {
+  @apply text-gray-400;
+}
+
+/* 时间选择器 */
+.react-datepicker__time-container {
+  @apply border-l-gray-200;
+}
+
+.react-datepicker__header--time {
+  @apply bg-gray-50;
+}
+
+.react-datepicker__time-box {
+  @apply w-full;
+}
+
+.react-datepicker__time-list {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(209 213 219) rgb(243 244 246);
+}
+
+.react-datepicker__time-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.react-datepicker__time-list::-webkit-scrollbar-track {
+  background: rgb(243 244 246);
+  border-radius: 6px;
+}
+
+.react-datepicker__time-list::-webkit-scrollbar-thumb {
+  background: rgb(209 213 219);
+  border-radius: 6px;
+}
+
+.react-datepicker__time-list::-webkit-scrollbar-thumb:hover {
+  background: rgb(156 163 175);
+}
+
+.react-datepicker__time-list-item {
+  @apply hover:bg-blue-50 text-gray-700 px-3 py-1;
+}
+
+.react-datepicker__time-list-item--selected {
+  @apply bg-blue-500 text-white font-semibold;
+}
+
+/* 输入框焦点状态 */
+.date-time-range-picker input:focus {
+  @apply outline-none;
+}
+
+/* 响应式处理 */
+@media (max-width: 640px) {
+  .react-datepicker {
+    @apply text-sm;
+  }
+  
+  .react-datepicker__day {
+    @apply w-8 h-8 leading-8 text-sm;
+  }
+}

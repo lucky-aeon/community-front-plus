@@ -6,6 +6,7 @@ import { CategoriesPage } from './CategoriesPage';
 import { CoursesPage } from './CoursesPage';
 import { PostsPage } from './PostsPage';
 import { UsersPage } from './UsersPage';
+import { LogsPage } from './LogsPage';
 
 // 临时的占位页面组件
 const ComingSoonPage: React.FC<{ title: string }> = ({ title }) => (
@@ -39,7 +40,7 @@ export const AdminBackend: React.FC = () => {
         
         {/* 系统管理 */}
         <Route path="/settings" element={<ComingSoonPage title="系统配置" />} />
-        <Route path="/logs" element={<ComingSoonPage title="操作日志" />} />
+        <Route path="/logs" element={<LogsPage />} />
         
         {/* 404 处理 */}
         <Route path="*" element={<Navigate to="/dashboard/admin/overview" replace />} />

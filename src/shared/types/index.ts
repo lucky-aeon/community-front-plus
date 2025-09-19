@@ -579,3 +579,71 @@ export interface AdminUserDTO {
 export interface UpdateUserDeviceCountRequest {
   maxConcurrentDevices: number;  // 新的最大并发设备数，必须为正整数
 }
+
+// ================ 管理员用户活动日志相关接口定义 ================
+
+// 活动类型枚举
+export type ActivityType = 
+  | 'LOGIN_SUCCESS'     // 登录成功
+  | 'LOGIN_FAILED'      // 登录失败
+  | 'LOGOUT'            // 退出登录
+  | 'VIEW_POST'         // 浏览文章
+  | 'CREATE_POST'       // 创建文章
+  | 'UPDATE_POST'       // 更新文章
+  | 'DELETE_POST'       // 删除文章
+  | 'VIEW_COURSE'       // 浏览课程
+  | 'CREATE_COMMENT'    // 创建评论
+  | 'UPDATE_PROFILE'    // 更新个人资料
+  | 'CHANGE_PASSWORD'   // 修改密码
+  | 'UPLOAD_FILE'       // 上传文件
+  | 'OTHER';            // 其他活动
+
+// 活动分类枚举
+export type ActivityCategory = 
+  | 'AUTHENTICATION'    // 认证相关
+  | 'BROWSING'          // 浏览相关
+  | 'CONTENT_CREATION'  // 内容创建
+  | 'CONTENT_MANAGEMENT'// 内容管理
+  | 'USER_MANAGEMENT'   // 用户管理
+  | 'SYSTEM'            // 系统相关
+  | 'OTHER';            // 其他
+
+// 目标类型枚举
+export type TargetType = 
+  | 'POST'          // 文章相关操作
+  | 'COURSE'        // 课程相关操作
+  | 'USER'          // 用户相关操作
+  | 'COMMENT'       // 评论相关操作
+  | 'CATEGORY'      // 分类相关操作
+  | null;           // 无特定目标
+
+// 用户活动日志DTO（API返回的活动日志数据）
+export interface UserActivityLogDTO {
+  id: string;                    // 日志ID
+  userId: string;                // 用户ID
+  nickname: string;              // 用户昵称
+  activityType: ActivityType;    // 活动类型
+  activityTypeDesc?: string;     // 活动类型描述
+  browser?: string;              // 浏览器信息
+  equipment?: string;            // 设备信息
+  ip?: string;                   // IP地址
+  userAgent?: string;            // 用户代理
+  failureReason?: string;        // 失败原因
+  createTime: string;            // 创建时间
+  targetType?: TargetType;       // 目标类型
+  targetId?: string;             // 目标对象ID
+  targetName?: string;           // 目标对象名称（如文章标题、课程名称等）
+  requestPath?: string;          // 请求路径
+  contextData?: string;          // 扩展上下文数据（JSON格式）
+}
+
+// 查询用户活动日志请求参数
+export interface ActivityLogQueryRequest {
+  pageNum?: number;              // 页码，从1开始，默认为1
+  pageSize?: number;             // 每页大小，默认为10
+  userId?: string;               // 用户ID筛选，可选
+  activityType?: ActivityType;   // 活动类型筛选，可选
+  startTime?: string;            // 开始时间筛选，可选（格式：YYYY-MM-DD HH:mm:ss）
+  endTime?: string;              // 结束时间筛选，可选（格式：YYYY-MM-DD HH:mm:ss）
+  ip?: string;                   // IP地址模糊搜索，可选
+}
