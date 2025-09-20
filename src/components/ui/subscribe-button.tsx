@@ -57,8 +57,8 @@ export const SubscribeButton: React.FC<SubscribeButtonProps> = ({
       onClick={toggle}
       disabled={loading}
       size={size}
-      variant={isFollowing ? 'secondary' : 'outline'}
-      className={`rounded-full ${isFollowing ? 'text-red-600 bg-red-50 border-red-200 hover:bg-red-100' : 'text-muted-foreground hover:text-red-500'} ${className ?? ''}`}
+      variant="outline"
+      className={`rounded-full ${isFollowing ? 'border-red-200 text-red-600 bg-white hover:bg-red-50' : 'text-muted-foreground hover:text-red-500'} ${className ?? ''}`}
     >
       <Heart className={`h-4 w-4 ${showText ? 'mr-1' : ''} ${isFollowing ? 'fill-red-500 text-red-500' : ''}`} />
       {showText ? (isFollowing ? '已关注' : '关注') : null}
