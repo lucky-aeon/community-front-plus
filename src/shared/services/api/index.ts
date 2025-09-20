@@ -12,6 +12,7 @@ export { SubscribeService, FollowService } from './subscribe.service';
 export { SubscriptionPlansService } from './subscription-plans.service';
 export { SubscriptionPlanCoursesService } from './subscription-plan-courses.service';
 export { CDKService } from './cdk.service';
+export { UpdateLogService } from './update-log.service';
 export { apiClient, type ApiResponse } from './config';
 
 // 导出类型定义
@@ -53,4 +54,11 @@ export type {
   CDKQueryRequest,
   CDKType,
   CDKStatus,
+  UpdateLogDTO,
+  CreateUpdateLogRequest,
+  UpdateUpdateLogRequest,
+  AdminUpdateLogQueryRequest,
+  ChangeDetailDTO,
+  ChangeType,
+  UpdateLogStatus,
 } from '../../types';

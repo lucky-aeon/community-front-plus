@@ -8,7 +8,9 @@ import { PostsPage } from './PostsPage';
 import { UsersPage } from './UsersPage';
 import { LogsPage } from './LogsPage';
 import { SubscriptionPlansPage } from './SubscriptionPlansPage';
+import { UpdateLogPage } from './UpdateLogPage';
 import { CDKPage } from './CDKPage';
+import { SettingsPage } from './SettingsPage';
 
 // 临时的占位页面组件
 const ComingSoonPage: React.FC<{ title: string }> = ({ title }) => (
@@ -41,9 +43,10 @@ export const AdminBackend: React.FC = () => {
         <Route path="/comments" element={<ComingSoonPage title="评论管理" />} />
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/courses" element={<CoursesPage />} />
+        <Route path="/update-logs" element={<UpdateLogPage />} />
         
         {/* 系统管理 */}
-        <Route path="/settings" element={<ComingSoonPage title="系统配置" />} />
+        <Route path="/settings" element={<SettingsPage />} />
         <Route path="/logs" element={<LogsPage />} />
         
         {/* 404 处理 */}

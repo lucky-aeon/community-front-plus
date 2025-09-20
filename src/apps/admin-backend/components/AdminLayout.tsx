@@ -16,7 +16,8 @@ import {
   ChevronRight,
   ArrowLeft,
   Package,
-  Key
+  Key,
+  Calendar
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -59,7 +60,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       items: [
         { id: 'posts', name: '文章管理', icon: FileText, path: '/dashboard/admin/posts' },
         { id: 'categories', name: '分类管理', icon: Tag, path: '/dashboard/admin/categories' },
-        { id: 'courses', name: '课程管理', icon: BookOpen, path: '/dashboard/admin/courses' }
+        { id: 'courses', name: '课程管理', icon: BookOpen, path: '/dashboard/admin/courses' },
+        { id: 'update-logs', name: '更新日志', icon: Calendar, path: '/dashboard/admin/update-logs' }
       ]
     },
     {

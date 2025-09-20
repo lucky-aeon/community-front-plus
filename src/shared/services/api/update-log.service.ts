@@ -1,0 +1,78 @@
+import { apiClient, type ApiResponse } from './config';
+import type {
+  UpdateLogDTO,
+  CreateUpdateLogRequest,
+  UpdateUpdateLogRequest,
+  AdminUpdateLogQueryRequest,
+  PageResponse
+} from '@shared/types';
+
+/**
+ * 更新日志管理 API 服务
+ * 提供管理员端更新日志的 CRUD 操作
+ */
+export class UpdateLogService {
+
+  /**
+   * 创建更新日志
+   * @param request 创建请求参数
+   * @returns 创建成功的更新日志信息
+   */
+  static async createUpdateLog(request: CreateUpdateLogRequest): Promise<UpdateLogDTO> {
+    const response = await apiClient.post<ApiResponse<UpdateLogDTO>>('/admin/update-logs', request);
+    return response.data.data;
+  }
+
+  /**
+   * 更新更新日志
+   * @param id 更新日志ID
+   * @param request 更新请求参数
+   * @returns 更新后的更新日志信息
+   */
+  static async updateUpdateLog(id: string, request: UpdateUpdateLogRequest): Promise<UpdateLogDTO> {
+    const response = await apiClient.put<ApiResponse<UpdateLogDTO>>(`/admin/update-logs/${id}`, request);
+    return response.data.data;
+  }
+
+  /**
+   * 获取更新日志详情
+   * @param id 更新日志ID
+   * @returns 更新日志详细信息
+   */
+  static async getUpdateLog(id: string): Promise<UpdateLogDTO> {
+    const response = await apiClient.get<ApiResponse<UpdateLogDTO>>(`/admin/update-logs/${id}`);
+    return response.data.data;
+  }
+
+  /**
+   * 删除更新日志
+   * @param id 更新日志ID
+   * @returns void
+   */
+  static async deleteUpdateLog(id: string): Promise<void> {
+    await apiClient.delete<ApiResponse<void>>(`/admin/update-logs/${id}`);
+  }
+
+  /**
+   * 分页查询更新日志列表
+   * @param request 查询请求参数
+   * @returns 更新日志分页列表
+   */
+  static async getUpdateLogs(request: AdminUpdateLogQueryRequest): Promise<PageResponse<UpdateLogDTO>> {
+    const response = await apiClient.get<ApiResponse<PageResponse<UpdateLogDTO>>>('/admin/update-logs', {
+      params: request
+    });
+    return response.data.data;
+  }
+
+  /**
+   * 切换更新日志状态
+   * 在草稿和发布状态之间切换
+   * @param id 更新日志ID
+   * @returns 切换后的更新日志信息
+   */
+  static async toggleUpdateLogStatus(id: string): Promise<UpdateLogDTO> {
+    const response = await apiClient.put<ApiResponse<UpdateLogDTO>>(`/admin/update-logs/${id}/toggle-status`);
+    return response.data.data;
+  }
+}

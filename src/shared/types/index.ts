@@ -912,3 +912,86 @@ export interface CDKQueryRequest {
   targetId?: string;                   // 目标ID筛选，可选
   status?: CDKStatus;                  // 状态筛选，可选
 }
+
+// ================ 系统配置管理相关接口定义 ================
+
+// 系统配置类型枚举
+export type SystemConfigType = 'DEFAULT_SUBSCRIPTION_PLAN' | 'EMAIL_TEMPLATE' | 'SYSTEM_MAINTENANCE';
+
+// 默认套餐配置数据结构
+export interface DefaultSubscriptionConfig {
+  subscriptionPlanId: string;           // 套餐ID，必填
+}
+
+// 系统配置数据传输对象
+export interface SystemConfigDTO {
+  id: string;                           // 配置ID
+  type: SystemConfigType;               // 配置类型
+  data: unknown;                        // 配置数据（根据类型不同而不同）
+  description: string;                  // 配置描述
+  createTime: string;                   // 创建时间
+  updateTime: string;                   // 更新时间
+}
+
+// 更新系统配置请求参数
+export interface UpdateSystemConfigRequest {
+  data: unknown;                        // 配置数据，根据配置类型而定
+}
+
+// ================ 更新日志管理相关接口定义 ================
+
+// 更新日志状态枚举
+export type UpdateLogStatus = 'DRAFT' | 'PUBLISHED';
+
+// 变更类型枚举
+export type ChangeType = 'FEATURE' | 'IMPROVEMENT' | 'BUGFIX' | 'BREAKING' | 'SECURITY' | 'OTHER';
+
+// 变更详情数据传输对象
+export interface ChangeDetailDTO {
+  id?: string;                         // 变更详情ID（编辑时存在）
+  type: ChangeType;                    // 变更类型，必填
+  title: string;                       // 变更标题，必填，最大200字符
+  description: string;                 // 变更描述，必填，最大2000字符
+}
+
+// 更新日志数据传输对象
+export interface UpdateLogDTO {
+  id: string;                          // 更新日志ID
+  version: string;                     // 版本号
+  title: string;                       // 更新标题
+  description: string;                 // 更新描述
+  status: UpdateLogStatus;             // 状态
+  isImportant: boolean;                // 是否重要更新
+  publishTime?: string;                // 发布时间（已发布时才有值）
+  createTime: string;                  // 创建时间
+  updateTime: string;                  // 更新时间
+  authorId: string;                    // 创建者ID
+  changeDetails: ChangeDetailDTO[];    // 变更详情列表
+}
+
+// 创建更新日志请求参数
+export interface CreateUpdateLogRequest {
+  version: string;                     // 版本号，必填，最大50字符
+  title: string;                       // 更新标题，必填，最大200字符
+  description: string;                 // 更新描述，必填，最大2000字符
+  isImportant: boolean;                // 是否重要更新，必填
+  changeDetails: ChangeDetailDTO[];    // 变更详情列表，必填，至少1个
+}
+
+// 更新更新日志请求参数
+export interface UpdateUpdateLogRequest {
+  version: string;                     // 版本号，必填，最大50字符
+  title: string;                       // 更新标题，必填，最大200字符
+  description: string;                 // 更新描述，必填，最大2000字符
+  isImportant: boolean;                // 是否重要更新，必填
+  changeDetails: ChangeDetailDTO[];    // 变更详情列表，必填，至少1个
+}
+
+// 管理员更新日志查询请求参数
+export interface AdminUpdateLogQueryRequest {
+  pageNum?: number;                    // 页码，从1开始，默认为1
+  pageSize?: number;                   // 每页大小，默认为10
+  status?: UpdateLogStatus;            // 状态筛选，可选
+  version?: string;                    // 版本号模糊搜索，可选
+  title?: string;                      // 标题模糊搜索，可选
+}
