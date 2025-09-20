@@ -1,401 +1,484 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card } from '@shared/components/ui/Card';
-import { Button } from '@shared/components/ui/Button';
-import { Badge } from '@shared/components/ui/Badge';
-import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
-import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
-import { DataTable, DataTableColumn } from '@shared/components/ui/DataTable';
-import { Pagination } from '@shared/components/ui/Pagination';
-import { TableActions, TableAction } from '@shared/components/ui/TableActions';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
+import { RefreshCw, Settings, UserX, UserCheck } from 'lucide-react';
 import { AdminUserService } from '@shared/services/api/admin-user.service';
-import { AdminUserDTO, AdminUserQueryRequest } from '@shared/types';
-import { Select, SelectOption } from '@shared/components/ui/Select';
-import { Input } from '@shared/components/ui/Input';
-import { InlineEditNumber } from '@shared/components/ui/InlineEditNumber';
-import { Search, User, Mail, Shield, ShieldOff } from 'lucide-react';
+import { AdminUserDTO, AdminUserQueryRequest, PageResponse } from '@shared/types';
+import { toast } from 'react-hot-toast';
 
 export const UsersPage: React.FC = () => {
-  // 状态管理
   const [users, setUsers] = useState<AdminUserDTO[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isToggling, setIsToggling] = useState<string | null>(null);
-  const [confirmDialog, setConfirmDialog] = useState<{
-    isOpen: boolean;
-    userId?: string;
-    userStatus?: string;
-    userName?: string;
-  }>({ isOpen: false });
-  
-  // 分页状态
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  
-  // 搜索输入状态 - 用于输入控制
-  const [searchInput, setSearchInput] = useState({
-    email: '',
-    name: '',
-    status: '' as 'ACTIVE' | 'INACTIVE' | ''
-  });
-  
-  // 搜索筛选状态 - 用于API调用
-  const [searchFilters, setSearchFilters] = useState({
-    email: '',
-    name: '',
-    status: '' as 'ACTIVE' | 'INACTIVE' | ''
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    current: 1,
+    size: 10,
+    total: 0,
+    pages: 0
   });
 
-  // 状态选项配置
-  const statusOptions: SelectOption[] = [
-    { value: '', label: '全部状态' },
-    { value: 'ACTIVE', label: '正常' },
-    { value: 'INACTIVE', label: '禁用' }
-  ];
+  // 搜索和筛选状态
+  const [searchParams, setSearchParams] = useState<AdminUserQueryRequest>({
+    pageNum: 1,
+    pageSize: 10,
+    email: '',
+    name: '',
+    status: undefined
+  });
 
-  // 加载用户列表
+  // 对话框状态
+  const [statusDialog, setStatusDialog] = useState<{
+    open: boolean;
+    user: AdminUserDTO | null;
+  }>({
+    open: false,
+    user: null
+  });
+
+  const [deviceDialog, setDeviceDialog] = useState<{
+    open: boolean;
+    user: AdminUserDTO | null;
+    newDeviceCount: string;
+    submitting: boolean;
+  }>({
+    open: false,
+    user: null,
+    newDeviceCount: '',
+    submitting: false
+  });
+
+  // 加载用户数据
   const loadUsers = useCallback(async () => {
-    setIsLoading(true);
     try {
-      const params: AdminUserQueryRequest = {
-        pageNum: currentPage,
-        pageSize: 20,
-        ...(searchFilters.email && { email: searchFilters.email }),
-        ...(searchFilters.name && { name: searchFilters.name }),
-        ...(searchFilters.status && { status: searchFilters.status })
-      };
-
-      const response = await AdminUserService.getUsers(params);
+      setLoading(true);
+      const response: PageResponse<AdminUserDTO> = await AdminUserService.getUsers(searchParams);
       setUsers(response.records);
-      setTotalPages(response.pages);
-      setTotalCount(response.total);
+      setPagination({
+        current: response.current,
+        size: response.size,
+        total: response.total,
+        pages: response.pages
+      });
     } catch (error) {
-      console.error('加载用户列表失败:', error);
+      console.error('加载用户数据失败:', error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  }, [currentPage, searchFilters]);
+  }, [searchParams]);
 
-  // 初始化加载
+  // 页面初始化加载
   useEffect(() => {
     loadUsers();
-  }, [loadUsers]);
+  }, [searchParams.pageNum, searchParams.pageSize, searchParams.status, loadUsers]);
 
-  // 处理搜索
-  const handleSearch = () => {
-    setSearchFilters({ ...searchInput });
-    setCurrentPage(1);
-  };
+  // 搜索防抖
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (searchParams.email || searchParams.name) {
+        loadUsers();
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchParams.email, searchParams.name, loadUsers]);
 
   // 重置搜索
   const handleReset = () => {
-    const resetFilters = {
+    setSearchParams({
+      pageNum: 1,
+      pageSize: 10,
       email: '',
       name: '',
-      status: '' as 'ACTIVE' | 'INACTIVE' | ''
-    };
-    setSearchInput(resetFilters);
-    setSearchFilters(resetFilters);
-    setCurrentPage(1);
-  };
-
-  // 处理设备数量更新
-  const handleUpdateDeviceCount = async (userId: string, newDeviceCount: number) => {
-    try {
-      const updatedUser = await AdminUserService.updateUserDeviceCount(userId, newDeviceCount);
-      
-      // 更新本地状态
-      setUsers(prev => prev.map(user => 
-        user.id === userId ? updatedUser : user
-      ));
-      
-      // 成功提示由响应拦截器统一处理
-    } catch (error) {
-      console.error('更新设备数量失败:', error);
-      throw error; // 重新抛出错误，让组件处理
-    }
-  };
-
-  // 处理回车键搜索
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleSearch();
-    }
-  };
-
-  // 打开确认对话框
-  const openConfirmDialog = (userId: string, userStatus: string, userName: string) => {
-    setConfirmDialog({
-      isOpen: true,
-      userId,
-      userStatus,
-      userName
+      status: undefined
     });
-  };
-
-  // 关闭确认对话框
-  const closeConfirmDialog = () => {
-    setConfirmDialog({ isOpen: false });
   };
 
   // 切换用户状态
-  const handleToggleStatus = async () => {
-    if (!confirmDialog.userId || !confirmDialog.userStatus) return;
-    
-    const userId = confirmDialog.userId;
-
-    setIsToggling(userId);
+  const handleToggleStatus = async (userId: string) => {
     try {
       const updatedUser = await AdminUserService.toggleUserStatus(userId);
-      
-      // 更新本地状态
-      setUsers(prev => prev.map(user => 
-        user.id === userId ? updatedUser : user
-      ));
+      setUsers(prev =>
+        prev.map(user =>
+          user.id === userId ? updatedUser : user
+        )
+      );
+      setStatusDialog({ open: false, user: null });
     } catch (error) {
       console.error('切换用户状态失败:', error);
-    } finally {
-      setIsToggling(null);
-      closeConfirmDialog();
     }
   };
 
-  // 格式化时间显示
-  const formatDateTime = (dateStr: string) => {
-    return new Date(dateStr).toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
+  // 打开状态切换确认对话框
+  const openStatusDialog = (user: AdminUserDTO) => {
+    setStatusDialog({ open: true, user });
+  };
+
+  // 打开设备数量编辑对话框
+  const openDeviceDialog = (user: AdminUserDTO) => {
+    setDeviceDialog({
+      open: true,
+      user,
+      newDeviceCount: user.maxConcurrentDevices.toString(),
+      submitting: false
     });
   };
 
-  // 定义表格列
-  const columns: DataTableColumn<AdminUserDTO>[] = [
-    {
-      key: 'userInfo',
-      title: '用户信息',
-      render: (_, user) => (
-        <div className="flex items-center space-x-3">
-          <div className="flex-shrink-0">
-            {user.avatar ? (
-              <img
-                className="h-10 w-10 rounded-full"
-                src={user.avatar}
-                alt={user.name}
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`;
-                }}
-              />
-            ) : (
-              <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-              </div>
-            )}
-          </div>
-          <div>
-            <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs" title={user.email}>
-              {user.email}
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    {
-      key: 'description',
-      title: '个人简介',
-      render: (_, user) => (
-        <div className="text-sm text-gray-900 dark:text-white max-w-xs truncate" title={user.description || '暂无描述'}>
-          {user.description || '-'}
-        </div>
-      ),
-    },
-    {
-      key: 'status',
-      title: '状态',
-      render: (_, user) => {
-        const isActive = user.status === 'ACTIVE';
-        return (
-          <Badge
-            variant={isActive ? 'success' : 'secondary'}
-            size="sm"
-          >
-            <div className="flex items-center space-x-1">
-              {isActive ? (
-                <Shield className="h-3 w-3" />
-              ) : (
-                <ShieldOff className="h-3 w-3" />
-              )}
-              <span>{isActive ? '正常' : '禁用'}</span>
-            </div>
-          </Badge>
-        );
-      },
-    },
-    {
-      key: 'emailNotification',
-      title: '邮箱通知',
-      render: (_, user) => (
-        <Badge
-          variant={user.emailNotificationEnabled ? 'success' : 'secondary'}
-          size="sm"
-        >
-          {user.emailNotificationEnabled ? '已开启' : '已关闭'}
-        </Badge>
-      ),
-    },
-    {
-      key: 'maxDevices',
-      title: '最大设备数',
-      render: (_, user) => (
-        <InlineEditNumber
-          value={user.maxConcurrentDevices}
-          onSave={(newValue) => handleUpdateDeviceCount(user.id, newValue)}
-          min={1}
-          max={99}
-          className="text-sm"
-        />
-      ),
-    },
-    {
-      key: 'createTime',
-      title: '注册时间',
-      render: (_, user) => (
-        <span className="text-sm text-gray-600 dark:text-gray-400">
-          {formatDateTime(user.createTime)}
-        </span>
-      ),
-    },
-    {
-      key: 'actions',
-      title: '操作',
-      render: (_, user) => {
-        const isActive = user.status === 'ACTIVE';
-        const actions: TableAction[] = [
-          {
-            key: 'toggle',
-            type: 'custom',
-            label: isActive ? '禁用' : '启用',
-            icon: isToggling === user.id ? (
-              <LoadingSpinner size="sm" />
-            ) : isActive ? (
-              <ShieldOff className="h-3.5 w-3.5" />
-            ) : (
-              <Shield className="h-3.5 w-3.5" />
-            ),
-            variant: isActive ? 'danger' : 'primary',
-            disabled: isToggling === user.id,
-            onClick: () => openConfirmDialog(user.id, user.status, user.name),
-            className: "min-w-20",
-          },
-        ];
-        return <TableActions actions={actions} />;
-      },
-    },
-  ];
+  // 更新设备数量
+  const handleUpdateDeviceCount = async () => {
+    if (!deviceDialog.user) return;
+
+    const newCount = parseInt(deviceDialog.newDeviceCount);
+    if (isNaN(newCount) || newCount < 1 || newCount > 10) {
+      toast.error('设备数量必须是 1-10 之间的整数');
+      return;
+    }
+
+    try {
+      setDeviceDialog(prev => ({ ...prev, submitting: true }));
+      const updatedUser = await AdminUserService.updateUserDeviceCount(
+        deviceDialog.user.id,
+        newCount
+      );
+
+      setUsers(prev =>
+        prev.map(user =>
+          user.id === deviceDialog.user?.id ? updatedUser : user
+        )
+      );
+
+      setDeviceDialog({
+        open: false,
+        user: null,
+        newDeviceCount: '',
+        submitting: false
+      });
+    } catch (error) {
+      console.error('更新设备数量失败:', error);
+      setDeviceDialog(prev => ({ ...prev, submitting: false }));
+    }
+  };
+
+  // 分页处理
+  const handlePageChange = (page: number) => {
+    setSearchParams(prev => ({
+      ...prev,
+      pageNum: page
+    }));
+  };
+
+  // 渲染用户状态徽章
+  const renderStatusBadge = (status: 'ACTIVE' | 'INACTIVE') => {
+    return (
+      <Badge variant={status === 'ACTIVE' ? 'default' : 'secondary'}>
+        {status === 'ACTIVE' ? '激活' : '禁用'}
+      </Badge>
+    );
+  };
 
   return (
     <div className="space-y-6">
-      {/* 页面标题 */}
+      {/* 页面头部 */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">用户管理</h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">管理系统中的所有注册用户</p>
+        <h1 className="text-2xl font-bold">用户管理</h1>
+        <p className="text-muted-foreground mt-1">管理系统中的所有用户账户</p>
       </div>
 
-      {/* 搜索和筛选 */}
+      {/* 搜索筛选区域 */}
       <Card>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            搜索筛选
+            {loading && <RefreshCw className="w-4 h-4 animate-spin" />}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            <div className="lg:col-span-2">
               <Input
-                type="email"
-                placeholder="请输入邮箱地址"
-                value={searchInput.email}
-                onChange={(e) => setSearchInput(prev => ({ ...prev, email: e.target.value }))}
-                onKeyPress={handleKeyPress}
-                icon={<Mail className="h-4 w-4" />}
-                label="邮箱搜索"
+                placeholder="搜索邮箱..."
+                value={searchParams.email || ''}
+                onChange={(e) => setSearchParams(prev => ({ ...prev, email: e.target.value, pageNum: 1 }))}
+                className="w-full"
               />
             </div>
-            
-            <div>
+            <div className="lg:col-span-2">
               <Input
-                type="text"
-                placeholder="请输入用户昵称"
-                value={searchInput.name}
-                onChange={(e) => setSearchInput(prev => ({ ...prev, name: e.target.value }))}
-                onKeyPress={handleKeyPress}
-                icon={<User className="h-4 w-4" />}
-                label="昵称搜索"
+                placeholder="搜索用户名..."
+                value={searchParams.name || ''}
+                onChange={(e) => setSearchParams(prev => ({ ...prev, name: e.target.value, pageNum: 1 }))}
+                className="w-full"
               />
             </div>
-            
             <div>
               <Select
-                value={searchInput.status}
-                onChange={(value) => setSearchInput(prev => ({ ...prev, status: value as 'ACTIVE' | 'INACTIVE' | '' }))}
-                options={statusOptions}
-                placeholder="选择状态"
-                label="用户状态"
-                size="md"
-              />
+                value={searchParams.status || 'all'}
+                onValueChange={(value) => setSearchParams(prev => ({
+                  ...prev,
+                  status: value === 'all' ? undefined : (value as 'ACTIVE' | 'INACTIVE'),
+                  pageNum: 1
+                }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="状态筛选" />
+                </SelectTrigger>
+                <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+                  <SelectItem value="all">全部状态</SelectItem>
+                  <SelectItem value="ACTIVE">激活</SelectItem>
+                  <SelectItem value="INACTIVE">禁用</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            
-            <div className="flex items-end">
-              <div className="flex space-x-2">
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 justify-end mt-4">
+            <Button variant="outline" onClick={handleReset} disabled={loading} className="w-full sm:w-auto">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              重置筛选
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 用户数据表格 */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">用户列表</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[250px]">用户信息</TableHead>
+                  <TableHead className="min-w-[80px]">状态</TableHead>
+                  <TableHead className="min-w-[80px]">设备数</TableHead>
+                  <TableHead className="min-w-[100px]">创建时间</TableHead>
+                  <TableHead className="text-right min-w-[160px]">操作</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  // 加载状态骨架屏
+                  Array.from({ length: 5 }).map((_, index) => (
+                    <TableRow key={index}>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <Skeleton className="h-10 w-10 rounded-full" />
+                          <div className="space-y-1">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-3 w-48" />
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-8" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : users.length === 0 ? (
+                  // 空数据状态
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-12">
+                      <div className="text-muted-foreground">
+                        暂无用户数据
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  // 用户数据行
+                  users.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <Avatar>
+                            <AvatarImage src={user.avatar} alt={user.name} />
+                            <AvatarFallback>
+                              {user.name.charAt(0).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{user.name}</div>
+                            <div className="text-sm text-muted-foreground">{user.email}</div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {renderStatusBadge(user.status)}
+                      </TableCell>
+                      <TableCell>
+                        <span className="font-mono">{user.maxConcurrentDevices}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-sm">
+                          {new Date(user.createTime).toLocaleDateString('zh-CN')}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openStatusDialog(user)}
+                          >
+                            {user.status === 'ACTIVE' ? (
+                              <>
+                                <UserX className="w-4 h-4 mr-1" />
+                                禁用
+                              </>
+                            ) : (
+                              <>
+                                <UserCheck className="w-4 h-4 mr-1" />
+                                激活
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openDeviceDialog(user)}
+                          >
+                            <Settings className="w-4 h-4 mr-1" />
+                            设备
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* 分页组件 */}
+          {!loading && pagination.total > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4">
+              <div className="text-sm text-muted-foreground">
+                共 {pagination.total} 条记录，第 {pagination.current} / {pagination.pages} 页
+              </div>
+              <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  onClick={handleSearch}
-                  disabled={isLoading}
-                  className="flex items-center space-x-2"
+                  size="sm"
+                  disabled={pagination.current <= 1}
+                  onClick={() => handlePageChange(1)}
                 >
-                  <Search className="h-4 w-4" />
-                  <span>搜索</span>
+                  首页
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={handleReset}
-                  disabled={isLoading}
+                  size="sm"
+                  disabled={pagination.current <= 1}
+                  onClick={() => handlePageChange(pagination.current - 1)}
                 >
-                  重置
+                  上一页
+                </Button>
+                <span className="text-sm px-2">
+                  {pagination.current} / {pagination.pages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={pagination.current >= pagination.pages}
+                  onClick={() => handlePageChange(pagination.current + 1)}
+                >
+                  下一页
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={pagination.current >= pagination.pages}
+                  onClick={() => handlePageChange(pagination.pages)}
+                >
+                  尾页
                 </Button>
               </div>
             </div>
-          </div>
-        </div>
+          )}
+        </CardContent>
       </Card>
 
-      {/* 用户列表 */}
-      <DataTable
-        columns={columns}
-        data={users}
-        loading={isLoading}
-        rowKey="id"
-        emptyText="暂无用户数据"
-        emptyIcon={<User className="w-12 h-12 text-gray-400 dark:text-gray-500" />}
-        pagination={
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalCount={totalCount}
-            onChange={setCurrentPage}
-            mode="simple"
-          />
-        }
-      />
+      {/* 状态切换确认对话框 */}
+      <AlertDialog open={statusDialog.open} onOpenChange={(open) => setStatusDialog({ open, user: null })}>
+        <AlertDialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认操作</AlertDialogTitle>
+            <AlertDialogDescription>
+              确定要{statusDialog.user?.status === 'ACTIVE' ? '禁用' : '激活'}用户 "{statusDialog.user?.name}" 吗？
+              {statusDialog.user?.status === 'ACTIVE' && (
+                <span className="block mt-2 text-amber-600 dark:text-amber-400 font-medium">
+                  禁用后该用户将无法登录系统。
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => statusDialog.user && handleToggleStatus(statusDialog.user.id)}
+              className={statusDialog.user?.status === 'ACTIVE' ? 'bg-destructive hover:bg-destructive/90' : ''}
+            >
+              确认{statusDialog.user?.status === 'ACTIVE' ? '禁用' : '激活'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      {/* 确认对话框 */}
-      <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        title={`${confirmDialog.userStatus === 'ACTIVE' ? '禁用' : '启用'}用户`}
-        message={`确定要${confirmDialog.userStatus === 'ACTIVE' ? '禁用' : '启用'}用户 "${confirmDialog.userName}" 吗？${confirmDialog.userStatus === 'ACTIVE' ? '\n\n禁用后该用户将无法正常使用系统功能。' : '\n\n启用后该用户可以正常使用系统功能。'}`}
-        confirmText={confirmDialog.userStatus === 'ACTIVE' ? '禁用' : '启用'}
-        cancelText="取消"
-        onConfirm={handleToggleStatus}
-        onCancel={closeConfirmDialog}
-        variant={confirmDialog.userStatus === 'ACTIVE' ? 'warning' : 'info'}
-      />
+      {/* 设备数量编辑对话框 */}
+      <Dialog open={deviceDialog.open} onOpenChange={(open) => {
+        if (!deviceDialog.submitting) {
+          setDeviceDialog({ open, user: null, newDeviceCount: '', submitting: false });
+        }
+      }}>
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+          <DialogHeader>
+            <DialogTitle>修改设备数量</DialogTitle>
+            <DialogDescription>
+              为用户 "{deviceDialog.user?.name}" 设置最大并发设备数量
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="deviceCount">设备数量 (1-10)</Label>
+              <Input
+                id="deviceCount"
+                type="number"
+                min="1"
+                max="10"
+                value={deviceDialog.newDeviceCount}
+                onChange={(e) => setDeviceDialog(prev => ({ ...prev, newDeviceCount: e.target.value }))}
+                placeholder="请输入设备数量"
+                disabled={deviceDialog.submitting}
+              />
+              <p className="text-sm text-muted-foreground">
+                当前设备数量: {deviceDialog.user?.maxConcurrentDevices}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeviceDialog({ open: false, user: null, newDeviceCount: '', submitting: false })}
+              disabled={deviceDialog.submitting}
+            >
+              取消
+            </Button>
+            <Button
+              onClick={handleUpdateDeviceCount}
+              disabled={deviceDialog.submitting}
+            >
+              {deviceDialog.submitting ? '保存中...' : '保存'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

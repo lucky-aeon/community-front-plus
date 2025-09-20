@@ -45,7 +45,11 @@
       "Read(//Users/xhy/IdeaProjects/qiaoya-community/qiaoya-community-backend/src/main/java/org/xhy/community/interfaces/subscription/controller/**)",
       "Read(//Users/xhy/IdeaProjects/qiaoya-community/qiaoya-community-backend/**)",
       "Read(//Users/xhy/IdeaProjects/qiaoya-community/qiaoya-community-backend_副本/src/main/java/org/xhy/community/interfaces/config/controller/**)",
-      "Read(//Users/xhy/IdeaProjects/qiaoya-community/qiaoya-community-backend_副本/src/main/java/**)"
+      "Read(//Users/xhy/IdeaProjects/qiaoya-community/qiaoya-community-backend_副本/src/main/java/**)",
+      "Bash(npx:*)",
+      "Bash(rm:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
