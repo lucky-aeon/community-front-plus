@@ -12,6 +12,8 @@ import AdminPagination from '@shared/components/AdminPagination';
 import { AdminLogsService } from '@shared/services/api/admin-logs.service';
 import type { ActivityCategory, ActivityLogQueryRequest, ActivityType, PageResponse, UserActivityLogDTO } from '@shared/types';
 import { RefreshCw, Search, XCircle, Eye } from 'lucide-react';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { format } from 'date-fns';
 
 // 活动分类选项
 const CATEGORY_OPTIONS: { value: ActivityCategory; label: string }[] = [
@@ -79,9 +81,10 @@ export const LogsPage: React.FC = () => {
     ip: string;
     activityCategory: string; // 使用空字符串代表不限
     activityType: string;     // 使用空字符串代表不限
-    startTime?: string;       // datetime-local 值
-    endTime?: string;         // datetime-local 值
-  }>({ userId: '', ip: '', activityCategory: '', activityType: '', startTime: undefined, endTime: undefined });
+  }>({ userId: '', ip: '', activityCategory: '', activityType: '' });
+
+  // 单控件的时间范围（开始/结束）
+  const [timeRange, setTimeRange] = useState<{ from?: Date; to?: Date }>();
 
   // 列表数据 & 状态
   const [logs, setLogs] = useState<UserActivityLogDTO[]>([]);
@@ -90,7 +93,10 @@ export const LogsPage: React.FC = () => {
 
   const [contextDialog, setContextDialog] = useState<{ open: boolean; log?: UserActivityLogDTO }>({ open: false });
 
-  const resetForm = () => setForm({ userId: '', ip: '', activityCategory: '', activityType: '', startTime: undefined, endTime: undefined });
+  const resetForm = () => {
+    setForm({ userId: '', ip: '', activityCategory: '', activityType: '' });
+    setTimeRange(undefined);
+  };
 
   const buildQuery = useCallback((pageNum?: number, pageSize?: number): ActivityLogQueryRequest => {
     const query: ActivityLogQueryRequest = {
@@ -101,10 +107,10 @@ export const LogsPage: React.FC = () => {
     if (form.ip.trim()) query.ip = form.ip.trim();
     if (form.activityCategory && !form.activityType) query.activityCategory = form.activityCategory as ActivityCategory;
     if (form.activityType && !form.activityCategory) query.activityType = form.activityType as ActivityType;
-    if (form.startTime) query.startTime = toServerDateTimeString(form.startTime);
-    if (form.endTime) query.endTime = toServerDateTimeString(form.endTime);
+    if (timeRange?.from) query.startTime = format(timeRange.from as Date, 'yyyy-MM-dd 00:00:00');
+    if (timeRange?.to) query.endTime = format(timeRange.to as Date, 'yyyy-MM-dd 23:59:59');
     return query;
-  }, [form, paging.current, paging.size]);
+  }, [form, timeRange, paging.current, paging.size]);
 
   const loadLogs = useCallback(async (pageNum?: number, pageSize?: number) => {
     try {
@@ -197,23 +203,9 @@ export const LogsPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="startTime">开始时间</Label>
-              <Input
-                id="startTime"
-                type="datetime-local"
-                value={form.startTime || ''}
-                onChange={(e) => setForm(prev => ({ ...prev, startTime: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="endTime">结束时间</Label>
-              <Input
-                id="endTime"
-                type="datetime-local"
-                value={form.endTime || ''}
-                onChange={(e) => setForm(prev => ({ ...prev, endTime: e.target.value }))}
-              />
+            <div className="space-y-2 md:col-span-2 lg:col-span-1">
+              <Label>时间范围</Label>
+              <DateRangePicker value={timeRange} onChange={setTimeRange} placeholder="选择时间范围" />
             </div>
           </div>
 

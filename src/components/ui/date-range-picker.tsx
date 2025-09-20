@@ -1,48 +1,77 @@
-import React from 'react';
-import ReactDatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { Input } from '@/components/ui/input';
+import * as React from 'react';
+import { CalendarIcon } from 'lucide-react';
+import { addDays, format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
 
-export interface DateTimeRangePickerProps {
-  value: [Date | null, Date | null];
-  onChange: (value: [Date | null, Date | null]) => void;
+export interface DateRangePickerProps {
+  value?: { from?: Date; to?: Date } | undefined;
+  onChange?: (value: { from?: Date; to?: Date } | undefined) => void;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
-  showTimeSelect?: boolean;
 }
 
 /**
- * 统一的日期时间范围选择器（单控件完成起止选择）
- * - 基于 react-datepicker 的 selectsRange
- * - 默认启用时间选择（可关闭）
+ * 基于 shadcn 组件（Popover + Calendar）的日期范围选择器。
+ * - 单控件选择起止日期，内部不包含时间选择；
+ * - 如需时间粒度，可在外层叠加 Select/TimePicker（仍使用 shadcn 组件）。
  */
-export const DateTimeRangePicker: React.FC<DateTimeRangePickerProps> = ({
+export const DateRangePicker: React.FC<DateRangePickerProps> = ({
   value,
   onChange,
   placeholder = '选择时间范围',
   disabled,
   className,
-  showTimeSelect = true,
 }) => {
-  const [start, end] = value;
+  const [open, setOpen] = React.useState(false);
+  const [range, setRange] = React.useState<{ from?: Date; to?: Date } | undefined>(value);
+
+  React.useEffect(() => setRange(value), [value?.from?.getTime?.(), value?.to?.getTime?.()]);
+
+  const displayText = React.useMemo(() => {
+    if (range?.from && range?.to) {
+      return `${format(range.from, 'yyyy/MM/dd')} - ${format(range.to, 'yyyy/MM/dd')}`;
+    }
+    if (range?.from) {
+      return `${format(range.from, 'yyyy/MM/dd')} -`;
+    }
+    return placeholder;
+  }, [range, placeholder]);
 
   return (
-    <ReactDatePicker
-      selectsRange
-      startDate={start}
-      endDate={end}
-      onChange={(dates) => onChange(dates as [Date | null, Date | null])}
-      disabled={disabled}
-      placeholderText={placeholder}
-      customInput={<Input readOnly className={className} />}
-      showTimeSelect={showTimeSelect}
-      timeIntervals={15}
-      dateFormat={showTimeSelect ? 'yyyy/MM/dd HH:mm' : 'yyyy/MM/dd'}
-      isClearable
-    />
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            'w-full justify-start text-left font-normal',
+            !range?.from && 'text-muted-foreground',
+            className
+          )}
+          disabled={disabled}
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {displayText}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          initialFocus
+          mode="range"
+          defaultMonth={range?.from ?? new Date()}
+          selected={range}
+          onSelect={(r) => {
+            setRange(r ?? undefined);
+            onChange?.(r ?? undefined);
+          }}
+          numberOfMonths={2}
+        />
+      </PopoverContent>
+    </Popover>
   );
 };
 
-export default DateTimeRangePicker;
-
+export default DateRangePicker;
