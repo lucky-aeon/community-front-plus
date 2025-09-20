@@ -133,13 +133,35 @@ export const Pagination: React.FC<PaginationProps> = ({
   };
 
   return (
-    <div className={cn('flex items-center justify-between', className)}>
+    <div className={cn('flex items-center justify-between flex-wrap gap-4', className)}>
       {showTotal && totalCount !== undefined && (
         <div className="text-sm text-gray-500 dark:text-gray-400">
           共 {totalCount} 条记录，第 {currentPage} 页，共 {totalPages} 页
         </div>
       )}
-      {renderPageNumbers()}
+      <div className="flex items-center gap-4">
+        {renderPageNumbers()}
+        {showQuickJumper && (
+          <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+            <span>跳至</span>
+            <input
+              type="number"
+              min={1}
+              max={totalPages}
+              className="w-16 px-2 py-1 text-center border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  const page = parseInt((e.target as HTMLInputElement).value);
+                  if (page >= 1 && page <= totalPages) {
+                    onChange(page);
+                  }
+                }
+              }}
+            />
+            <span>页</span>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

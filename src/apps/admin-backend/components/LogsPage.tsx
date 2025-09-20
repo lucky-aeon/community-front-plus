@@ -2,35 +2,30 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
 import { Badge } from '@shared/components/ui/Badge';
-import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { DateTimeRangePicker, DateTimeRange } from '@shared/components/ui/DateTimeRangePicker';
+import { ExpandableList, createExpandableItems, ExpandableListItem } from '@shared/components/ui/ExpandableList';
+import { Pagination } from '@shared/components/ui/Pagination';
 import { AdminLogsService } from '@shared/services/api/admin-logs.service';
-import { 
-  UserActivityLogDTO, 
+import {
+  UserActivityLogDTO,
   ActivityLogQueryRequest,
   ActivityType,
   TargetType
 } from '@shared/types';
 import { Select, SelectOption } from '@shared/components/ui/Select';
 import { Input } from '@shared/components/ui/Input';
-import { 
-  Search, 
-  User, 
-  Globe, 
-  Monitor, 
+import {
+  Search,
+  User,
+  Globe,
+  Monitor,
   Filter,
   Eye,
   Clock,
   FileText,
   BookOpen,
   MessageSquare,
-  Tag,
-  ChevronDown,
-  ChevronUp,
-  Link,
-  Smartphone,
-  Computer,
-  Zap
+  Tag
 } from 'lucide-react';
 
 // 显示配置接口
@@ -55,7 +50,6 @@ export const LogsPage: React.FC = () => {
   // 状态管理
   const [logs, setLogs] = useState<UserActivityLogDTO[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set());
   
   // 显示配置状态
   const [displayConfig, setDisplayConfig] = useState<DisplayConfig>(() => {
@@ -151,62 +145,9 @@ export const LogsPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  // 生成分页按钮
-  const renderPagination = () => {
-    const pages = [];
-    const maxVisiblePages = 5;
-    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
-    const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-
-    if (endPage - startPage < maxVisiblePages - 1) {
-      startPage = Math.max(1, endPage - maxVisiblePages + 1);
-    }
-
-    // 上一页
-    pages.push(
-      <Button
-        key="prev"
-        variant="outline"
-        size="sm"
-        onClick={() => setCurrentPage(currentPage - 1)}
-        disabled={currentPage === 1}
-      >
-        上一页
-      </Button>
-    );
-
-    // 页码按钮
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(
-        <Button
-          key={i}
-          variant={i === currentPage ? "primary" : "outline"}
-          size="sm"
-          onClick={() => setCurrentPage(i)}
-        >
-          {i}
-        </Button>
-      );
-    }
-
-    // 下一页
-    pages.push(
-      <Button
-        key="next"
-        variant="outline"
-        size="sm"
-        onClick={() => setCurrentPage(currentPage + 1)}
-        disabled={currentPage === totalPages}
-      >
-        下一页
-      </Button>
-    );
-
-    return pages;
-  };
 
   // 获取活动类型标签样式
-  const getActivityTypeBadge = (activityType: ActivityType) => {
+  const getActivityTypeBadge = useCallback((activityType: ActivityType) => {
     const typeMap: Record<ActivityType, { variant: 'success' | 'warning' | 'danger' | 'secondary', label: string }> = {
       'LOGIN_SUCCESS': { variant: 'success', label: '登录成功' },
       'LOGIN_FAILED': { variant: 'danger', label: '登录失败' },
@@ -225,10 +166,10 @@ export const LogsPage: React.FC = () => {
 
     const { variant, label } = typeMap[activityType] || { variant: 'secondary', label: '未知' };
     return <Badge variant={variant}>{label}</Badge>;
-  };
+  }, []);
 
   // 格式化时间
-  const formatDateTime = (dateString: string) => {
+  const formatDateTime = useCallback((dateString: string) => {
     // 如果已经是格式化的字符串，直接返回
     if (dateString.includes('-') && dateString.includes(':')) {
       return dateString;
@@ -242,52 +183,13 @@ export const LogsPage: React.FC = () => {
       minute: '2-digit',
       second: '2-digit'
     });
-  };
+  }, []);
 
-  // 解析 UserAgent 信息
-  const parseUserAgent = (userAgent: string) => {
-    if (!userAgent) return null;
-
-    const ua = userAgent.toLowerCase();
-    let browser = 'unknown';
-    let browserIcon = <Monitor className="h-4 w-4" />;
-    let os = '';
-
-    // 检测浏览器 - 使用可用的 Lucide 图标
-    if (ua.includes('chrome') && !ua.includes('edg')) {
-      browser = 'Chrome';
-      browserIcon = <Globe className="h-4 w-4" />; // 使用 Globe 代替 Chrome
-    } else if (ua.includes('firefox')) {
-      browser = 'Firefox';
-      browserIcon = <Monitor className="h-4 w-4" />; // 使用 Monitor 代替 Firefox
-    } else if (ua.includes('safari') && !ua.includes('chrome')) {
-      browser = 'Safari';
-      browserIcon = <Computer className="h-4 w-4" />; // 使用 Computer 代替 Safari
-    } else if (ua.includes('edge') || ua.includes('edg')) {
-      browser = 'Edge';
-      browserIcon = <Zap className="h-4 w-4" />; // Zap 图标存在，保持不变
-    }
-
-    // 检测操作系统
-    if (ua.includes('windows')) {
-      os = 'Windows';
-    } else if (ua.includes('mac')) {
-      os = 'macOS';
-    } else if (ua.includes('linux')) {
-      os = 'Linux';
-    } else if (ua.includes('android')) {
-      os = 'Android';
-    } else if (ua.includes('ios') || ua.includes('iphone') || ua.includes('ipad')) {
-      os = 'iOS';
-    }
-
-    return { browser, browserIcon, os };
-  };
 
   // 显示完整 UserAgent
-  const getFullUserAgent = (userAgent: string | undefined) => {
+  const getFullUserAgent = useCallback((userAgent: string | undefined) => {
     return userAgent || '';
-  };
+  }, []);
 
   // 保存显示配置 - 实时更新
   const updateDisplayConfig = (key: keyof DisplayConfig, value: boolean | number) => {
@@ -297,7 +199,7 @@ export const LogsPage: React.FC = () => {
   };
 
   // 获取目标类型图标和样式
-  const getTargetTypeDisplay = (targetType: TargetType, targetName?: string) => {
+  const getTargetTypeDisplay = useCallback((targetType: TargetType, targetName?: string) => {
     if (!targetType) return null;
 
     const typeMap: Record<NonNullable<TargetType>, { icon: React.ReactNode; label: string; color: string }> = {
@@ -332,30 +234,93 @@ export const LogsPage: React.FC = () => {
         )}
       </div>
     );
-  };
+  }, []);
 
   // 解析上下文数据
-  const parseContextData = (contextData: string | undefined) => {
+  const parseContextData = useCallback((contextData: string | undefined) => {
     if (!contextData) return null;
     try {
       return JSON.parse(contextData);
     } catch {
       return null;
     }
-  };
+  }, []);
 
-  // 切换展开状态
-  const toggleExpanded = (logId: string) => {
-    setExpandedLogs(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(logId)) {
-        newSet.delete(logId);
-      } else {
-        newSet.add(logId);
+  // 创建日志列表项
+  const createLogItems = useCallback((): ExpandableListItem<UserActivityLogDTO>[] => {
+    return createExpandableItems(
+      logs,
+      (log) => (
+        <div className="space-y-3">
+          {/* 主要信息行 */}
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              {getActivityTypeBadge(log.activityType)}
+              {displayConfig.showTargetInfo && getTargetTypeDisplay(log.targetType, log.targetName)}
+            </div>
+            <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
+              <Clock className="h-4 w-4 mr-1" />
+              {formatDateTime(log.createTime)}
+            </div>
+          </div>
+          {/* 用户信息行 */}
+          <div className="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center">
+              <User className="h-4 w-4 mr-1" />
+              <span className="font-medium">{log.nickname}</span>
+            </div>
+            {log.ip && (
+              <div className="flex items-center">
+                <Globe className="h-4 w-4 mr-1" />
+                <span>{log.ip}</span>
+              </div>
+            )}
+            {log.userAgent && displayConfig.showUserAgent && (
+              <div className="flex items-center">
+                <Monitor className="h-4 w-4 mr-1" />
+                <span className="truncate max-w-xs" title={log.userAgent}>
+                  {getFullUserAgent(log.userAgent)}
+                </span>
+              </div>
+            )}
+          </div>
+          {/* 失败原因 */}
+          {log.failureReason && (
+            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/10 p-2 rounded">
+              <span className="font-medium">失败原因:</span> {log.failureReason}
+            </div>
+          )}
+        </div>
+      ),
+      (log) => {
+        const contextData = parseContextData(log.contextData);
+        if (!contextData && !log.failureReason) return null;
+        return (
+          <div className="space-y-3">
+            {/* 上下文数据 */}
+            {contextData && (
+              <div>
+                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">操作详情</h4>
+                <div className="bg-gray-100 dark:bg-gray-700 rounded p-3">
+                  <pre className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap overflow-auto max-h-64">
+                    {JSON.stringify(contextData, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      },
+      (log) => log.id,
+      {
+        expandable: (log) => {
+          const contextData = parseContextData(log.contextData);
+          return !!(contextData || log.failureReason);
+        },
       }
-      return newSet;
-    });
-  };
+    );
+  }, [logs, displayConfig, getActivityTypeBadge, getTargetTypeDisplay, formatDateTime, getFullUserAgent, parseContextData]);
+
 
   // 简洁的字段配置组件
   const SimpleFieldConfig = () => {
@@ -464,7 +429,7 @@ export const LogsPage: React.FC = () => {
               重置
             </Button>
             <Button
-              variant="primary"
+              variant="outline"
               onClick={handleSearch}
               disabled={isLoading}
             >
@@ -479,223 +444,38 @@ export const LogsPage: React.FC = () => {
       <SimpleFieldConfig />
 
       {/* 日志列表 */}
-      <Card>
-        {/* 列表头部 */}
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-medium text-gray-900">
-              日志记录
-              {totalCount > 0 && (
-                <span className="ml-2 text-sm text-gray-500">
-                  共 {totalCount} 条记录
-                </span>
-              )}
-            </h3>
-          </div>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+            日志记录
+            {totalCount > 0 && (
+              <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                共 {totalCount} 条记录
+              </span>
+            )}
+          </h3>
         </div>
 
-        {/* 加载状态 */}
-        {isLoading && (
-          <div className="p-8 text-center">
-            <LoadingSpinner size="lg" />
-            <p className="text-gray-500 mt-2">加载中...</p>
-          </div>
-        )}
-
-        {/* 日志列表内容 */}
-        {!isLoading && (
-          <>
-            {logs.length === 0 ? (
-              <div className="p-8 text-center text-gray-500">
-                <Eye className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                <p>暂无日志记录</p>
-                <p className="text-sm mt-1">尝试调整筛选条件或等待新的活动记录</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-gray-200">
-                {logs.map((log) => {
-                  const isExpanded = expandedLogs.has(log.id);
-                  const contextData = parseContextData(log.contextData);
-                  
-                  return (
-                    <div key={log.id} className="p-6 hover:bg-gray-50">
-                      <div className="space-y-3">
-                        {/* 主要信息行 */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="flex items-center space-x-2">
-                              {getActivityTypeBadge(log.activityType)}
-                              {displayConfig.showTargetInfo && getTargetTypeDisplay(log.targetType, log.targetName)}
-                            </div>
-                            <div className="flex items-center text-sm text-gray-500">
-                              <Clock className="h-4 w-4 mr-1" />
-                              {formatDateTime(log.createTime)}
-                            </div>
-                          </div>
-                          {/* 展开/收起按钮 */}
-                          {(contextData || log.failureReason) && (
-                            <button
-                              onClick={() => toggleExpanded(log.id)}
-                              className="flex items-center text-sm text-gray-500 hover:text-gray-700 transition-colors"
-                            >
-                              {isExpanded ? (
-                                <>
-                                  <span className="mr-1">收起</span>
-                                  <ChevronUp className="h-4 w-4" />
-                                </>
-                              ) : (
-                                <>
-                                  <span className="mr-1">更多</span>
-                                  <ChevronDown className="h-4 w-4" />
-                                </>
-                              )}
-                            </button>
-                          )}
-                        </div>
-                        
-                        {/* 用户信息行 */}
-                        <div className="flex items-center space-x-4 text-sm text-gray-600">
-                          <div className="flex items-center">
-                            <User className="h-4 w-4 mr-1" />
-                            <span className="font-medium">{log.nickname}</span>
-                          </div>
-                          
-                          {log.ip && (
-                            <div className="flex items-center">
-                              <Globe className="h-4 w-4 mr-1" />
-                              <span>{log.ip}</span>
-                            </div>
-                          )}
-                        </div>
-
-                        {/* UserAgent 信息行 - 重点显示 */}
-                        {displayConfig.showUserAgent && log.userAgent && (
-                          <div className="space-y-2">
-                            {displayConfig.showBrowserInfo && (
-                              <div className="flex items-center space-x-3 text-sm">
-                                {(() => {
-                                  const parsed = parseUserAgent(log.userAgent);
-                                  return parsed ? (
-                                    <div className="flex items-center space-x-2 text-gray-600">
-                                      <div className="flex items-center space-x-1">
-                                        {parsed.browserIcon}
-                                        <span className="font-medium">{parsed.browser}</span>
-                                      </div>
-                                      {parsed.os && (
-                                        <>
-                                          <span className="text-gray-400">·</span>
-                                          <span>{parsed.os}</span>
-                                        </>
-                                      )}
-                                    </div>
-                                  ) : null;
-                                })()}
-                              </div>
-                            )}
-                            <div className="text-sm">
-                              <div 
-                                className="p-3 bg-gray-50 rounded-lg border border-gray-200 font-mono text-xs text-gray-700 break-all"
-                                title={log.userAgent}
-                              >
-                                {getFullUserAgent(log.userAgent)}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 请求路径信息行 */}
-                        {displayConfig.showRequestPath && log.requestPath && (
-                          <div className="text-sm">
-                            <div className="flex items-center text-gray-600 mb-1">
-                              <Link className="h-4 w-4 mr-1" />
-                              <span className="font-medium">请求路径</span>
-                            </div>
-                            <div className="p-2 bg-blue-50 rounded border border-blue-200 font-mono text-xs text-blue-800">
-                              {log.requestPath}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* 设备信息行（简化） */}
-                        {displayConfig.showEquipment && (log.browser || log.equipment) && (
-                          <div className="flex items-center space-x-4 text-sm text-gray-500">
-                            {log.browser && (
-                              <div className="flex items-center">
-                                <Monitor className="h-4 w-4 mr-1" />
-                                <span>浏览器: {log.browser}</span>
-                              </div>
-                            )}
-                            
-                            {log.equipment && (
-                              <div className="flex items-center">
-                                <Smartphone className="h-4 w-4 mr-1" />
-                                <span>设备: {log.equipment}</span>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                        {/* 活动描述 */}
-                        {log.activityTypeDesc && (
-                          <div className="text-sm text-gray-600">
-                            <span className="font-medium">描述：</span>
-                            {log.activityTypeDesc}
-                          </div>
-                        )}
-
-                        {/* 展开的详细信息 */}
-                        {isExpanded && (
-                          <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3">
-                            {/* 上下文数据 */}
-                            {contextData && (
-                              <div className="text-sm">
-                                <span className="font-medium text-gray-700">上下文信息：</span>
-                                <div className="mt-1 p-2 bg-white rounded border">
-                                  {Object.entries(contextData).map(([key, value]) => (
-                                    <div key={key} className="flex justify-between py-1 border-b border-gray-100 last:border-0">
-                                      <span className="font-medium text-gray-600">{key}:</span>
-                                      <span className="text-gray-800">{String(value)}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-
-                            {/* 失败原因 */}
-                            {log.failureReason && (
-                              <div className="text-sm">
-                                <span className="font-medium text-red-600">失败原因：</span>
-                                <div className="mt-1 p-2 bg-red-50 rounded border border-red-200 text-red-700">
-                                  {log.failureReason}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* 分页控件 */}
-            {totalPages > 1 && (
-              <div className="p-6 border-t border-gray-200">
-                <div className="flex justify-between items-center">
-                  <div className="text-sm text-gray-700">
-                    显示第 {(currentPage - 1) * 20 + 1} - {Math.min(currentPage * 20, totalCount)} 条，
-                    共 {totalCount} 条记录
-                  </div>
-                  <div className="flex space-x-2">
-                    {renderPagination()}
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </Card>
+        <ExpandableList
+          items={createLogItems()}
+          loading={isLoading}
+          emptyText="暂无日志记录"
+          emptyDescription="尝试调整筛选条件或等待新的活动记录"
+          emptyIcon={<Eye className="w-12 h-12 text-gray-400 dark:text-gray-500" />}
+          pagination={
+            totalPages > 1 ? (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalCount={totalCount}
+                onChange={setCurrentPage}
+                mode="complex"
+                showQuickJumper={true}
+              />
+            ) : undefined
+          }
+        />
+      </div>
     </div>
   );
 };
