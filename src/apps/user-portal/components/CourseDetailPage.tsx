@@ -6,6 +6,7 @@ import { Button } from '@shared/components/ui/Button';
 import { Badge } from '@shared/components/ui/Badge';
 import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { SubscribeButton } from '@shared/components/ui/SubscribeButton';
+import { Comments } from '@/components/ui/comments';
 import { CoursesService } from '@shared/services/api';
 import { FrontCourseDetailDTO } from '@shared/types';
 
@@ -193,6 +194,11 @@ export const CourseDetailPage: React.FC = () => {
               ))}
             </div>
           </Card>
+
+          {/* Comments: 课程评论 */}
+          <div className="mt-6">
+            <Comments businessId={courseId!} businessType="COURSE" authorId={course.authorId} />
+          </div>
         </div>
 
         {/* Sidebar */}
