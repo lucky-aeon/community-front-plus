@@ -10,6 +10,7 @@ import {
   UserActivityLogDTO,
   ActivityLogQueryRequest,
   ActivityType,
+  ActivityCategory,
   TargetType
 } from '@shared/types';
 import { Select, SelectOption } from '@shared/components/ui/Select';
@@ -65,35 +66,75 @@ export const LogsPage: React.FC = () => {
   // 搜索输入状态 - 用于输入控制
   const [searchInput, setSearchInput] = useState({
     userId: '',
+    queryMode: 'type' as 'type' | 'category', // 查询模式：type=具体类型, category=分类
     activityType: '' as ActivityType | '',
-    dateTimeRange: { startTime: undefined, endTime: undefined } as DateTimeRange,
-    ip: ''
-  });
-  
-  // 搜索筛选状态 - 用于API调用
-  const [searchFilters, setSearchFilters] = useState({
-    userId: '',
-    activityType: '' as ActivityType | '',
+    activityCategory: '' as ActivityCategory | '',
     dateTimeRange: { startTime: undefined, endTime: undefined } as DateTimeRange,
     ip: ''
   });
 
-  // 活动类型选项配置
+  // 搜索筛选状态 - 用于API调用
+  const [searchFilters, setSearchFilters] = useState({
+    userId: '',
+    queryMode: 'type' as 'type' | 'category',
+    activityType: '' as ActivityType | '',
+    activityCategory: '' as ActivityCategory | '',
+    dateTimeRange: { startTime: undefined, endTime: undefined } as DateTimeRange,
+    ip: ''
+  });
+
+  // 活动类型选项配置（完整版）
   const activityTypeOptions: SelectOption[] = [
     { value: '', label: '全部活动类型' },
+    // 认证相关
     { value: 'LOGIN_SUCCESS', label: '登录成功' },
     { value: 'LOGIN_FAILED', label: '登录失败' },
-    { value: 'LOGOUT', label: '退出登录' },
-    { value: 'VIEW_POST', label: '浏览文章' },
-    { value: 'CREATE_POST', label: '创建文章' },
-    { value: 'UPDATE_POST', label: '更新文章' },
-    { value: 'DELETE_POST', label: '删除文章' },
-    { value: 'VIEW_COURSE', label: '浏览课程' },
-    { value: 'CREATE_COMMENT', label: '创建评论' },
-    { value: 'UPDATE_PROFILE', label: '更新个人资料' },
+    { value: 'REGISTER_SUCCESS', label: '注册成功' },
+    { value: 'REGISTER_FAILED', label: '注册失败' },
+    { value: 'LOGOUT', label: '用户登出' },
     { value: 'CHANGE_PASSWORD', label: '修改密码' },
-    { value: 'UPLOAD_FILE', label: '上传文件' },
-    { value: 'OTHER', label: '其他活动' }
+    { value: 'RESET_PASSWORD', label: '重置密码' },
+    // 内容浏览
+    { value: 'VIEW_POST', label: '查看文章' },
+    { value: 'VIEW_COURSE', label: '查看课程' },
+    { value: 'VIEW_USER_PROFILE', label: '查看用户资料' },
+    { value: 'SEARCH_CONTENT', label: '搜索内容' },
+    // 内容创作
+    { value: 'CREATE_POST', label: '发表文章' },
+    { value: 'UPDATE_POST', label: '编辑文章' },
+    { value: 'DELETE_POST', label: '删除文章' },
+    { value: 'CREATE_COURSE', label: '创建课程' },
+    { value: 'UPDATE_COURSE', label: '编辑课程' },
+    { value: 'DELETE_COURSE', label: '删除课程' },
+    // 社交互动
+    { value: 'LIKE_POST', label: '点赞文章' },
+    { value: 'UNLIKE_POST', label: '取消点赞文章' },
+    { value: 'COMMENT_POST', label: '评论文章' },
+    { value: 'DELETE_COMMENT', label: '删除评论' },
+    { value: 'FOLLOW_USER', label: '关注用户' },
+    { value: 'UNFOLLOW_USER', label: '取消关注用户' },
+    { value: 'SHARE_POST', label: '分享文章' },
+    // 学习行为
+    { value: 'ENROLL_COURSE', label: '注册课程' },
+    { value: 'COMPLETE_CHAPTER', label: '完成章节' },
+    { value: 'START_LEARNING', label: '开始学习' },
+    // 管理操作
+    { value: 'ADMIN_LOGIN', label: '管理员登录' },
+    { value: 'ADMIN_UPDATE_USER', label: '管理员更新用户' },
+    { value: 'ADMIN_DELETE_POST', label: '管理员删除文章' },
+    { value: 'ADMIN_UPDATE_COURSE', label: '管理员更新课程' }
+  ];
+
+  // 活动分类选项配置
+  const activityCategoryOptions: SelectOption[] = [
+    { value: '', label: '全部分类' },
+    { value: 'AUTHENTICATION', label: '认证相关' },
+    { value: 'BROWSING', label: '内容浏览' },
+    { value: 'CONTENT_CREATION', label: '内容创作' },
+    { value: 'SOCIAL_INTERACTION', label: '社交互动' },
+    { value: 'LEARNING', label: '学习行为' },
+    { value: 'ADMINISTRATION', label: '管理操作' },
+    { value: 'OTHER', label: '其他' }
   ];
 
   // 加载日志列表
@@ -104,7 +145,9 @@ export const LogsPage: React.FC = () => {
         pageNum: currentPage,
         pageSize: 20,
         ...(searchFilters.userId && { userId: searchFilters.userId }),
-        ...(searchFilters.activityType && { activityType: searchFilters.activityType }),
+        // 根据查询模式选择使用activityType或activityCategory（互斥）
+        ...(searchFilters.queryMode === 'type' && searchFilters.activityType && { activityType: searchFilters.activityType }),
+        ...(searchFilters.queryMode === 'category' && searchFilters.activityCategory && { activityCategory: searchFilters.activityCategory }),
         ...(searchFilters.dateTimeRange.startTime && { startTime: searchFilters.dateTimeRange.startTime }),
         ...(searchFilters.dateTimeRange.endTime && { endTime: searchFilters.dateTimeRange.endTime }),
         ...(searchFilters.ip && { ip: searchFilters.ip })
@@ -136,7 +179,9 @@ export const LogsPage: React.FC = () => {
   const handleReset = () => {
     const resetFilters = {
       userId: '',
+      queryMode: 'type' as 'type' | 'category',
       activityType: '' as ActivityType | '',
+      activityCategory: '' as ActivityCategory | '',
       dateTimeRange: { startTime: undefined, endTime: undefined } as DateTimeRange,
       ip: ''
     };
@@ -146,22 +191,57 @@ export const LogsPage: React.FC = () => {
   };
 
 
+  // 查询模式切换处理器
+  const handleQueryModeChange = (mode: 'type' | 'category') => {
+    setSearchInput({
+      ...searchInput,
+      queryMode: mode,
+      // 切换模式时清空另一种模式的选择
+      activityType: mode === 'category' ? '' : searchInput.activityType,
+      activityCategory: mode === 'type' ? '' : searchInput.activityCategory
+    });
+  };
+
   // 获取活动类型标签样式
   const getActivityTypeBadge = useCallback((activityType: ActivityType) => {
     const typeMap: Record<ActivityType, { variant: 'success' | 'warning' | 'danger' | 'secondary', label: string }> = {
+      // 认证相关
       'LOGIN_SUCCESS': { variant: 'success', label: '登录成功' },
       'LOGIN_FAILED': { variant: 'danger', label: '登录失败' },
-      'LOGOUT': { variant: 'secondary', label: '退出登录' },
-      'VIEW_POST': { variant: 'secondary', label: '浏览文章' },
-      'CREATE_POST': { variant: 'success', label: '创建文章' },
-      'UPDATE_POST': { variant: 'warning', label: '更新文章' },
-      'DELETE_POST': { variant: 'danger', label: '删除文章' },
-      'VIEW_COURSE': { variant: 'secondary', label: '浏览课程' },
-      'CREATE_COMMENT': { variant: 'success', label: '创建评论' },
-      'UPDATE_PROFILE': { variant: 'warning', label: '更新资料' },
+      'REGISTER_SUCCESS': { variant: 'success', label: '注册成功' },
+      'REGISTER_FAILED': { variant: 'danger', label: '注册失败' },
+      'LOGOUT': { variant: 'secondary', label: '用户登出' },
       'CHANGE_PASSWORD': { variant: 'warning', label: '修改密码' },
-      'UPLOAD_FILE': { variant: 'success', label: '上传文件' },
-      'OTHER': { variant: 'secondary', label: '其他活动' }
+      'RESET_PASSWORD': { variant: 'warning', label: '重置密码' },
+      // 内容浏览
+      'VIEW_POST': { variant: 'secondary', label: '查看文章' },
+      'VIEW_COURSE': { variant: 'secondary', label: '查看课程' },
+      'VIEW_USER_PROFILE': { variant: 'secondary', label: '查看用户资料' },
+      'SEARCH_CONTENT': { variant: 'secondary', label: '搜索内容' },
+      // 内容创作
+      'CREATE_POST': { variant: 'success', label: '发表文章' },
+      'UPDATE_POST': { variant: 'warning', label: '编辑文章' },
+      'DELETE_POST': { variant: 'danger', label: '删除文章' },
+      'CREATE_COURSE': { variant: 'success', label: '创建课程' },
+      'UPDATE_COURSE': { variant: 'warning', label: '编辑课程' },
+      'DELETE_COURSE': { variant: 'danger', label: '删除课程' },
+      // 社交互动
+      'LIKE_POST': { variant: 'success', label: '点赞文章' },
+      'UNLIKE_POST': { variant: 'secondary', label: '取消点赞文章' },
+      'COMMENT_POST': { variant: 'success', label: '评论文章' },
+      'DELETE_COMMENT': { variant: 'danger', label: '删除评论' },
+      'FOLLOW_USER': { variant: 'success', label: '关注用户' },
+      'UNFOLLOW_USER': { variant: 'secondary', label: '取消关注用户' },
+      'SHARE_POST': { variant: 'success', label: '分享文章' },
+      // 学习行为
+      'ENROLL_COURSE': { variant: 'success', label: '注册课程' },
+      'COMPLETE_CHAPTER': { variant: 'success', label: '完成章节' },
+      'START_LEARNING': { variant: 'success', label: '开始学习' },
+      // 管理操作
+      'ADMIN_LOGIN': { variant: 'warning', label: '管理员登录' },
+      'ADMIN_UPDATE_USER': { variant: 'warning', label: '管理员更新用户' },
+      'ADMIN_DELETE_POST': { variant: 'danger', label: '管理员删除文章' },
+      'ADMIN_UPDATE_COURSE': { variant: 'warning', label: '管理员更新课程' }
     };
 
     const { variant, label } = typeMap[activityType] || { variant: 'secondary', label: '未知' };
@@ -393,13 +473,50 @@ export const LogsPage: React.FC = () => {
               icon={<User className="h-5 w-5" />}
             />
 
-            {/* 活动类型筛选 */}
-            <Select
-              label="活动类型"
-              options={activityTypeOptions}
-              value={searchInput.activityType}
-              onChange={(value) => setSearchInput({ ...searchInput, activityType: value as ActivityType | '' })}
-            />
+            {/* 查询模式切换器 */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                查询模式
+              </label>
+              <div className="flex space-x-2">
+                <Button
+                  variant={searchInput.queryMode === 'type' ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => handleQueryModeChange('type')}
+                  className="flex-1"
+                >
+                  按具体类型
+                </Button>
+                <Button
+                  variant={searchInput.queryMode === 'category' ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => handleQueryModeChange('category')}
+                  className="flex-1"
+                >
+                  按分类查询
+                </Button>
+              </div>
+            </div>
+
+            {/* 活动类型筛选 - 仅在具体类型模式下显示 */}
+            {searchInput.queryMode === 'type' && (
+              <Select
+                label="活动类型"
+                options={activityTypeOptions}
+                value={searchInput.activityType}
+                onChange={(value) => setSearchInput({ ...searchInput, activityType: value as ActivityType | '' })}
+              />
+            )}
+
+            {/* 活动分类筛选 - 仅在分类模式下显示 */}
+            {searchInput.queryMode === 'category' && (
+              <Select
+                label="活动分类"
+                options={activityCategoryOptions}
+                value={searchInput.activityCategory}
+                onChange={(value) => setSearchInput({ ...searchInput, activityCategory: value as ActivityCategory | '' })}
+              />
+            )}
 
             {/* 时间范围选择器 */}
             <div className="lg:col-span-2">

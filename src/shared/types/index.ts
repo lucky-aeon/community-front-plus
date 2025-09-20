@@ -659,31 +659,55 @@ export interface FrontCourseDetailDTO {
 
 // ================ 管理员用户活动日志相关接口定义 ================
 
-// 活动类型枚举
+// 活动类型枚举（与后端ActivityType.java保持一致）
 export type ActivityType =
-  | 'LOGIN_SUCCESS'     // 登录成功
-  | 'LOGIN_FAILED'      // 登录失败
-  | 'LOGOUT'            // 退出登录
-  | 'VIEW_POST'         // 浏览文章
-  | 'CREATE_POST'       // 创建文章
-  | 'UPDATE_POST'       // 更新文章
-  | 'DELETE_POST'       // 删除文章
-  | 'VIEW_COURSE'       // 浏览课程
-  | 'CREATE_COMMENT'    // 创建评论
-  | 'UPDATE_PROFILE'    // 更新个人资料
-  | 'CHANGE_PASSWORD'   // 修改密码
-  | 'UPLOAD_FILE'       // 上传文件
-  | 'OTHER';            // 其他活动
+  // 认证相关
+  | 'LOGIN_SUCCESS'        // 登录成功
+  | 'LOGIN_FAILED'         // 登录失败
+  | 'REGISTER_SUCCESS'     // 注册成功
+  | 'REGISTER_FAILED'      // 注册失败
+  | 'LOGOUT'               // 用户登出
+  | 'CHANGE_PASSWORD'      // 修改密码
+  | 'RESET_PASSWORD'       // 重置密码
+  // 内容浏览
+  | 'VIEW_POST'            // 查看文章
+  | 'VIEW_COURSE'          // 查看课程
+  | 'VIEW_USER_PROFILE'    // 查看用户资料
+  | 'SEARCH_CONTENT'       // 搜索内容
+  // 内容创作
+  | 'CREATE_POST'          // 发表文章
+  | 'UPDATE_POST'          // 编辑文章
+  | 'DELETE_POST'          // 删除文章
+  | 'CREATE_COURSE'        // 创建课程
+  | 'UPDATE_COURSE'        // 编辑课程
+  | 'DELETE_COURSE'        // 删除课程
+  // 社交互动
+  | 'LIKE_POST'            // 点赞文章
+  | 'UNLIKE_POST'          // 取消点赞文章
+  | 'COMMENT_POST'         // 评论文章
+  | 'DELETE_COMMENT'       // 删除评论
+  | 'FOLLOW_USER'          // 关注用户
+  | 'UNFOLLOW_USER'        // 取消关注用户
+  | 'SHARE_POST'           // 分享文章
+  // 学习行为
+  | 'ENROLL_COURSE'        // 注册课程
+  | 'COMPLETE_CHAPTER'     // 完成章节
+  | 'START_LEARNING'       // 开始学习
+  // 管理操作
+  | 'ADMIN_LOGIN'          // 管理员登录
+  | 'ADMIN_UPDATE_USER'    // 管理员更新用户
+  | 'ADMIN_DELETE_POST'    // 管理员删除文章
+  | 'ADMIN_UPDATE_COURSE'; // 管理员更新课程
 
-// 活动分类枚举
+// 活动分类枚举（与后端ActivityCategory.java保持一致）
 export type ActivityCategory =
-  | 'AUTHENTICATION'    // 认证相关
-  | 'BROWSING'          // 浏览相关
-  | 'CONTENT_CREATION'  // 内容创建
-  | 'CONTENT_MANAGEMENT'// 内容管理
-  | 'USER_MANAGEMENT'   // 用户管理
-  | 'SYSTEM'            // 系统相关
-  | 'OTHER';            // 其他
+  | 'AUTHENTICATION'       // 认证相关
+  | 'BROWSING'             // 内容浏览
+  | 'CONTENT_CREATION'     // 内容创作
+  | 'SOCIAL_INTERACTION'   // 社交互动
+  | 'LEARNING'             // 学习行为
+  | 'ADMINISTRATION'       // 管理操作
+  | 'OTHER';               // 其他
 
 // 目标类型枚举
 export type TargetType =
@@ -719,7 +743,8 @@ export interface ActivityLogQueryRequest {
   pageNum?: number;              // 页码，从1开始，默认为1
   pageSize?: number;             // 每页大小，默认为10
   userId?: string;               // 用户ID筛选，可选
-  activityType?: ActivityType;   // 活动类型筛选，可选
+  activityType?: ActivityType;   // 活动类型筛选，可选（与activityCategory互斥）
+  activityCategory?: ActivityCategory; // 活动分类筛选，可选（与activityType互斥）
   startTime?: string;            // 开始时间筛选，可选（格式：YYYY-MM-DD HH:mm:ss）
   endTime?: string;              // 结束时间筛选，可选（格式：YYYY-MM-DD HH:mm:ss）
   ip?: string;                   // IP地址模糊搜索，可选

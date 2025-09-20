@@ -33,6 +33,9 @@ export class AdminLogsService {
     if (params.activityType) {
       queryParams.activityType = params.activityType;
     }
+    if (params.activityCategory) {
+      queryParams.activityCategory = params.activityCategory;
+    }
     if (params.startTime) {
       queryParams.startTime = params.startTime;
     }
