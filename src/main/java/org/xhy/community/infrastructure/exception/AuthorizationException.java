@@ -1,12 +1,10 @@
 package org.xhy.community.infrastructure.exception;
 
-public class AuthorizationException extends BaseException {
-    public AuthorizationException(ErrorCode errorCode) {
-        super(errorCode);
-    }
-
-    public AuthorizationException(ErrorCode errorCode, String customMessage) {
-        super(errorCode, customMessage);
+/**
+ * 简单的权限异常（不依赖通用异常体系），用于AOP鉴权失败抛出
+ */
+public class AuthorizationException extends RuntimeException {
+    public AuthorizationException(String message) {
+        super(message);
     }
 }
-

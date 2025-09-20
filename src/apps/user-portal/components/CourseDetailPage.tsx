@@ -5,7 +5,7 @@ import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
 import { Badge } from '@shared/components/ui/Badge';
 import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
-import { SubscribeButton } from '@shared/components/ui/SubscribeButton';
+import { SubscribeButton } from '@/components/ui/subscribe-button';
 import { Comments } from '@/components/ui/comments';
 import { CoursesService } from '@shared/services/api';
 import { FrontCourseDetailDTO } from '@shared/types';
@@ -210,9 +210,10 @@ export const CourseDetailPage: React.FC = () => {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-3">课程订阅</h3>
                 <SubscribeButton
-                  targetId={courseId}
+                  targetId={courseId!}
                   targetType="COURSE"
-                  size="md"
+                  size="default"
+                  showText
                   className="w-full"
                 />
                 <p className="text-sm text-gray-500 mt-2 text-center">
