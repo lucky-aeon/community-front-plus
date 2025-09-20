@@ -12,7 +12,7 @@ import { Button } from '@shared/components/ui/Button';
 import { Badge } from '@shared/components/ui/Badge';
 import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
-import { CommentsSection } from '@shared/components/business/CommentsSection';
+import { Comments } from '@/components/ui/comments';
 import { CoursesService, ChaptersService } from '@shared/services/api';
 import { FrontCourseDetailDTO, FrontChapterDetailDTO } from '@shared/types';
 import { useAuth } from '../../../context/AuthContext';
@@ -275,15 +275,11 @@ export const ChapterDetailPage: React.FC = () => {
             </Card>
           )}
 
-          {/* Comments Section */}
+          {/* Comments Section (shadcn) */}
           {chapterDetail && course && !chapterError && (
-            <CommentsSection
-              businessId={chapterId!}
-              businessType="COURSE"
-              currentUser={user}
-              authorId={course.authorId}
-              className="mt-6"
-            />
+            <div className="mt-6">
+              <Comments businessId={chapterId!} businessType="COURSE" authorId={course.authorId} />
+            </div>
           )}
         </div>
 
