@@ -19,7 +19,10 @@ export class UpdateLogService {
    * @returns 创建成功的更新日志信息
    */
   static async createUpdateLog(request: CreateUpdateLogRequest): Promise<UpdateLogDTO> {
-    const response = await apiClient.post<ApiResponse<UpdateLogDTO>>('/admin/update-logs', request);
+    // 后端接口字段更新：请求体的 changeDetails 改为 changes
+    const { changeDetails, ...rest } = request as unknown as Record<string, unknown> & { changeDetails?: unknown };
+    const payload = { ...rest, changes: changeDetails } as unknown;
+    const response = await apiClient.post<ApiResponse<UpdateLogDTO>>('/admin/update-logs', payload);
     return response.data.data;
   }
 
@@ -30,7 +33,10 @@ export class UpdateLogService {
    * @returns 更新后的更新日志信息
    */
   static async updateUpdateLog(id: string, request: UpdateUpdateLogRequest): Promise<UpdateLogDTO> {
-    const response = await apiClient.put<ApiResponse<UpdateLogDTO>>(`/admin/update-logs/${id}`, request);
+    // 后端接口字段更新：请求体的 changeDetails 改为 changes
+    const { changeDetails, ...rest } = request as unknown as Record<string, unknown> & { changeDetails?: unknown };
+    const payload = { ...rest, changes: changeDetails } as unknown;
+    const response = await apiClient.put<ApiResponse<UpdateLogDTO>>(`/admin/update-logs/${id}`, payload);
     return response.data.data;
   }
 

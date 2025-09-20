@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { RefreshCw, Plus, Pencil, Link2, Trash2, GripVertical } from 'lucide-react';
+import AdminPagination from '@shared/components/AdminPagination';
 import { DndContext, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -407,19 +408,16 @@ export const SubscriptionPlansPage: React.FC = () => {
             </Table>
           </div>
 
-          {/* 分页 */}
+          {/* 分页（统一使用 AdminPagination 适配 shadcn） */}
           {!loading && pagination.total > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4">
-              <div className="text-sm text-muted-foreground">
-                共 {pagination.total} 条记录，第 {pagination.current} / {pagination.pages} 页
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled={pagination.current <= 1} onClick={() => handlePageChange(1)}>首页</Button>
-                <Button variant="outline" size="sm" disabled={pagination.current <= 1} onClick={() => handlePageChange(pagination.current - 1)}>上一页</Button>
-                <span className="text-sm px-2">{pagination.current} / {pagination.pages}</span>
-                <Button variant="outline" size="sm" disabled={pagination.current >= pagination.pages} onClick={() => handlePageChange(pagination.current + 1)}>下一页</Button>
-                <Button variant="outline" size="sm" disabled={pagination.current >= pagination.pages} onClick={() => handlePageChange(pagination.pages)}>尾页</Button>
-              </div>
+            <div className="pt-4">
+              <AdminPagination
+                current={pagination.current}
+                totalPages={pagination.pages}
+                total={pagination.total}
+                onChange={handlePageChange}
+                mode="simple"
+              />
             </div>
           )}
         </CardContent>
