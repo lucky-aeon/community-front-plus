@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, MessageSquare, Share2, Bookmark, Flag, CheckCircle } from 'lucide-react';
-import { Card } from '@shared/components/ui/Card';
-import { Button } from '@shared/components/ui/Button';
-import { Badge } from '@shared/components/ui/Badge';
-import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
+import { ArrowLeft, Heart, MessageSquare, CheckCircle, Bell, Bookmark } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
-import { SubscribeButton } from '@shared/components/ui/SubscribeButton';
-import { CommentsSection } from '@shared/components/business/CommentsSection';
+import { SubscribeButton } from '@/components/ui/subscribe-button';
+import { SubscribeService } from '@shared/services/api/subscribe.service';
+import type { SubscribeStatusResponse } from '@shared/types';
+import { Comments } from '@/components/ui/comments';
 import { useAuth } from '../../../context/AuthContext';
 import { routeUtils } from '@shared/routes/routes';
 import { PostsService } from '@shared/services/api/posts.service';
@@ -19,6 +21,7 @@ export const PostDetailPage: React.FC = () => {
   const { user } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
+  const [isFollowingAuthor, setIsFollowingAuthor] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
   const [post, setPost] = useState<FrontPostDetailDTO | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<FrontPostDTO[]>([]);
@@ -65,12 +68,33 @@ export const PostDetailPage: React.FC = () => {
     fetchPostDetail();
   }, [postId]);
 
+  // 初始化关注状态
+  useEffect(() => {
+    (async () => {
+      try {
+        if (post?.authorId && user) {
+          const s: SubscribeStatusResponse = await SubscribeService.checkSubscribeStatus({ targetId: post.authorId, targetType: 'USER' });
+          setIsFollowingAuthor(!!s.isFollowing);
+        }
+      } catch {}
+    })();
+  }, [post?.authorId, user]);
+
   if (isLoading) {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="flex items-center justify-center py-12">
-          <LoadingSpinner size="lg" />
-        </div>
+      <div className="p-6 max-w-7xl mx-auto space-y-6">
+        <Skeleton className="h-6 w-40" />
+        <Card className="p-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-12 w-12 rounded-full" />
+            <div className="flex-1">
+              <Skeleton className="h-4 w-40 mb-2" />
+              <Skeleton className="h-3 w-28" />
+            </div>
+          </div>
+          <Skeleton className="h-8 w-2/3" />
+          <Skeleton className="h-64 w-full" />
+        </Card>
       </div>
     );
   }
@@ -115,11 +139,11 @@ export const PostDetailPage: React.FC = () => {
           <span>返回</span>
         </Button>
         <div className="flex items-center space-x-2">
-          <Badge variant="primary">
+          <Badge variant="default">
             {post.categoryName}
           </Badge>
           {post.isTop && (
-            <Badge variant="warning" className="flex items-center space-x-1">
+            <Badge variant="secondary" className="flex items-center space-x-1 bg-yellow-500 text-white border-0">
               <CheckCircle className="h-3 w-3" />
               <span>置顶</span>
             </Badge>
@@ -200,25 +224,36 @@ export const PostDetailPage: React.FC = () => {
                     <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                       作者
                     </span>
-                    <SubscribeButton
-                      targetId={post.authorId}
-                      targetType="USER"
-                      variant="heart"
-                      size="sm"
-                      showText={false}
-                    />
+                    <SubscribeButton targetId={post.authorId} targetType="USER" size="sm" showText />
                   </div>
                   <p className="text-sm text-gray-500">{formatDate(post.publishTime)}</p>
                 </div>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm">
-                  <Share2 className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="sm">
-                  <Flag className="h-4 w-4" />
-                </Button>
+              {/* 右上角图标：订阅作者 + 点赞文章 */}
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <button
+                  title={isFollowingAuthor ? '已关注作者' : '关注作者'}
+                  aria-label="关注作者"
+                  className={`p-2 rounded-full hover:bg-accent ${isFollowingAuthor ? 'text-red-600' : ''}`}
+                  onClick={async () => {
+                    try {
+                      if (!post?.authorId) return;
+                      const resp = await SubscribeService.toggleSubscribe({ targetId: post.authorId, targetType: 'USER' });
+                      setIsFollowingAuthor(!!resp.isFollowing);
+                    } catch {}
+                  }}
+                >
+                  <Bell className={`h-5 w-5 ${isFollowingAuthor ? '' : ''}`} />
+                </button>
+                <button
+                  title={isLiked ? '已点赞' : '点赞'}
+                  aria-label="点赞文章"
+                  className={`p-2 rounded-full hover:bg-accent ${isLiked ? 'text-red-600' : ''}`}
+                  onClick={() => setIsLiked(!isLiked)}
+                >
+                  <Heart className={`h-5 w-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                </button>
               </div>
             </div>
 
@@ -304,14 +339,9 @@ export const PostDetailPage: React.FC = () => {
           </Card>
 
           {/* Comments Section */}
-          <CommentsSection
-            businessId={post.id}
-            businessType="POST"
-            currentUser={user}
-            authorId={post.authorId}
-            onCommentCountChange={handleCommentCountChange}
-            className="mt-6"
-          />
+          <div className="mt-6">
+            <Comments businessId={post.id} businessType="POST" authorId={post.authorId} onCountChange={handleCommentCountChange} />
+          </div>
         </div>
       </div>
     </div>

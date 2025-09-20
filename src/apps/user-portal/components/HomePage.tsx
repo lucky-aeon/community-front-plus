@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Heart, Clock, Pin, ChevronRight, User } from 'lucide-react';
-import { Card } from '@shared/components/ui/Card';
-import { Button } from '@shared/components/ui/Button';
-import { Badge } from '@shared/components/ui/Badge';
-import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { courses, comments } from '@shared/constants/mockData';
 import { routeUtils } from '@shared/routes/routes';
 import { PostsService } from '@shared/services/api/posts.service';
@@ -80,9 +80,25 @@ export const HomePage: React.FC = () => {
           
           <div className="space-y-4 md:space-y-6">
             {isLoadingPosts ? (
-              <div className="flex items-center justify-center py-8">
-                <LoadingSpinner size="lg" />
-              </div>
+              Array.from({ length: 3 }).map((_, i) => (
+                <Card key={i} className="p-4 md:p-6">
+                  <div className="flex items-start gap-3 mb-4">
+                    <Skeleton className="h-10 w-10 rounded-full" />
+                    <div className="flex-1">
+                      <Skeleton className="h-4 w-40 mb-2" />
+                      <Skeleton className="h-3 w-28" />
+                    </div>
+                    <Skeleton className="h-6 w-16" />
+                  </div>
+                  <Skeleton className="h-6 w-2/3 mb-2" />
+                  <Skeleton className="h-4 w-5/6 mb-4" />
+                  <div className="flex items-center gap-4">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-12" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                </Card>
+              ))
             ) : recentPosts.length > 0 ? (
               recentPosts.map((post) => (
                 <Card
@@ -117,11 +133,11 @@ export const HomePage: React.FC = () => {
 
                     {/* 分类标签和置顶标识 */}
                     <div className="flex items-center space-x-2">
-                      <Badge variant="primary" size="sm">
+                      <Badge variant="default" className="text-xs">
                         {post.categoryName}
                       </Badge>
                       {post.isTop && (
-                        <Badge variant="warning" className="flex items-center space-x-1 bg-yellow-500 text-white">
+                        <Badge variant="secondary" className="flex items-center space-x-1 bg-yellow-500 text-white border-0">
                           <Pin className="h-3 w-3" />
                           <span>置顶</span>
                         </Badge>
@@ -208,14 +224,7 @@ export const HomePage: React.FC = () => {
                       </h4>
                       <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-2">{course.instructor}</p>
                       <div className="flex items-center justify-between">
-                        <Badge
-                          variant={
-                            course.level === 'beginner' ? 'success' :
-                            course.level === 'intermediate' ? 'primary' :
-                            'warning'
-                          }
-                          size="sm"
-                        >
+                        <Badge variant="secondary" className="text-xs">
                           {course.level === 'beginner' ? '初级' :
                            course.level === 'intermediate' ? '中级' : '高级'}
                         </Badge>
@@ -252,15 +261,11 @@ export const HomePage: React.FC = () => {
                         <p className="font-medium text-gray-900 dark:text-white text-sm md:text-base">{comment.author.name}</p>
                         <Badge
                           variant={
-                            comment.author.membershipTier === 'premium' ? 'warning' :
-                            comment.author.membershipTier === 'vip' ? 'error' :
-                            'primary'
+                            comment.author.membershipTier === 'vip' ? 'destructive' :
+                            comment.author.membershipTier === 'premium' ? 'secondary' :
+                            'default'
                           }
-                          size="sm"
-                          className={
-                            comment.author.membershipTier === 'vip' ?
-                            'bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0' : ''
-                          }
+                          className={comment.author.membershipTier === 'vip' ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white border-0' : ''}
                         >
                           {comment.author.membershipTier.toUpperCase()}
                         </Badge>
