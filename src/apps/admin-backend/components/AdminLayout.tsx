@@ -25,6 +25,7 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarSection, SidebarSectionTitle } from '@/components/ui/sidebar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -125,16 +126,24 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               <SidebarSection key={section.title}>
                 {!isCollapsed && <SidebarSectionTitle>{section.title}</SidebarSectionTitle>}
                 <div className="space-y-1">
-                  {section.items.map((item) => (
-                    <Button key={item.id} variant="ghost" className={`w-full justify-start ${isCollapsed ? 'px-2' : 'px-3'}`} asChild>
-                      <NavLink to={item.path} title={isCollapsed ? item.name : undefined} onClick={() => setIsSidebarOpen(false)} className={({ isActive }) => isActive ? 'bg-accent text-accent-foreground' : ''}>
-                        <span className="inline-flex items-center gap-3">
-                          <item.icon className="h-5 w-5" />
-                          {!isCollapsed && <span>{item.name}</span>}
-                        </span>
-                      </NavLink>
-                    </Button>
-                  ))}
+                  {section.items.map((item) => {
+                    const active = location.pathname.startsWith(item.path);
+                    return (
+                      <Button
+                        key={item.id}
+                        variant="ghost"
+                        className={cn('w-full justify-start', isCollapsed ? 'px-2' : 'px-3', active && 'bg-accent text-accent-foreground')}
+                        asChild
+                      >
+                        <NavLink to={item.path} title={isCollapsed ? item.name : undefined} onClick={() => setIsSidebarOpen(false)}>
+                          <span className="inline-flex items-center gap-3">
+                            <item.icon className="h-5 w-5" />
+                            {!isCollapsed && <span>{item.name}</span>}
+                          </span>
+                        </NavLink>
+                      </Button>
+                    );
+                  })}
                 </div>
               </SidebarSection>
             ))}
@@ -182,16 +191,19 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                   <SidebarSection key={section.title}>
                     <SidebarSectionTitle>{section.title}</SidebarSectionTitle>
                     <div className="space-y-1">
-                      {section.items.map((item) => (
-                        <Button key={item.id} variant="ghost" className="w-full justify-start" asChild>
-                          <NavLink to={item.path} onClick={() => setIsSidebarOpen(false)}>
-                            <span className="inline-flex items-center gap-3">
-                              <item.icon className="h-5 w-5" />
-                              <span>{item.name}</span>
-                            </span>
-                          </NavLink>
-                        </Button>
-                      ))}
+                      {section.items.map((item) => {
+                        const active = location.pathname.startsWith(item.path);
+                        return (
+                          <Button key={item.id} variant="ghost" className={cn('w-full justify-start', active && 'bg-accent text-accent-foreground')} asChild>
+                            <NavLink to={item.path} onClick={() => setIsSidebarOpen(false)}>
+                              <span className="inline-flex items-center gap-3">
+                                <item.icon className="h-5 w-5" />
+                                <span>{item.name}</span>
+                              </span>
+                            </NavLink>
+                          </Button>
+                        );
+                      })}
                     </div>
                   </SidebarSection>
                 ))}

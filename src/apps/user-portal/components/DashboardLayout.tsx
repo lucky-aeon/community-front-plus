@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Home, MessageSquare, BookOpen, Menu, X, ChevronLeft, ChevronRight, PenTool, Settings, FileText, LogOut } from 'lucide-react';
+import { Home, MessageSquare, BookOpen, Menu, X, ChevronLeft, ChevronRight, Settings, FileText, LogOut } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { navigationConfig } from '@shared/routes/routes';
 import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarSection, SidebarSectionTitle } from '@/components/ui/sidebar';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
-export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
-  children
-}) => {
+export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -19,30 +20,13 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  // 映射图标组件
-  const iconMap = {
-    Home,
-    MessageSquare,
-    BookOpen,
-    FileText
-  };
+  // 图标映射
+  const iconMap = { Home, MessageSquare, BookOpen, FileText } as const;
+  const navigation = navigationConfig.map((item) => ({ ...item, icon: iconMap[item.icon as keyof typeof iconMap] }));
 
-  const navigation = navigationConfig.map(item => ({
-    ...item,
-    icon: iconMap[item.icon as keyof typeof iconMap]
-  }));
-
-  const handleUserBackendClick = () => {
-    navigate('/dashboard/user-backend');
-  };
-
-  const handleLogout = () => {
-    setShowLogoutConfirm(true);
-  };
-
-  const confirmLogout = () => {
-    logout();
-  };
+  const handleUserBackendClick = () => navigate('/dashboard/user-backend');
+  const handleLogout = () => setShowLogoutConfirm(true);
+  const confirmLogout = () => logout();
 
   const getMembershipColor = (tier: string) => {
     switch (tier) {
@@ -54,168 +38,126 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* Mobile sidebar backdrop */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={`
-        fixed inset-y-0 left-0 z-50 bg-white shadow-lg transform transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        ${isCollapsed ? 'w-16' : 'w-64'}
-      `}>
-        <div className={`flex items-center h-16 border-b border-gray-200 ${
-          isCollapsed 
-            ? 'justify-center px-2' 
-            : 'justify-between px-6'
-        }`}>
-          {!isCollapsed && (
-            <div className="flex items-center space-x-2">
-              <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded" />
-              <h1 className="text-xl font-bold text-yellow-400">
-                敲鸭
-              </h1>
-            </div>
-          )}
-          {isCollapsed && (
-            <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded flex-shrink-0 object-contain" />
-          )}
-          <button
-            onClick={() => setIsSidebarOpen(false)}
-            className={`lg:hidden p-2 rounded-lg hover:bg-gray-100 ${isCollapsed ? 'hidden' : ''}`}
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-        
-        {/* Collapse button for desktop */}
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="hidden lg:flex absolute -right-3 top-20 bg-white border border-gray-200 rounded-full p-1 shadow-md hover:shadow-lg transition-shadow"
-        >
-          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-        </button>
-
-        {/* User info */}
-        <div className={`p-6 border-b border-gray-200 ${isCollapsed ? 'px-2' : ''}`}>
-          <div className="flex items-center space-x-3">
-            <img
-              src={user?.avatar}
-              alt={user?.name}
-              className={`rounded-full object-cover ${isCollapsed ? 'h-8 w-8 mx-auto' : 'h-12 w-12'}`}
-            />
-            {!isCollapsed && (
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {user?.name}
-                </p>
-                <div className="flex items-center mt-1">
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getMembershipColor(user?.membershipTier || 'guest')}`}>
-                    {user?.membershipTier?.toUpperCase()}
-                  </span>
-                </div>
+    <div className="min-h-screen bg-muted/20 flex">
+      {/* Desktop sidebar */}
+      <div className="hidden lg:block">
+        <Sidebar collapsed={isCollapsed} className="shadow-sm">
+          <SidebarHeader className={isCollapsed ? 'px-2' : ''}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded object-contain shrink-0" />
+                {!isCollapsed && <span className="font-bold">敲鸭</span>}
               </div>
-            )}
-          </div>
-          
-          {/* 用户中心按钮 */}
-          {!isCollapsed && (
-            <div className="mt-4 space-y-2">
-              <button
-                onClick={handleUserBackendClick}
-                className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
-              >
-                <Settings className="h-4 w-4 mr-2" />
-                用户中心
-              </button>
-              
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center px-3 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-200"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                退出登录
-              </button>
-            </div>
-          )}
-          
-          {isCollapsed && (
-            <div className="mt-2 space-y-2">
-              <button
-                onClick={handleUserBackendClick}
-                className="w-full flex items-center justify-center p-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors duration-200"
-                title="用户中心"
-              >
-                <Settings className="h-4 w-4" />
-              </button>
-              
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center p-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-200"
-                title="退出登录"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Navigation */}
-        <nav className={`mt-6 ${isCollapsed ? 'px-2' : 'px-3'}`}>
-          {navigation.map((item) => (
-            <NavLink
-              key={item.id}
-              to={item.path}
-              onClick={() => setIsSidebarOpen(false)}
-              className={({ isActive }) => `
-                w-full flex items-center justify-between text-sm font-medium rounded-lg transition-all duration-200 mb-1
-                ${isCollapsed ? 'px-2 py-3' : 'px-3 py-3'}
-                ${isActive
-                  ? 'bg-yellow-50 text-yellow-800 border-l-4 border-yellow-400'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-l-4 border-transparent'
-                }
-              `}
-              title={isCollapsed ? item.name : undefined}
-            >
-              {({ isActive }) => (
-                <>
-                  <div className="flex items-center">
-                    <item.icon className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'}`} />
-                    {!isCollapsed && (
-                      <span>{item.name}</span>
-                    )}
-                  </div>
-                  {!isCollapsed && isActive && (
+              <div className="shrink-0">
+                {!isCollapsed ? (
+                  <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(true)}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                ) : (
+                  <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(false)} title="展开">
                     <ChevronRight className="h-4 w-4" />
-                  )}
-                </>
+                  </Button>
+                )}
+              </div>
+            </div>
+          </SidebarHeader>
+          <SidebarContent>
+            {/* User card */}
+            <div className={`px-2 pb-3 ${isCollapsed ? 'text-center' : ''}`}>
+              <div className="flex items-center gap-3">
+                <img src={user?.avatar} alt={user?.name} className={`rounded-full object-cover shrink-0 ${isCollapsed ? 'h-8 w-8 mx-auto' : 'h-10 w-10'}`} />
+                {!isCollapsed && (
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{user?.name}</div>
+                    <div className={`mt-1 inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${getMembershipColor(user?.membershipTier || 'guest')}`}>{user?.membershipTier?.toUpperCase()}</div>
+                  </div>
+                )}
+              </div>
+              {!isCollapsed && (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <Button variant="secondary" size="sm" onClick={handleUserBackendClick}><Settings className="h-4 w-4 mr-2" />用户中心</Button>
+                  <Button variant="outline" size="sm" className="text-red-600" onClick={handleLogout}><LogOut className="h-4 w-4 mr-2" />退出</Button>
+                </div>
               )}
-            </NavLink>
-          ))}
-        </nav>
+            </div>
+
+            <SidebarSection>
+              {!isCollapsed && <SidebarSectionTitle>导航</SidebarSectionTitle>}
+              <div className="space-y-1">
+                {navigation.map((item) => {
+                  const active = location.pathname.startsWith(item.path);
+                  return (
+                    <Button key={item.id} variant="ghost" className={`w-full justify-start ${isCollapsed ? 'px-2' : 'px-3'} ${active ? 'bg-accent text-accent-foreground' : ''}`} asChild>
+                      <NavLink to={item.path} title={isCollapsed ? item.name : undefined}>
+                        <span className="inline-flex items-center gap-3">
+                          <item.icon className="h-5 w-5" />
+                          {!isCollapsed && <span>{item.name}</span>}
+                        </span>
+                      </NavLink>
+                    </Button>
+                  );
+                })}
+              </div>
+            </SidebarSection>
+          </SidebarContent>
+          <SidebarFooter className={isCollapsed ? 'px-2' : undefined}>
+            {isCollapsed ? (
+              <Button variant="outline" size="icon" className="w-full" onClick={handleLogout} title="退出登录">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            ) : (
+              <div className="text-xs text-muted-foreground">欢迎回来</div>
+            )}
+          </SidebarFooter>
+        </Sidebar>
       </div>
 
-      {/* Main content */}
+      {/* Mobile header + drawer */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile header */}
-        <div className="lg:hidden bg-white shadow-sm border-b border-gray-200 px-4 py-3">
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-gray-100"
-          >
-            <Menu className="h-6 w-6" />
-          </button>
+        <div className="lg:hidden bg-background border-b px-4 py-3">
+          <div className="flex items-center justify-between">
+            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
+              <Menu className="h-5 w-5" />
+            </Button>
+            <div className="font-semibold">敲鸭</div>
+            <div className="w-9" />
+          </div>
         </div>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
+        <Dialog open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+          <DialogContent className="p-0 max-w-[320px] left-0 top-0 bottom-0 translate-x-0 translate-y-0 h-screen w-[80vw] sm:w-[360px] rounded-none border-r">
+            <Sidebar className="h-full" collapsed={false}>
+              <SidebarHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2"><img src="/logo.jpg" className="h-8 w-8 rounded" /><span className="font-bold">敲鸭</span></div>
+                  <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)}><X className="h-4 w-4" /></Button>
+                </div>
+              </SidebarHeader>
+              <SidebarContent>
+                <SidebarSection>
+                  <SidebarSectionTitle>导航</SidebarSectionTitle>
+                  <div className="space-y-1">
+                    {navigation.map((item) => {
+                      const active = location.pathname.startsWith(item.path);
+                      return (
+                        <Button key={item.id} variant="ghost" className={`w-full justify-start ${active ? 'bg-accent text-accent-foreground' : ''}`} asChild>
+                          <NavLink to={item.path} onClick={() => setIsSidebarOpen(false)}>
+                            <span className="inline-flex items-center gap-3"><item.icon className="h-5 w-5" /><span>{item.name}</span></span>
+                          </NavLink>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </SidebarSection>
+              </SidebarContent>
+              <SidebarFooter>
+                <Button variant="outline" className="w-full" onClick={handleLogout}><LogOut className="h-4 w-4 mr-2" />退出登录</Button>
+              </SidebarFooter>
+            </Sidebar>
+          </DialogContent>
+        </Dialog>
+
+        <main className="flex-1 overflow-auto">{children}</main>
       </div>
 
       {/* 退出登录确认对话框 */}
