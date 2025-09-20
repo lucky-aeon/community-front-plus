@@ -40,7 +40,8 @@
       "Bash(mkdir:*)",
       "Bash(npx tsc:*)",
       "mcp__playwright__browser_drag",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(git restore:*)"
     ],
     "deny": [],
     "ask": []

@@ -6,6 +6,7 @@ import { Button } from '@shared/components/ui/Button';
 import { Badge } from '@shared/components/ui/Badge';
 import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { SubscribeButton } from '@shared/components/ui/SubscribeButton';
 import { CommentsSection } from '@shared/components/business/CommentsSection';
 import { useAuth } from '../../../context/AuthContext';
 import { routeUtils } from '@shared/routes/routes';
@@ -97,15 +98,6 @@ export const PostDetailPage: React.FC = () => {
     });
   };
 
-  const getMembershipColor = (tier: string) => {
-    switch (tier) {
-      case 'basic': return 'bg-blue-100 text-blue-800';
-      case 'premium': return 'bg-purple-100 text-purple-800';
-      case 'vip': return 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   const handleCommentCountChange = (count: number) => {
     setCommentCount(count);
   };
@@ -154,9 +146,12 @@ export const PostDetailPage: React.FC = () => {
                 </span>
               </div>
             </div>
-            <Button variant="outline" size="sm" className="w-full mt-4">
-              关注作者
-            </Button>
+            <SubscribeButton
+              targetId={post.authorId}
+              targetType="USER"
+              size="sm"
+              className="w-full mt-4"
+            />
           </Card>
 
           {/* Related Posts */}
@@ -205,6 +200,13 @@ export const PostDetailPage: React.FC = () => {
                     <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                       作者
                     </span>
+                    <SubscribeButton
+                      targetId={post.authorId}
+                      targetType="USER"
+                      variant="heart"
+                      size="sm"
+                      showText={false}
+                    />
                   </div>
                   <p className="text-sm text-gray-500">{formatDate(post.publishTime)}</p>
                 </div>

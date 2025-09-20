@@ -375,3 +375,4 @@ if (response.data?.message && response.data.message.trim() !== '') {
 - ESLint 配置自动检查代码质量
 - TypeScript 严格模式启用
 - 提交前运行 `npm run lint` 检查代码
+- 请求接口不要自定义 toast，有统一响应拦截器的 toast 触发

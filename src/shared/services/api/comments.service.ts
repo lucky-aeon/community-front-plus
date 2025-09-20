@@ -23,7 +23,7 @@ export class CommentsService {
    * POST /api/user/comments
    */
   static async createComment(params: CreateCommentRequest): Promise<CommentDTO> {
-    const response = await apiClient.post<ApiResponse<CommentDTO>>('/user/app/comments', params);
+    const response = await apiClient.post<ApiResponse<CommentDTO>>('/user/comments', params);
     return response.data.data;
   }
 

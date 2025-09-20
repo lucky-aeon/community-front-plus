@@ -427,6 +427,13 @@ export interface CategoryDTO {
 // 课程状态枚举
 export type CourseStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
 
+// 课程资源类型
+export interface CourseResource {
+  title: string;                 // 资源标题
+  description: string;           // 资源描述
+  icon: string;                  // 图标名称
+}
+
 // 管理员课程DTO（API返回的完整课程数据）
 export interface CourseDTO {
   id: string;                    // 课程ID
@@ -435,6 +442,8 @@ export interface CourseDTO {
   coverImage?: string;           // 封面图片URL
   techStack?: string[];          // 技术栈数组
   projectUrl?: string;           // 项目URL
+  demoUrl?: string;              // 演示地址
+  resources?: CourseResource[];  // 课程资源列表
   tags?: string[];               // 标签数组
   rating: number;                // 评分
   price?: number;                // 课程售价
@@ -449,12 +458,14 @@ export interface CourseDTO {
 // 创建课程请求参数
 export interface CreateCourseRequest {
   title: string;                 // 课程标题，必填
-  description?: string;          // 课程描述，可选
+  description?: string;          // 课程描述，可选，最大10000字符
   coverImage?: string;           // 封面图片URL，可选
-  techStack?: string[];          // 技术栈数组，可选
-  projectUrl?: string;           // 项目URL，可选
-  tags?: string[];               // 标签数组，可选
-  rating?: number;               // 课程评分，可选（0-5）
+  techStack?: string[];          // 技术栈数组，可选，最多20个
+  projectUrl?: string;           // 项目URL，可选，最大500字符
+  demoUrl?: string;              // 演示地址，可选，最大500字符
+  resources?: CourseResource[];  // 课程资源列表，可选
+  tags?: string[];               // 标签数组，可选，最多15个
+  rating?: number;               // 评分，可选，0-5分
   price?: number;                // 课程售价，可选
   originalPrice?: number;        // 课程原价，可选
   status: CourseStatus;          // 课程状态，必填
@@ -462,13 +473,15 @@ export interface CreateCourseRequest {
 
 // 更新课程请求参数
 export interface UpdateCourseRequest {
-  title: string;                 // 课程标题，必填
-  description?: string;          // 课程描述，可选
+  title?: string;                // 课程标题，可选
+  description?: string;          // 课程描述，可选，最大10000字符
   coverImage?: string;           // 封面图片URL，可选
-  techStack?: string[];          // 技术栈数组，可选
-  projectUrl?: string;           // 项目URL，可选
-  tags?: string[];               // 标签数组，可选
-  rating?: number;               // 课程评分，可选（0-5）
+  techStack?: string[];          // 技术栈数组，可选，最多20个
+  projectUrl?: string;           // 项目URL，可选，最大500字符
+  demoUrl?: string;              // 演示地址，可选，最大500字符
+  resources?: CourseResource[];  // 课程资源列表，可选
+  tags?: string[];               // 标签数组，可选，最多15个
+  rating?: number;               // 评分，可选，0-5分
   price?: number;                // 课程售价，可选
   originalPrice?: number;        // 课程原价，可选
   status?: CourseStatus;         // 课程状态，可选
@@ -596,8 +609,11 @@ export interface FrontCourseDTO {
   id: string;                    // 课程ID
   title: string;                 // 课程标题
   description: string;           // 课程描述
+  coverImage?: string;           // 封面图片URL
   techStack: string[];           // 技术栈列表
   projectUrl?: string;           // 项目地址
+  demoUrl?: string;              // 演示地址
+  resources?: CourseResource[];  // 课程资源列表
   tags: string[];                // 标签列表
   rating: number;                // 评分
   status: CourseStatus;          // 课程状态
@@ -623,10 +639,15 @@ export interface FrontCourseDetailDTO {
   id: string;                    // 课程ID
   title: string;                 // 课程标题
   description: string;           // 课程描述
+  coverImage?: string;           // 封面图片URL
   techStack: string[];           // 技术栈列表
   projectUrl?: string;           // 项目地址
+  demoUrl?: string;              // 演示地址
+  resources?: CourseResource[];  // 课程资源列表
   tags: string[];                // 标签列表
   rating: number;                // 评分
+  price?: number;                // 课程售价
+  originalPrice?: number;        // 课程原价
   status: CourseStatus;          // 课程状态
   authorName: string;            // 作者名称
   authorId: string;              // 作者ID
@@ -703,3 +724,63 @@ export interface ActivityLogQueryRequest {
   endTime?: string;              // 结束时间筛选，可选（格式：YYYY-MM-DD HH:mm:ss）
   ip?: string;                   // IP地址模糊搜索，可选
 }
+
+// 前台章节详情DTO（API返回的章节详细信息）
+export interface FrontChapterDetailDTO {
+  id: string;                    // 章节ID
+  title: string;                 // 章节标题
+  content: string;               // 章节内容（Markdown格式）
+  courseId: string;              // 所属课程ID
+  courseName: string;            // 所属课程名称
+  sortOrder: number;             // 章节排序
+  readingTime: number;           // 章节阅读时长（分钟）
+  createTime: string;            // 章节创建时间
+  updateTime: string;            // 章节更新时间
+}
+
+// ================ 关注功能相关接口定义 ================
+
+// 订阅目标类型
+export type SubscribeTargetType = 'USER' | 'COURSE';
+
+// 兼容性：保留旧的类型名称
+export type FollowTargetType = SubscribeTargetType;
+
+// 订阅/取消订阅切换请求参数
+export interface SubscribeToggleRequest {
+  targetId: string;                   // 目标ID，必填
+  targetType: SubscribeTargetType;    // 目标类型，必填
+}
+
+// 兼容性：保留旧的接口名称作为类型别名
+export type FollowToggleRequest = SubscribeToggleRequest;
+
+// 订阅状态检查请求参数
+export interface SubscribeStatusRequest {
+  targetId: string;                   // 目标ID，必填
+  targetType: SubscribeTargetType;    // 目标类型，必填
+}
+
+// 兼容性：保留旧的接口名称作为类型别名
+export type FollowStatusRequest = SubscribeStatusRequest;
+
+// 订阅状态检查响应
+export interface SubscribeStatusResponse {
+  isFollowing: boolean;                // 是否已订阅（为保持后端兼容性，字段名保持isFollowing）
+  targetId: string;                    // 目标ID
+  targetType: SubscribeTargetType;     // 目标类型
+}
+
+// 兼容性：保留旧的接口名称作为类型别名
+export type FollowStatusResponse = SubscribeStatusResponse;
+
+// 订阅切换响应
+export interface SubscribeToggleResponse {
+  isFollowing: boolean;                // 切换后的订阅状态（为保持后端兼容性，字段名保持isFollowing）
+  targetId: string;                    // 目标ID
+  targetType: SubscribeTargetType;     // 目标类型
+  message?: string;                    // 操作结果消息
+}
+
+// 兼容性：保留旧的接口名称作为类型别名
+export type FollowToggleResponse = SubscribeToggleResponse;

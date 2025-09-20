@@ -4,6 +4,7 @@ import {
   UpdateChapterRequest,
   ChapterQueryRequest,
   ChapterDTO,
+  FrontChapterDetailDTO,
   PageResponse
 } from '../../types';
 
@@ -85,6 +86,19 @@ export class ChaptersService {
    */
   static async updateChaptersOrder(chapterIds: string[]): Promise<void> {
     await apiClient.put<ApiResponse<null>>('/admin/chapters/order', { chapterIds });
+  }
+
+  /**
+   * ============= 前台章节接口 =============
+   */
+
+  /**
+   * 获取章节详情（前台用户访问）
+   * GET /api/app/chapters/{id}
+   */
+  static async getFrontChapterDetail(id: string): Promise<FrontChapterDetailDTO> {
+    const response = await apiClient.get<ApiResponse<FrontChapterDetailDTO>>(`/app/chapters/${id}`);
+    return response.data.data;
   }
 
   /**

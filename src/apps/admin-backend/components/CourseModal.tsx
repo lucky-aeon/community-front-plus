@@ -7,8 +7,10 @@ import { TagInput } from '@shared/components/ui/TagInput';
 import { ImageUpload } from '@shared/components/ui/ImageUpload';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
+import { StarRating } from '@shared/components/ui/StarRating';
+import { CourseResourcesManager } from '@shared/components/ui/CourseResourcesManager';
 import { CoursesService } from '@shared/services/api';
-import { CourseDTO, CourseStatus } from '@shared/types';
+import { CourseDTO, CourseStatus, CourseResource } from '@shared/types';
 import toast from 'react-hot-toast';
 
 interface CourseModalProps {
@@ -31,6 +33,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({
     coverImage: '',
     techStack: [] as string[],
     projectUrl: '',
+    demoUrl: '',
+    resources: [] as CourseResource[],
     tags: [] as string[],
     rating: 5.0,
     price: 0,
@@ -50,6 +54,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({
         coverImage: editingCourse.coverImage || '',
         techStack: editingCourse.techStack || [],
         projectUrl: editingCourse.projectUrl || '',
+        demoUrl: editingCourse.demoUrl || '',
+        resources: editingCourse.resources || [],
         tags: editingCourse.tags || [],
         rating: editingCourse.rating || 5.0,
         price: editingCourse.price || 0,
@@ -63,6 +69,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({
         coverImage: '',
         techStack: [],
         projectUrl: '',
+        demoUrl: '',
+        resources: [],
         tags: [],
         rating: 5.0,
         price: 0,
@@ -89,6 +97,11 @@ export const CourseModal: React.FC<CourseModalProps> = ({
 
     if (formData.projectUrl && formData.projectUrl.length > 500) {
       toast.error('项目URL不能超过500字符');
+      return;
+    }
+
+    if (formData.demoUrl && formData.demoUrl.length > 500) {
+      toast.error('演示地址不能超过500字符');
       return;
     }
 
@@ -129,6 +142,23 @@ export const CourseModal: React.FC<CourseModalProps> = ({
       }
     }
 
+    // 验证演示地址URL格式（如果提供了演示地址）
+    if (formData.demoUrl && formData.demoUrl.trim()) {
+      try {
+        new URL(formData.demoUrl.trim());
+      } catch {
+        toast.error('请输入有效的演示地址');
+        return;
+      }
+    }
+
+    // 验证课程资源
+    const invalidResources = formData.resources.filter(resource => !resource.title.trim());
+    if (invalidResources.length > 0) {
+      toast.error('请完善所有课程资源的标题');
+      return;
+    }
+
     setIsLoading(true);
     
     try {
@@ -138,6 +168,8 @@ export const CourseModal: React.FC<CourseModalProps> = ({
         coverImage: formData.coverImage.trim() || undefined,
         techStack: formData.techStack.length > 0 ? formData.techStack : undefined,
         projectUrl: formData.projectUrl.trim() || undefined,
+        demoUrl: formData.demoUrl.trim() || undefined,
+        resources: formData.resources.length > 0 ? formData.resources : undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined,
         rating: formData.rating,
         price: formData.price > 0 ? formData.price : undefined,
@@ -163,7 +195,7 @@ export const CourseModal: React.FC<CourseModalProps> = ({
   };
 
   // 处理输入变化
-  const handleInputChange = (field: string, value: string | string[] | number) => {
+  const handleInputChange = (field: string, value: string | string[] | number | CourseResource[]) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -310,6 +342,23 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                 </p>
               </div>
 
+              {/* 演示地址 */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  演示地址
+                </label>
+                <Input
+                  type="url"
+                  value={formData.demoUrl}
+                  onChange={(e) => handleInputChange('demoUrl', e.target.value)}
+                  placeholder="https://example.com/demo"
+                  maxLength={500}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  字符数：{formData.demoUrl.length}/500（可选，项目在线演示地址）
+                </p>
+              </div>
+
               {/* 标签 */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -339,17 +388,14 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     课程评分
                   </label>
-                  <Input
-                    type="number"
+                  <StarRating
                     value={formData.rating}
-                    onChange={(e) => handleInputChange('rating', parseFloat(e.target.value) || 0)}
-                    placeholder="5.0"
-                    min={0}
-                    max={5}
-                    step={0.1}
+                    onChange={(rating) => handleInputChange('rating', rating)}
+                    showValue={true}
+                    size="md"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    0-5分，支持一位小数
+                    点击星星设置评分（0-5分）
                   </p>
                 </div>
 
@@ -403,6 +449,14 @@ export const CourseModal: React.FC<CourseModalProps> = ({
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* 课程资源 */}
+            <div className="space-y-4">
+              <CourseResourcesManager
+                value={formData.resources}
+                onChange={(resources) => handleInputChange('resources', resources)}
+              />
             </div>
           </div>
         </div>

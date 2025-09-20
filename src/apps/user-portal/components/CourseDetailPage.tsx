@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Clock, Users, Star, CheckCircle, BookOpen, Github } from 'lucide-react';
+import { ArrowLeft, Play, Clock, Star, BookOpen, Github } from 'lucide-react';
 import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
 import { Badge } from '@shared/components/ui/Badge';
 import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
+import { SubscribeButton } from '@shared/components/ui/SubscribeButton';
 import { CoursesService } from '@shared/services/api';
 import { FrontCourseDetailDTO } from '@shared/types';
 
@@ -14,7 +15,6 @@ export const CourseDetailPage: React.FC = () => {
   const [course, setCourse] = useState<FrontCourseDetailDTO | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedChapter, setSelectedChapter] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCourseDetail = async () => {
@@ -84,7 +84,6 @@ export const CourseDetailPage: React.FC = () => {
   };
 
   const formattedDuration = CoursesService.formatReadingTime(course.totalReadingTime);
-  const completedChapters = course.chapters.filter(c => c.readingTime > 0).length; // 简化的完成判断
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -171,24 +170,12 @@ export const CourseDetailPage: React.FC = () => {
                 .map((chapter, index) => (
                 <div
                   key={chapter.id}
-                  className={`
-                    p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer
-                    ${selectedChapter === chapter.id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                    }
-                  `}
-                  onClick={() => setSelectedChapter(chapter.id)}
+                  className="p-4 rounded-xl border-2 transition-all duration-200 cursor-pointer border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  onClick={() => navigate(`/dashboard/courses/${courseId}/chapters/${chapter.id}`)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className={`
-                        flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold
-                        ${selectedChapter === chapter.id
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-200 text-gray-600'
-                        }
-                      `}>
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full text-sm font-semibold bg-gray-200 text-gray-600">
                         <Play className="h-4 w-4" />
                       </div>
                       <div>
@@ -212,22 +199,39 @@ export const CourseDetailPage: React.FC = () => {
         <div className="space-y-6">
           {/* Course Actions */}
           <Card className="p-6">
-            {course.projectUrl && (
+            <div className="space-y-4">
+              {/* 课程订阅 */}
               <div>
-                <h3 className="font-semibold text-gray-900 mb-3">项目源码</h3>
-                <Button
-                  variant="outline"
-                  className="w-full flex items-center justify-center space-x-2"
-                  onClick={() => window.open(course.projectUrl, '_blank')}
-                >
-                  <Github className="h-4 w-4" />
-                  <span>查看源码</span>
-                </Button>
+                <h3 className="font-semibold text-gray-900 mb-3">课程订阅</h3>
+                <SubscribeButton
+                  targetId={courseId}
+                  targetType="COURSE"
+                  size="md"
+                  className="w-full"
+                />
                 <p className="text-sm text-gray-500 mt-2 text-center">
-                  查看课程相关的项目源码
+                  订阅课程，第一时间获取更新通知
                 </p>
               </div>
-            )}
+
+              {/* 项目源码 */}
+              {course.projectUrl && (
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">项目源码</h3>
+                  <Button
+                    variant="outline"
+                    className="w-full flex items-center justify-center space-x-2"
+                    onClick={() => window.open(course.projectUrl, '_blank')}
+                  >
+                    <Github className="h-4 w-4" />
+                    <span>查看源码</span>
+                  </Button>
+                  <p className="text-sm text-gray-500 mt-2 text-center">
+                    查看课程相关的项目源码
+                  </p>
+                </div>
+              )}
+            </div>
           </Card>
         </div>
       </div>

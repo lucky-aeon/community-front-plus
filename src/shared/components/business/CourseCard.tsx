@@ -100,19 +100,19 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
 
         {/* 技术栈标签 */}
         <div className="flex flex-wrap gap-2 mb-4">
-          {course.techStack.slice(0, 2).map((tech) => (
+          {course.techStack?.slice(0, 2).map((tech) => (
             <Badge key={tech} variant="primary" size="sm">
               {tech}
             </Badge>
           ))}
-          {course.tags.slice(0, 1).map((tag) => (
+          {course.tags?.slice(0, 1).map((tag) => (
             <Badge key={tag} variant="secondary" size="sm">
               {tag}
             </Badge>
           ))}
-          {(course.techStack.length > 2 || course.tags.length > 1) && (
+          {((course.techStack?.length || 0) > 2 || (course.tags?.length || 0) > 1) && (
             <Badge variant="secondary" size="sm">
-              +{course.techStack.length + course.tags.length - 3}
+              +{(course.techStack?.length || 0) + (course.tags?.length || 0) - 3}
             </Badge>
           )}
         </div>

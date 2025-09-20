@@ -7,6 +7,7 @@ import { CoursesPage } from './CoursesPage';
 import { ChangelogPage } from './ChangelogPage';
 import { PostDetailPage } from './PostDetailPage';
 import { CourseDetailPage } from './CourseDetailPage';
+import { ChapterDetailPage } from './ChapterDetailPage';
 import { UserBackend } from '../../user-backend/components/UserBackend';
 
 export const Dashboard: React.FC = () => {
@@ -29,6 +30,7 @@ export const Dashboard: React.FC = () => {
               <Route path="/discussions" element={<DiscussionsPage />} />
               <Route path="/discussions/:postId" element={<PostDetailPage />} />
               <Route path="/courses" element={<CoursesPage />} />
+              <Route path="/courses/:courseId/chapters/:chapterId" element={<ChapterDetailPage />} />
               <Route path="/courses/:courseId" element={<CourseDetailPage />} />
               <Route path="/changelog" element={<ChangelogPage />} />
               

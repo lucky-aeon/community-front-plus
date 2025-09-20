@@ -8,6 +8,7 @@ export { CategoriesService } from './categories.service';
 export { CoursesService } from './courses.service';
 export { ChaptersService } from './chapters.service';
 export { AdminUserService } from './admin-user.service';
+export { SubscribeService, FollowService } from './subscribe.service';
 export { apiClient, type ApiResponse } from './config';
 
 // 导出类型定义
