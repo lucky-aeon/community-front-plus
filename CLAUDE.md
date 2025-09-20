@@ -124,21 +124,24 @@ npm run lint
 | 文件上传 | `ImageUpload` | `@shared/components/ui/ImageUpload` | 拖拽上传、预览、进度显示 |
 | 标签输入 | `TagInput` | `@shared/components/ui/TagInput` | 标签管理、验证 |
 | 弹窗对话框 | `PortalModal` | `@shared/components/ui/PortalModal` | Portal渲染、遮罩层、动画 |
+| 数据表格 | `DataTable` | `@shared/components/ui/DataTable` | 统一表格样式、加载状态、空状态、深色模式 |
+| 分页组件 | `Pagination` | `@shared/components/ui/Pagination` | 简单/复杂分页模式、统一样式 |
+| 表格操作 | `TableActions` | `@shared/components/ui/TableActions` | 预定义操作按钮、下拉菜单、统一样式 |
 
 #### 常见错误示例 vs 正确示例
 
 **❌ 错误：使用原生HTML元素**
 ```tsx
 // 不要这样做
-<button 
-  className="px-4 py-2 bg-blue-500 text-white rounded" 
+<button
+  className="px-4 py-2 bg-blue-500 text-white rounded"
   onClick={handleClick}
 >
   保存
 </button>
 
-<input 
-  type="text" 
+<input
+  type="text"
   className="border border-gray-300 rounded px-3 py-2"
   placeholder="请输入用户名"
 />
@@ -151,6 +154,29 @@ npm run lint
 {user.isActive ? '激活' : '禁用'}
 
 {confirm('确定要删除吗？') && deleteItem()}
+
+{/* 原生表格 - 不推荐 */}
+<table className="min-w-full divide-y divide-gray-200">
+  <thead className="bg-gray-50">
+    <tr>
+      <th>姓名</th>
+      <th>邮箱</th>
+      <th>操作</th>
+    </tr>
+  </thead>
+  <tbody>
+    {users.map(user => (
+      <tr key={user.id}>
+        <td>{user.name}</td>
+        <td>{user.email}</td>
+        <td>
+          <button onClick={() => edit(user)}>编辑</button>
+          <button onClick={() => delete(user)}>删除</button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
 ```
 
 **✅ 正确：使用项目UI组件**
@@ -161,15 +187,18 @@ import { Input } from '@shared/components/ui/Input';
 import { Select } from '@shared/components/ui/Select';
 import { Badge } from '@shared/components/ui/Badge';
 import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
+import { DataTable, DataTableColumn } from '@shared/components/ui/DataTable';
+import { Pagination } from '@shared/components/ui/Pagination';
+import { TableActions, TableAction } from '@shared/components/ui/TableActions';
 
-<Button 
-  variant="primary" 
+<Button
+  variant="primary"
   onClick={handleClick}
 >
   保存
 </Button>
 
-<Input 
+<Input
   placeholder="请输入用户名"
   label="用户名"
 />
@@ -193,6 +222,56 @@ import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
   onCancel={() => setShowDialog(false)}
   variant="danger"
 />
+
+{/* 统一表格组件 - 推荐 */}
+const columns: DataTableColumn<User>[] = [
+  {
+    key: 'name',
+    title: '姓名',
+    dataIndex: 'name',
+  },
+  {
+    key: 'email',
+    title: '邮箱',
+    dataIndex: 'email',
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    render: (_, user) => {
+      const actions: TableAction[] = [
+        {
+          key: 'edit',
+          type: 'edit',
+          onClick: () => handleEdit(user),
+        },
+        {
+          key: 'delete',
+          type: 'delete',
+          onClick: () => handleDelete(user),
+        },
+      ];
+      return <TableActions actions={actions} />;
+    },
+  },
+];
+
+<DataTable
+  columns={columns}
+  data={users}
+  loading={isLoading}
+  rowKey="id"
+  emptyText="暂无用户数据"
+  pagination={
+    <Pagination
+      currentPage={currentPage}
+      totalPages={totalPages}
+      totalCount={totalCount}
+      onChange={setCurrentPage}
+      mode="simple"
+    />
+  }
+/>
 ```
 
 #### 代码审查检查清单
@@ -205,6 +284,9 @@ import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
 - [ ] 是否使用了原生 `<select>` 而不是 `Select` 组件？
 - [ ] 是否使用了原生 `confirm()` 而不是 `ConfirmDialog` 组件？
 - [ ] 状态显示是否使用了 `Badge` 组件而不是普通文本？
+- [ ] 是否使用了原生 `<table>` 而不是 `DataTable` 组件？
+- [ ] 表格操作是否使用了 `TableActions` 而不是原生按钮？
+- [ ] 分页是否使用了 `Pagination` 组件而不是手工实现？
 - [ ] 是否正确导入了所需的UI组件？
 
 **推荐检查项：**
@@ -224,6 +306,178 @@ import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
 - 优先考虑扩展现有UI组件
 - 如必须使用原生元素，保持样式与项目整体风格一致
 - 在代码注释中说明使用原生元素的原因
+
+### 数据表格组件使用规范
+
+**重要原则：统一使用 DataTable、Pagination 和 TableActions 组件构建所有数据表格**
+
+#### 为什么要使用统一表格组件？
+
+- **视觉一致性**：确保所有管理页面表格风格统一
+- **深色模式支持**：自动支持浅色/深色主题切换
+- **功能完整性**：内置加载状态、空状态、分页等功能
+- **开发效率**：减少重复代码，提高开发速度
+- **可维护性**：集中管理表格逻辑，便于统一更新
+
+#### 核心组件说明
+
+**1. DataTable 组件** (`@shared/components/ui/DataTable`)
+- 统一的表格容器，支持列定义、加载状态、空状态
+- 自动支持深色模式和响应式设计
+- 内置分页区域支持
+
+**2. Pagination 组件** (`@shared/components/ui/Pagination`)
+- 支持简单模式（上一页/下一页）和复杂模式（页码按钮）
+- 统一的分页样式和交互逻辑
+- 自动计算页码范围和省略号显示
+
+**3. TableActions 组件** (`@shared/components/ui/TableActions`)
+- 预定义常见操作类型（编辑、删除、查看、复制等）
+- 支持操作按钮溢出时自动收缩为下拉菜单
+- 统一的操作按钮样式和颜色规范
+
+#### 基本使用示例
+
+```tsx
+import { DataTable, DataTableColumn } from '@shared/components/ui/DataTable';
+import { Pagination } from '@shared/components/ui/Pagination';
+import { TableActions, TableAction } from '@shared/components/ui/TableActions';
+
+// 1. 定义表格列
+const columns: DataTableColumn<UserType>[] = [
+  {
+    key: 'name',
+    title: '用户名',
+    dataIndex: 'name',
+    render: (name) => (
+      <span className="font-medium text-gray-900 dark:text-white">{name}</span>
+    ),
+  },
+  {
+    key: 'email',
+    title: '邮箱',
+    dataIndex: 'email',
+  },
+  {
+    key: 'status',
+    title: '状态',
+    render: (_, user) => (
+      <Badge variant={user.isActive ? 'success' : 'secondary'}>
+        {user.isActive ? '激活' : '禁用'}
+      </Badge>
+    ),
+  },
+  {
+    key: 'actions',
+    title: '操作',
+    render: (_, user) => {
+      const actions: TableAction[] = [
+        {
+          key: 'edit',
+          type: 'edit',
+          onClick: () => handleEdit(user),
+        },
+        {
+          key: 'delete',
+          type: 'delete',
+          onClick: () => handleDelete(user),
+        },
+      ];
+      return <TableActions actions={actions} />;
+    },
+  },
+];
+
+// 2. 使用 DataTable
+<DataTable
+  columns={columns}
+  data={users}
+  loading={isLoading}
+  rowKey="id"
+  emptyText="暂无用户数据"
+  emptyIcon={<User className="w-12 h-12 text-gray-400 dark:text-gray-500" />}
+  pagination={
+    <Pagination
+      currentPage={currentPage}
+      totalPages={totalPages}
+      totalCount={totalCount}
+      onChange={setCurrentPage}
+      mode="simple" // 或 "complex"
+    />
+  }
+/>
+```
+
+#### 高级用法
+
+**1. 自定义列渲染**
+```tsx
+{
+  key: 'avatar',
+  title: '头像',
+  render: (_, user) => (
+    <div className="w-10 h-10 rounded-full overflow-hidden">
+      <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+    </div>
+  ),
+}
+```
+
+**2. 多种操作按钮**
+```tsx
+const actions: TableAction[] = [
+  {
+    key: 'view',
+    type: 'view',
+    onClick: () => handleView(record),
+  },
+  {
+    key: 'edit',
+    type: 'edit',
+    onClick: () => handleEdit(record),
+  },
+  {
+    key: 'copy',
+    type: 'copy',
+    onClick: () => handleCopy(record),
+  },
+  {
+    key: 'delete',
+    type: 'delete',
+    onClick: () => handleDelete(record),
+  },
+];
+```
+
+**3. 复杂分页模式**
+```tsx
+<Pagination
+  currentPage={currentPage}
+  totalPages={totalPages}
+  totalCount={totalCount}
+  onChange={setCurrentPage}
+  mode="complex" // 显示页码按钮和省略号
+  showTotal={true}
+  showQuickJumper={false}
+/>
+```
+
+#### 代码审查检查清单
+
+**表格组件相关检查项：**
+- [ ] 是否使用了 DataTable 而不是原生 `<table>`？
+- [ ] 列定义是否正确设置了 key、title 等必要属性？
+- [ ] 是否使用了 TableActions 而不是手工编写操作按钮？
+- [ ] 分页是否使用了 Pagination 组件？
+- [ ] 是否正确设置了 rowKey 属性？
+- [ ] 加载状态和空状态是否合理配置？
+- [ ] 深色模式样式是否正确支持？
+
+**常见问题排查：**
+- 表格没有正确显示 → 检查列定义的 key 和 dataIndex
+- 操作按钮样式不统一 → 使用 TableActions 组件
+- 深色模式下样式异常 → 检查是否使用了统一的样式类名
+- 分页功能不正常 → 确认使用了 Pagination 组件
 
 ### 路由保护
 - 使用 `ProtectedRoute` 保护需要登录的路由

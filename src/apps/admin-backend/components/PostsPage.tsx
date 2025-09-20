@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card } from '@shared/components/ui/Card';
-import { Button } from '@shared/components/ui/Button';
+import { FileText } from 'lucide-react';
 import { Badge } from '@shared/components/ui/Badge';
-import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
+import { DataTable, DataTableColumn } from '@shared/components/ui/DataTable';
+import { Pagination } from '@shared/components/ui/Pagination';
 import { PostsService } from '@shared/services/api';
 import { AdminPostDTO, AdminPostQueryRequest } from '@shared/types';
 
@@ -53,132 +53,96 @@ export const PostsPage: React.FC = () => {
     });
   };
 
-  // 渲染文章行
-  const renderPostRow = (post: AdminPostDTO) => {
-    return (
-      <tr key={post.id} className="hover:bg-gray-50 transition-colors">
-        <td className="py-4 px-6">
-          <div className="flex items-center space-x-2">
-            <div className="font-medium text-gray-900">
-              {post.title}
-            </div>
-            {post.isTop && (
-              <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">置顶</span>
-            )}
+  // 定义表格列
+  const columns: DataTableColumn<AdminPostDTO>[] = [
+    {
+      key: 'title',
+      title: '文章标题',
+      render: (_, post) => (
+        <div className="flex items-center space-x-2">
+          <div className="font-medium text-gray-900 dark:text-white">
+            {post.title}
           </div>
-        </td>
-        
-        <td className="py-4 px-6">
-          <span className="text-sm text-gray-900">{post.authorName}</span>
-        </td>
-        
-        <td className="py-4 px-6">
-          <span className="text-sm text-gray-900">{post.categoryName}</span>
-        </td>
-        
-        <td className="py-4 px-6">
-          <Badge 
-            variant={post.status === 'PUBLISHED' ? 'success' : 'warning'}
-            size="sm"
-          >
-            {post.status === 'PUBLISHED' ? '已发布' : '草稿'}
-          </Badge>
-        </td>
-        
-        <td className="py-4 px-6 text-sm text-gray-600">
+          {post.isTop && (
+            <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded dark:bg-red-900 dark:text-red-200">置顶</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: 'authorName',
+      title: '作者',
+      dataIndex: 'authorName',
+      render: (authorName) => (
+        <span className="text-sm text-gray-900 dark:text-white">{authorName}</span>
+      ),
+    },
+    {
+      key: 'categoryName',
+      title: '分类',
+      dataIndex: 'categoryName',
+      render: (categoryName) => (
+        <span className="text-sm text-gray-900 dark:text-white">{categoryName}</span>
+      ),
+    },
+    {
+      key: 'status',
+      title: '状态',
+      render: (_, post) => (
+        <Badge
+          variant={post.status === 'PUBLISHED' ? 'success' : 'warning'}
+          size="sm"
+        >
+          {post.status === 'PUBLISHED' ? '已发布' : '草稿'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'publishTime',
+      title: '发布时间',
+      render: (_, post) => (
+        <span className="text-sm text-gray-600 dark:text-gray-400">
           {post.publishTime ? formatDateTime(post.publishTime) : '-'}
-        </td>
-        
-        <td className="py-4 px-6 text-sm text-gray-600">
+        </span>
+      ),
+    },
+    {
+      key: 'createTime',
+      title: '创建时间',
+      render: (_, post) => (
+        <span className="text-sm text-gray-600 dark:text-gray-400">
           {formatDateTime(post.createTime)}
-        </td>
-      </tr>
-    );
-  };
+        </span>
+      ),
+    },
+  ];
 
   return (
     <div className="space-y-6">
       {/* 页面标题 */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">文章管理</h1>
-        <p className="text-gray-600 mt-1">管理系统中的所有用户文章</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">文章管理</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">管理系统中的所有用户文章</p>
       </div>
 
       {/* 文章列表 */}
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  文章标题
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  作者
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  分类
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  状态
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  发布时间
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  创建时间
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center">
-                    <LoadingSpinner />
-                  </td>
-                </tr>
-              ) : posts.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-12 text-center text-gray-500">
-                    暂无文章数据
-                  </td>
-                </tr>
-              ) : (
-                posts.map(post => renderPostRow(post))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* 分页 */}
-        {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                共 {totalCount} 条记录，第 {currentPage} 页，共 {totalPages} 页
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                >
-                  上一页
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  下一页
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </Card>
+      <DataTable
+        columns={columns}
+        data={posts}
+        loading={isLoading}
+        rowKey="id"
+        emptyText="暂无文章数据"
+        emptyIcon={<FileText className="w-12 h-12 text-gray-400 dark:text-gray-500" />}
+        pagination={
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            onChange={setCurrentPage}
+            mode="simple"
+          />
+        }
+      />
     </div>
   );
 };

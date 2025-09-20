@@ -4,6 +4,9 @@ import { Button } from '@shared/components/ui/Button';
 import { Badge } from '@shared/components/ui/Badge';
 import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
+import { DataTable, DataTableColumn } from '@shared/components/ui/DataTable';
+import { Pagination } from '@shared/components/ui/Pagination';
+import { TableActions, TableAction } from '@shared/components/ui/TableActions';
 import { AdminUserService } from '@shared/services/api/admin-user.service';
 import { AdminUserDTO, AdminUserQueryRequest } from '@shared/types';
 import { Select, SelectOption } from '@shared/components/ui/Select';
@@ -167,47 +170,54 @@ export const UsersPage: React.FC = () => {
     });
   };
 
-  // 渲染用户行
-  const renderUserRow = (user: AdminUserDTO) => {
-    const isActive = user.status === 'ACTIVE';
-    
-    return (
-      <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-        <td className="py-4 px-6">
-          <div className="flex items-center space-x-3">
-            <div className="flex-shrink-0">
-              {user.avatar ? (
-                <img
-                  className="h-10 w-10 rounded-full"
-                  src={user.avatar}
-                  alt={user.name}
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`;
-                  }}
-                />
-              ) : (
-                <div className="h-10 w-10 bg-gray-200 rounded-full flex items-center justify-center">
-                  <User className="h-5 w-5 text-gray-500" />
-                </div>
-              )}
-            </div>
-            <div>
-              <div className="text-sm font-medium text-gray-900">{user.name}</div>
-              <div className="text-sm text-gray-500 truncate max-w-xs" title={user.email}>
-                {user.email}
+  // 定义表格列
+  const columns: DataTableColumn<AdminUserDTO>[] = [
+    {
+      key: 'userInfo',
+      title: '用户信息',
+      render: (_, user) => (
+        <div className="flex items-center space-x-3">
+          <div className="flex-shrink-0">
+            {user.avatar ? (
+              <img
+                className="h-10 w-10 rounded-full"
+                src={user.avatar}
+                alt={user.name}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`;
+                }}
+              />
+            ) : (
+              <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                <User className="h-5 w-5 text-gray-500 dark:text-gray-400" />
               </div>
+            )}
+          </div>
+          <div>
+            <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs" title={user.email}>
+              {user.email}
             </div>
           </div>
-        </td>
-        
-        <td className="py-4 px-6">
-          <div className="text-sm text-gray-900 max-w-xs truncate" title={user.description || '暂无描述'}>
-            {user.description || '-'}
-          </div>
-        </td>
-        
-        <td className="py-4 px-6">
-          <Badge 
+        </div>
+      ),
+    },
+    {
+      key: 'description',
+      title: '个人简介',
+      render: (_, user) => (
+        <div className="text-sm text-gray-900 dark:text-white max-w-xs truncate" title={user.description || '暂无描述'}>
+          {user.description || '-'}
+        </div>
+      ),
+    },
+    {
+      key: 'status',
+      title: '状态',
+      render: (_, user) => {
+        const isActive = user.status === 'ACTIVE';
+        return (
+          <Badge
             variant={isActive ? 'success' : 'secondary'}
             size="sm"
           >
@@ -220,63 +230,77 @@ export const UsersPage: React.FC = () => {
               <span>{isActive ? '正常' : '禁用'}</span>
             </div>
           </Badge>
-        </td>
-
-        <td className="py-4 px-6">
-          <Badge 
-            variant={user.emailNotificationEnabled ? 'success' : 'secondary'}
-            size="sm"
-          >
-            {user.emailNotificationEnabled ? '已开启' : '已关闭'}
-          </Badge>
-        </td>
-
-        <td className="py-4 px-6">
-          <InlineEditNumber
-            value={user.maxConcurrentDevices}
-            onSave={(newValue) => handleUpdateDeviceCount(user.id, newValue)}
-            min={1}
-            max={99}
-            className="text-sm"
-          />
-        </td>
-        
-        <td className="py-4 px-6 text-sm text-gray-600">
+        );
+      },
+    },
+    {
+      key: 'emailNotification',
+      title: '邮箱通知',
+      render: (_, user) => (
+        <Badge
+          variant={user.emailNotificationEnabled ? 'success' : 'secondary'}
+          size="sm"
+        >
+          {user.emailNotificationEnabled ? '已开启' : '已关闭'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'maxDevices',
+      title: '最大设备数',
+      render: (_, user) => (
+        <InlineEditNumber
+          value={user.maxConcurrentDevices}
+          onSave={(newValue) => handleUpdateDeviceCount(user.id, newValue)}
+          min={1}
+          max={99}
+          className="text-sm"
+        />
+      ),
+    },
+    {
+      key: 'createTime',
+      title: '注册时间',
+      render: (_, user) => (
+        <span className="text-sm text-gray-600 dark:text-gray-400">
           {formatDateTime(user.createTime)}
-        </td>
-
-        <td className="py-4 px-6">
-          <Button
-            variant={isActive ? 'destructive' : 'default'}
-            size="sm"
-            onClick={() => openConfirmDialog(user.id, user.status, user.name)}
-            disabled={isToggling === user.id}
-            className="min-w-20 flex items-center gap-1.5"
-          >
-            {isToggling === user.id ? (
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      title: '操作',
+      render: (_, user) => {
+        const isActive = user.status === 'ACTIVE';
+        const actions: TableAction[] = [
+          {
+            key: 'toggle',
+            type: 'custom',
+            label: isActive ? '禁用' : '启用',
+            icon: isToggling === user.id ? (
               <LoadingSpinner size="sm" />
+            ) : isActive ? (
+              <ShieldOff className="h-3.5 w-3.5" />
             ) : (
-              <>
-                {isActive ? (
-                  <ShieldOff className="h-3.5 w-3.5" />
-                ) : (
-                  <Shield className="h-3.5 w-3.5" />
-                )}
-                <span>{isActive ? '禁用' : '启用'}</span>
-              </>
-            )}
-          </Button>
-        </td>
-      </tr>
-    );
-  };
+              <Shield className="h-3.5 w-3.5" />
+            ),
+            variant: isActive ? 'danger' : 'primary',
+            disabled: isToggling === user.id,
+            onClick: () => openConfirmDialog(user.id, user.status, user.name),
+            className: "min-w-20",
+          },
+        ];
+        return <TableActions actions={actions} />;
+      },
+    },
+  ];
 
   return (
     <div className="space-y-6">
       {/* 页面标题 */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">用户管理</h1>
-        <p className="text-gray-600 mt-1">管理系统中的所有注册用户</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">用户管理</h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-1">管理系统中的所有注册用户</p>
       </div>
 
       {/* 搜索和筛选 */}
@@ -321,6 +345,7 @@ export const UsersPage: React.FC = () => {
             <div className="flex items-end">
               <div className="flex space-x-2">
                 <Button
+                  variant="outline"
                   onClick={handleSearch}
                   disabled={isLoading}
                   className="flex items-center space-x-2"
@@ -342,83 +367,23 @@ export const UsersPage: React.FC = () => {
       </Card>
 
       {/* 用户列表 */}
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  用户信息
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  个人简介
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  状态
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  邮箱通知
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  最大设备数
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  注册时间
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center">
-                    <LoadingSpinner />
-                  </td>
-                </tr>
-              ) : users.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-12 text-center text-gray-500">
-                    暂无用户数据
-                  </td>
-                </tr>
-              ) : (
-                users.map(user => renderUserRow(user))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* 分页 */}
-        {totalPages > 1 && (
-          <div className="px-6 py-4 border-t border-gray-200">
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-700">
-                共 {totalCount} 条记录，第 {currentPage} 页，共 {totalPages} 页
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                >
-                  上一页
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  下一页
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </Card>
+      <DataTable
+        columns={columns}
+        data={users}
+        loading={isLoading}
+        rowKey="id"
+        emptyText="暂无用户数据"
+        emptyIcon={<User className="w-12 h-12 text-gray-400 dark:text-gray-500" />}
+        pagination={
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            onChange={setCurrentPage}
+            mode="simple"
+          />
+        }
+      />
 
       {/* 确认对话框 */}
       <ConfirmDialog

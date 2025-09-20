@@ -1,12 +1,8 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
   Plus,
-  Copy,
-  Trash2,
   Key,
   Calendar,
-  ChevronRight,
-  ChevronLeft,
   User,
   Package,
   BookOpen,
@@ -16,8 +12,10 @@ import { Card } from '@shared/components/ui/Card';
 import { Button } from '@shared/components/ui/Button';
 import { Badge } from '@shared/components/ui/Badge';
 import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
-import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
 import { Select } from '@shared/components/ui/Select';
+import { DataTable, DataTableColumn } from '@shared/components/ui/DataTable';
+import { Pagination } from '@shared/components/ui/Pagination';
+import { TableActions, TableAction } from '@shared/components/ui/TableActions';
 import { CDKService } from '@shared/services/api';
 import {
   CDKDTO,
@@ -155,63 +153,103 @@ export const CDKPage: React.FC = () => {
     }
   };
 
-  // 分页控件
-  const renderPagination = () => {
-    if (totalPages <= 1) return null;
+  // 定义表格列
+  const columns: DataTableColumn<CDKDTO>[] = [
+    {
+      key: 'code',
+      title: '兑换码',
+      render: (_, cdk) => (
+        <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
+          {cdk.code}
+        </code>
+      ),
+    },
+    {
+      key: 'type',
+      title: '类型',
+      render: (_, cdk) => {
+        const TypeIcon = getCDKTypeIcon(cdk.cdkType);
+        return (
+          <div className="flex items-center gap-2">
+            <TypeIcon className="w-4 h-4 text-blue-600" />
+            <span className="text-sm text-gray-900 dark:text-white">
+              {getCDKTypeText(cdk.cdkType)}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      key: 'targetName',
+      title: '绑定目标',
+      dataIndex: 'targetName',
+      render: (targetName) => (
+        <span className="text-sm text-gray-900 dark:text-white">{targetName}</span>
+      ),
+    },
+    {
+      key: 'status',
+      title: '状态',
+      render: (_, cdk) => (
+        <Badge variant={getStatusVariant(cdk.status)}>
+          {getStatusText(cdk.status)}
+        </Badge>
+      ),
+    },
+    {
+      key: 'usageInfo',
+      title: '使用信息',
+      render: (_, cdk) => {
+        if (cdk.status === 'USED' && cdk.usedTime) {
+          return (
+            <div className="text-sm">
+              <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                <User className="w-3 h-3" />
+                <span>用户ID: {cdk.usedByUserId}</span>
+              </div>
+              <div className="flex items-center gap-1 text-gray-500 dark:text-gray-500">
+                <Calendar className="w-3 h-3" />
+                <span>{formatDate(cdk.usedTime)}</span>
+              </div>
+            </div>
+          );
+        }
+        return <span className="text-sm text-gray-400">-</span>;
+      },
+    },
+    {
+      key: 'createTime',
+      title: '创建时间',
+      render: (_, cdk) => (
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          {formatDate(cdk.createTime)}
+        </span>
+      ),
+    },
+    {
+      key: 'actions',
+      title: '操作',
+      render: (_, cdk) => {
+        const actions: TableAction[] = [
+          {
+            key: 'copy',
+            type: 'copy',
+            onClick: () => handleCopy(cdk.code),
+          },
+        ];
 
-    const pages = [];
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, currentPage + 2);
+        if (cdk.status !== 'USED') {
+          actions.push({
+            key: 'delete',
+            type: 'delete',
+            onClick: () => setDeletingCDK(cdk),
+          });
+        }
 
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(
-        <Button
-          key={i}
-          variant={i === currentPage ? 'primary' : 'secondary'}
-          size="sm"
-          onClick={() => setCurrentPage(i)}
-        >
-          {i}
-        </Button>
-      );
-    }
-
-    return (
-      <div className="flex items-center justify-center gap-2 mt-6">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-          disabled={currentPage === 1}
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </Button>
-        {startPage > 1 && (
-          <>
-            <Button variant="secondary" size="sm" onClick={() => setCurrentPage(1)}>1</Button>
-            {startPage > 2 && <span className="px-2">...</span>}
-          </>
-        )}
-        {pages}
-        {endPage < totalPages && (
-          <>
-            {endPage < totalPages - 1 && <span className="px-2">...</span>}
-            <Button variant="secondary" size="sm" onClick={() => setCurrentPage(totalPages)}>
-              {totalPages}
-            </Button>
-          </>
-        )}
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-          disabled={currentPage === totalPages}
-        >
-          <ChevronRight className="w-4 h-4" />
-        </Button>
-      </div>
-    );
-  };
+        return <TableActions actions={actions} />;
+      },
+    },
+  ];
 
   // 筛选选项
   const cdkTypeOptions = [
@@ -283,143 +321,23 @@ export const CDKPage: React.FC = () => {
       </Card>
 
       {/* 数据表格 */}
-      <Card className="overflow-hidden">
-        {isLoading ? (
-          <div className="flex items-center justify-center p-8">
-            <LoadingSpinner size="lg" />
-          </div>
-        ) : (
-          <>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                  <tr>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      兑换码
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      类型
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      绑定目标
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      状态
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      使用信息
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      创建时间
-                    </th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      操作
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-                  {cdks.map((cdk) => {
-                    const TypeIcon = getCDKTypeIcon(cdk.cdkType);
-                    return (
-                      <tr key={cdk.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <td className="px-6 py-4">
-                          <code className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded text-sm font-mono">
-                            {cdk.code}
-                          </code>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <TypeIcon className="w-4 h-4 text-blue-600" />
-                            <span className="text-sm text-gray-900 dark:text-white">
-                              {getCDKTypeText(cdk.cdkType)}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-sm text-gray-900 dark:text-white">
-                            {cdk.targetName}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <Badge variant={getStatusVariant(cdk.status)}>
-                            {getStatusText(cdk.status)}
-                          </Badge>
-                        </td>
-                        <td className="px-6 py-4">
-                          {cdk.status === 'USED' && cdk.usedTime ? (
-                            <div className="text-sm">
-                              <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                                <User className="w-3 h-3" />
-                                <span>用户ID: {cdk.usedByUserId}</span>
-                              </div>
-                              <div className="flex items-center gap-1 text-gray-500 dark:text-gray-500">
-                                <Calendar className="w-3 h-3" />
-                                <span>{formatDate(cdk.usedTime)}</span>
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-sm text-gray-400">-</span>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
-                          {formatDate(cdk.createTime)}
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              onClick={() => handleCopy(cdk.code)}
-                              title="复制兑换码"
-                            >
-                              <Copy className="w-4 h-4" />
-                            </Button>
-                            {cdk.status !== 'USED' && (
-                              <Button
-                                size="sm"
-                                variant="danger"
-                                onClick={() => setDeletingCDK(cdk)}
-                                title="删除CDK"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
-            {/* 空状态 */}
-            {cdks.length === 0 && !isLoading && (
-              <div className="text-center py-12">
-                <Key className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                  没有找到CDK
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  暂无CDK数据，可以生成新的兑换码
-                </p>
-              </div>
-            )}
-
-            {/* 分页和统计信息 */}
-            {cdks.length > 0 && (
-              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    共 {totalCount} 条记录，第 {currentPage} 页，共 {totalPages} 页
-                  </div>
-                  {renderPagination()}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </Card>
+      <DataTable
+        columns={columns}
+        data={cdks}
+        loading={isLoading}
+        rowKey="id"
+        emptyText="没有找到CDK"
+        emptyIcon={<Key className="w-12 h-12 text-gray-400 dark:text-gray-500" />}
+        pagination={
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            onChange={setCurrentPage}
+            mode="complex"
+          />
+        }
+      />
 
       {/* 生成CDK模态框 */}
       <CreateCDKModal
