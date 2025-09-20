@@ -18,7 +18,7 @@ export const MarketingPage: React.FC = () => {
       <Header onAuthClick={() => setIsAuthModalOpen(true)} />
       
       <main>
-        <Hero onGetStarted={handleAuthRequired} />
+        <Hero />
         <CourseGrid onAuthRequired={handleAuthRequired} />
         <PricingSection onPlanSelect={handleAuthRequired} />
         <Testimonials />
@@ -33,7 +33,7 @@ export const MarketingPage: React.FC = () => {
                 <h3 className="text-2xl font-bold">敲鸭</h3>
               </div>
               <p className="text-gray-400 mb-4">
-                Empowering professionals worldwide with premium courses and expert mentorship.
+                通过优质课程和专家指导赋能全球专业人士。
               </p>
               <div className="flex space-x-4 text-sm text-gray-400">
                 <span>© 2025 EduElite. All rights reserved.</span>
@@ -41,22 +41,21 @@ export const MarketingPage: React.FC = () => {
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Platform</h4>
+              <h4 className="font-semibold mb-4">平台</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Courses</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">课程</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">价格</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">案例</a></li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Support</h4>
+              <h4 className="font-semibold mb-4">支持</h4>
               <ul className="space-y-2 text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Privacy</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">帮助中心</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">联系我们</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">条款</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">隐私</a></li>
               </ul>
             </div>
           </div>

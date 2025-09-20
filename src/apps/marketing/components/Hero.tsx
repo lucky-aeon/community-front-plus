@@ -1,19 +1,12 @@
 import React from 'react';
-import { PlayCircle, TrendingUp, Users, Award } from 'lucide-react';
-import { Button } from '@shared/components/ui/Button';
-import { useAuth } from '../../../context/AuthContext';
+import { TrendingUp, Users, Award, Code, MessageSquare } from 'lucide-react';
 
-interface HeroProps {
-  onGetStarted: () => void;
-}
-
-export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
-  const { user } = useAuth();
+export const Hero: React.FC = () => {
 
   const stats = [
-    { icon: Users, value: '50K+', label: 'Active Students' },
-    { icon: Award, value: '500+', label: 'Expert Courses' },
-    { icon: TrendingUp, value: '95%', label: 'Success Rate' }
+    { icon: Users, value: '50K+', label: '活跃学员' },
+    { icon: Award, value: '500+', label: '专业课程' },
+    { icon: TrendingUp, value: '95%', label: '成功率' }
   ];
 
   return (
@@ -28,36 +21,15 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="text-center lg:text-left">
             <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
-              Master Your Skills with
+              打造你的
               <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent block">
-                Premium Courses
+                技术生涯
               </span>
             </h1>
             
-            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              Join our exclusive community of learners and gain access to world-class courses, 
-              expert mentorship, and cutting-edge content that will accelerate your career.
+            <p className="text-xl text-gray-600 mb-12 leading-relaxed">
+              加入我们的技术社区，与专业开发者一起学习、成长、分享
             </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <Button 
-                variant="primary"
-                useCustomTheme={true}
-                size="lg" 
-                onClick={onGetStarted}
-                className="text-lg px-8 py-4"
-              >
-                {user ? 'Browse Courses' : 'Get Started Today'}
-              </Button>
-              <Button 
-                variant="neutral" 
-                size="lg"
-                className="text-lg px-8 py-4 group"
-              >
-                <PlayCircle className="h-5 w-5 mr-2 group-hover:scale-110 transition-transform" />
-                Watch Demo
-              </Button>
-            </div>
 
             {/* Stats */}
             <div className="grid grid-cols-3 gap-8">
@@ -77,16 +49,16 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
           <div className="relative">
             <div className="bg-white rounded-2xl shadow-2xl p-8 transform rotate-3 hover:rotate-0 transition-transform duration-300">
               <img
-                src="https://images.pexels.com/photos/3184360/pexels-photo-3184360.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop"
-                alt="Students learning online"
-                className="w-full h-64 object-cover rounded-xl"
+                src="/duck-learning-hero.jpg"
+                alt="敲鸭社区学习插画"
+                className="w-full h-64 object-contain rounded-xl"
               />
               <div className="mt-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Interactive Learning Experience
+                  敲鸭社区
                 </h3>
                 <p className="text-gray-600">
-                  Engage with cutting-edge content designed by industry experts.
+                  加入敲鸭大家庭，与志同道合的开发者一起成长。
                 </p>
               </div>
             </div>
@@ -94,15 +66,15 @@ export const Hero: React.FC<HeroProps> = ({ onGetStarted }) => {
             {/* Floating cards */}
             <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg p-4 animate-float">
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-sm font-medium">Live Session</span>
+                <Code className="h-5 w-5 text-blue-500" />
+                <span className="text-sm font-medium">实战项目</span>
               </div>
             </div>
             
             <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg p-4 animate-float animation-delay-2000">
               <div className="flex items-center space-x-2">
-                <Award className="h-5 w-5 text-purple-500" />
-                <span className="text-sm font-medium">Certified Course</span>
+                <MessageSquare className="h-5 w-5 text-orange-500" />
+                <span className="text-sm font-medium">技术分享</span>
               </div>
             </div>
           </div>

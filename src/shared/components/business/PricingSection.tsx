@@ -12,11 +12,11 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onPlanSelect }) 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Choose Your Learning Journey
+            选择您的学习之旅
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Unlock your potential with our flexible membership plans. 
-            Start learning today and advance your career tomorrow.
+            通过我们灵活的会员计划释放您的潜力。
+            今天开始学习，明天推进您的职业发展。
           </p>
         </div>
 
@@ -32,12 +32,12 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onPlanSelect }) 
 
         <div className="mt-12 text-center">
           <p className="text-gray-600 mb-4">
-            All plans include our 30-day money-back guarantee
+            所有套餐均包含30天无理由退款保证
           </p>
           <div className="flex justify-center space-x-8 text-sm text-gray-500">
-            <span>✓ Cancel anytime</span>
-            <span>✓ No setup fees</span>
-            <span>✓ 24/7 support</span>
+            <span>✓ 随时取消</span>
+            <span>✓ 无设置费用</span>
+            <span>✓ 7x24小时支持</span>
           </div>
         </div>
       </div>

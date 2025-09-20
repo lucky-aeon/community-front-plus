@@ -35,10 +35,10 @@ export const Testimonials: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Success Stories
+            成功案例
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Join thousands of professionals who have transformed their careers with EduElite.
+            加入成千上万优秀专业人士的行列，通过敲鸭社区改变您的职业轨迹。
           </p>
         </div>
 

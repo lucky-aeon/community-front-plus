@@ -12,10 +12,9 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    { label: 'Courses', href: '#courses' },
-    { label: 'Pricing', href: '#pricing' },
-    { label: 'Community', href: '#community' },
-    { label: 'About', href: '#about' }
+    { label: '课程', href: '#courses' },
+    { label: '价格', href: '#pricing' },
+    { label: '案例', href: '#testimonials' }
   ];
 
   const getMembershipBadge = () => {
@@ -81,13 +80,13 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
                   className="hidden sm:flex"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                  登出
                 </Button>
               </div>
             ) : (
               <Button onClick={onAuthClick} variant="primary" useCustomTheme={true} className="hidden sm:flex">
                 <User className="h-4 w-4 mr-2" />
-                Login / Register
+                登录 / 注册
               </Button>
             )}
 
@@ -126,7 +125,7 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
                   className="mt-4"
                 >
                   <User className="h-4 w-4 mr-2" />
-                  Login / Register
+                  登录 / 注册
                 </Button>
               )}
               {user && (
@@ -139,7 +138,7 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
                   className="mt-4 justify-start"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                  登出
                 </Button>
               )}
             </nav>

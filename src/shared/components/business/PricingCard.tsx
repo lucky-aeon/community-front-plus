@@ -21,7 +21,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, onSelect }) => {
         <div className="absolute top-0 left-0 right-0">
           <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-center py-2 text-sm font-semibold">
             <Star className="inline h-4 w-4 mr-1" />
-            Most Popular
+            最受欢迎
           </div>
         </div>
       )}
@@ -45,7 +45,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, onSelect }) => {
           
           {plan.originalPrice && (
             <Badge variant="success" className="mt-2">
-              Save ${plan.originalPrice - plan.price}/month
+              每月节省 ${plan.originalPrice - plan.price}元
             </Badge>
           )}
         </div>
@@ -71,10 +71,10 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, onSelect }) => {
           disabled={isCurrentPlan}
         >
           {isCurrentPlan 
-            ? 'Current Plan' 
-            : user?.membershipTier === 'guest' 
-              ? 'Get Started' 
-              : 'Upgrade Now'
+            ? '当前套餐'
+            : user?.membershipTier === 'guest'
+              ? '立即开始'
+              : '立即升级'
           }
         </Button>
       </div>

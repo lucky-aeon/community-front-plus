@@ -340,23 +340,23 @@ export const comments: Comment[] = [
 export const membershipPlans: MembershipPlan[] = [
   {
     id: 'basic',
-    name: 'Basic',
+    name: '基础版',
     tier: 'basic',
     price: 29,
     originalPrice: 39,
     duration: 'per month',
     color: 'from-blue-500 to-blue-600',
     features: [
-      'Access to basic courses',
-      'Community forum access',
-      'Email support',
-      'Mobile app access',
-      'Basic progress tracking'
+      '访问基础课程',
+      '社区论坛权限',
+      '邮件支持',
+      '移动应用访问',
+      '基础进度跟踪'
     ]
   },
   {
     id: 'premium',
-    name: 'Premium',
+    name: '优享版',
     tier: 'premium',
     price: 59,
     originalPrice: 79,
@@ -364,32 +364,32 @@ export const membershipPlans: MembershipPlan[] = [
     color: 'from-purple-500 to-purple-600',
     isPopular: true,
     features: [
-      'Access to all basic & premium courses',
-      'Live workshop sessions',
-      'Priority support',
-      'Downloadable resources',
-      'Advanced progress analytics',
-      'Certificate of completion',
-      'Private community channels'
+      '访问所有基础和优享课程',
+      '直播工作坊课程',
+      '优先支持服务',
+      '可下载资源',
+      '高级进度分析',
+      '结业证书',
+      '私密社区频道'
     ]
   },
   {
     id: 'vip',
-    name: 'VIP Elite',
+    name: 'VIP 精英版',
     tier: 'vip',
     price: 99,
     originalPrice: 129,
     duration: 'per month',
     color: 'from-gradient-start to-gradient-end',
     features: [
-      'Everything in Premium',
-      'Exclusive VIP courses',
-      '1-on-1 mentoring sessions',
-      'Early access to new content',
-      'Custom learning paths',
-      'Direct instructor access',
-      'Lifetime course access',
-      'Annual VIP events invitation'
+      '包含优享版所有功能',
+      '独家VIP课程',
+      '一对一导师辅导',
+      '新内容优先体验',
+      '定制学习路径',
+      '直接联系讲师',
+      '终身课程访问权',
+      '年度VIP活动邀请'
     ]
   }
 ];
