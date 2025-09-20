@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { 
-  BarChart3, 
+import {
+  BarChart3,
   Activity,
-  Users, 
-  Shield, 
-  FileText, 
-  MessageSquare, 
+  Users,
+  Shield,
+  FileText,
+  MessageSquare,
   Tag,
   BookOpen,
-  Settings, 
+  Settings,
   FileCheck,
   Menu,
   X,
   ChevronLeft,
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  Package,
+  Key
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 
@@ -48,7 +50,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       title: '用户管理',
       items: [
         { id: 'users', name: '用户列表', icon: Users, path: '/dashboard/admin/users' },
-        { id: 'permissions', name: '权限管理', icon: Shield, path: '/dashboard/admin/permissions' }
+        { id: 'permissions', name: '权限管理', icon: Shield, path: '/dashboard/admin/permissions' },
+        { id: 'subscription-plans', name: '套餐管理', icon: Package, path: '/dashboard/admin/subscription-plans' },
+        { id: 'cdk', name: 'CDK管理', icon: Key, path: '/dashboard/admin/cdk' }
       ]
     },
     {

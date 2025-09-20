@@ -784,3 +784,106 @@ export interface SubscribeToggleResponse {
 
 // 兼容性：保留旧的接口名称作为类型别名
 export type FollowToggleResponse = SubscribeToggleResponse;
+
+// ================ 套餐管理相关接口定义 ================
+
+// 套餐状态枚举
+export type SubscriptionPlanStatus = 'ACTIVE' | 'INACTIVE';
+
+// 套餐DTO（API返回的完整套餐数据）
+export interface SubscriptionPlanDTO {
+  id: string;                          // 套餐ID
+  name: string;                        // 套餐名称
+  level: number;                       // 套餐级别
+  validityMonths: number;              // 有效期月数
+  price: number;                       // 套餐价格
+  status: SubscriptionPlanStatus;      // 套餐状态
+  benefits: string[];                  // 套餐权益列表
+  createTime: string;                  // 创建时间
+  updateTime: string;                  // 更新时间
+}
+
+// 创建套餐请求参数
+export interface CreateSubscriptionPlanRequest {
+  name: string;                        // 套餐名称，必填，2-100字符
+  level: number;                       // 套餐级别，必填，必须大于0
+  validityMonths: number;              // 有效期月数，必填，必须大于0
+  price: number;                       // 套餐价格，必填，不能为负数
+  benefits: string[];                  // 套餐权益列表，必填，1-20个权益
+}
+
+// 更新套餐请求参数（与创建请求相同）
+export interface UpdateSubscriptionPlanRequest {
+  name: string;                        // 套餐名称，必填，2-100字符
+  level: number;                       // 套餐级别，必填，必须大于0
+  validityMonths: number;              // 有效期月数，必填，必须大于0
+  price: number;                       // 套餐价格，必填，不能为负数
+  benefits: string[];                  // 套餐权益列表，必填，1-20个权益
+}
+
+// 套餐查询请求参数
+export interface SubscriptionPlanQueryRequest {
+  pageNum?: number;                    // 页码，从1开始，默认为1
+  pageSize?: number;                   // 每页大小，默认为10
+  name?: string;                       // 套餐名称模糊搜索，可选
+  level?: number;                      // 套餐级别筛选，可选
+}
+
+// ================ 套餐课程绑定管理相关接口定义 ================
+
+// 简单套餐DTO（用于选择器）
+export interface SimpleSubscriptionPlanDTO {
+  id: string;                          // 套餐ID
+  name: string;                        // 套餐名称
+  level: number;                       // 套餐级别
+}
+
+// 简单课程DTO（用于穿梭框）
+export interface SimpleCourseDTO {
+  id: string;                          // 课程ID
+  title: string;                       // 课程标题
+}
+
+// 更新套餐课程绑定请求参数
+export interface UpdateSubscriptionPlanCoursesRequest {
+  courseIds: string[];                 // 课程ID列表，可为空数组表示清空绑定
+}
+
+// ================ CDK管理相关接口定义 ================
+
+// CDK类型枚举
+export type CDKType = 'SUBSCRIPTION_PLAN' | 'COURSE';
+
+// CDK状态枚举
+export type CDKStatus = 'ACTIVE' | 'USED' | 'DISABLED';
+
+// CDK数据传输对象
+export interface CDKDTO {
+  id: string;                          // CDK ID
+  code: string;                        // 兑换码
+  cdkType: CDKType;                    // CDK类型
+  targetId: string;                    // 目标ID（套餐ID或课程ID）
+  targetName: string;                  // 目标名称（套餐名称或课程名称）
+  batchId: string;                     // 批次ID（同批生成的CDK共享）
+  status: CDKStatus;                   // CDK状态
+  usedByUserId?: string;               // 使用者用户ID（已使用时才有值）
+  usedTime?: string;                   // 使用时间（已使用时才有值）
+  createTime: string;                  // 创建时间
+  updateTime: string;                  // 更新时间
+}
+
+// 创建CDK请求参数
+export interface CreateCDKRequest {
+  cdkType: CDKType;                    // CDK类型，必填
+  targetId: string;                    // 目标ID，必填
+  quantity: number;                    // 生成数量，必填，1-100
+}
+
+// CDK查询请求参数
+export interface CDKQueryRequest {
+  pageNum?: number;                    // 页码，从1开始，默认为1
+  pageSize?: number;                   // 每页大小，默认为10
+  cdkType?: CDKType;                   // CDK类型筛选，可选
+  targetId?: string;                   // 目标ID筛选，可选
+  status?: CDKStatus;                  // 状态筛选，可选
+}

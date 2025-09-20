@@ -7,6 +7,8 @@ import { CoursesPage } from './CoursesPage';
 import { PostsPage } from './PostsPage';
 import { UsersPage } from './UsersPage';
 import { LogsPage } from './LogsPage';
+import { SubscriptionPlansPage } from './SubscriptionPlansPage';
+import { CDKPage } from './CDKPage';
 
 // 临时的占位页面组件
 const ComingSoonPage: React.FC<{ title: string }> = ({ title }) => (
@@ -31,6 +33,8 @@ export const AdminBackend: React.FC = () => {
         {/* 用户管理 */}
         <Route path="/users" element={<UsersPage />} />
         <Route path="/permissions" element={<ComingSoonPage title="权限管理" />} />
+        <Route path="/subscription-plans" element={<SubscriptionPlansPage />} />
+        <Route path="/cdk" element={<CDKPage />} />
         
         {/* 内容管理 */}
         <Route path="/posts" element={<PostsPage />} />

@@ -41,7 +41,9 @@
       "Bash(npx tsc:*)",
       "mcp__playwright__browser_drag",
       "Bash(npx eslint:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Read(//Users/xhy/IdeaProjects/qiaoya-community/qiaoya-community-backend/src/main/java/org/xhy/community/interfaces/subscription/controller/**)",
+      "Read(//Users/xhy/IdeaProjects/qiaoya-community/qiaoya-community-backend/**)"
     ],
     "deny": [],
     "ask": []
