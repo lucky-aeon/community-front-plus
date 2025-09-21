@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    /* Legacy shadcn variables */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -23,12 +24,31 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --radius: 1rem;
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+
+    /* New Honey Theme Variables */
+    --honey-bg-primary: 44 100% 98%;      /* #fffbeb - Main background */
+    --honey-bg-secondary: 45 97% 89%;     /* #fef3c7 - Secondary background */
+    --honey-primary: 38 92% 50%;          /* #f59e0b - Primary honey */
+    --honey-primary-hover: 32 95% 44%;    /* #d97706 - Hover state */
+    --honey-accent: 65 84% 42%;           /* #84cc16 - Sage accent */
+    --honey-premium: 48 96% 53%;          /* #eab308 - Premium gold */
+    --honey-text-primary: 30 7% 43%;      /* #78716c - Primary text */
+    --honey-text-secondary: 28 7% 53%;    /* #a8a29e - Secondary text */
+    --honey-border: 30 14% 85%;           /* #d6d3d1 - Borders */
+    --honey-surface: 60 9% 98%;           /* #fafaf9 - Card surfaces */
+
+    /* Component specific variables */
+    --nav-height: 4rem;
+    --sidebar-width: 16rem;
+    --content-max-width: 88rem;
+    --card-border-radius: 1rem;
+    --premium-glow: 0 0 20px rgb(234 179 8 / 0.3);
   }
 
   .dark {
