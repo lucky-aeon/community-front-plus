@@ -1065,3 +1065,67 @@ export interface AdminUpdateLogQueryRequest {
   version?: string;                    // 版本号模糊搜索，可选
   title?: string;                      // 标题模糊搜索，可选
 }
+
+// ================ 成员评价管理相关接口定义 ================
+
+// 评价状态枚举
+export type TestimonialStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'PUBLISHED';
+
+// 管理员评价DTO（API返回的完整评价数据）
+export interface AdminTestimonialDTO {
+  id: string;                          // 评价ID
+  userId: string;                      // 用户ID
+  userName: string;                    // 用户名称
+  content: string;                     // 评价内容
+  rating: number;                      // 评分（1-5分）
+  status: TestimonialStatus;           // 评价状态
+  sortOrder: number;                   // 排序权重
+  createTime: string;                  // 创建时间
+  updateTime: string;                  // 更新时间
+}
+
+// 评价查询请求参数
+export interface QueryTestimonialRequest {
+  pageNum?: number;                    // 页码，从1开始，默认为1
+  pageSize?: number;                   // 每页大小，默认为10
+  status?: TestimonialStatus;          // 状态筛选，可选
+}
+
+// 修改评价状态请求参数
+export interface ChangeStatusRequest {
+  status: TestimonialStatus;           // 目标状态，必填
+}
+
+// ================ 用户评价功能相关接口定义 ================
+
+// 用户评价DTO（API返回的用户评价数据）
+export interface TestimonialDTO {
+  id: string;                          // 评价ID
+  userId: string;                      // 用户ID
+  content: string;                     // 评价内容
+  rating: number;                      // 评分（1-5分）
+  status: TestimonialStatus;           // 评价状态
+  sortOrder: number;                   // 排序权重
+  createTime: string;                  // 创建时间
+  updateTime: string;                  // 更新时间
+}
+
+// 创建评价请求参数
+export interface CreateTestimonialRequest {
+  content: string;                     // 评价内容，必填，最大2000字符
+  rating: number;                      // 评分，必填，1-5分
+}
+
+// 更新评价请求参数（与创建请求相同）
+export interface UpdateTestimonialRequest {
+  content: string;                     // 评价内容，必填，最大2000字符
+  rating: number;                      // 评分，必填，1-5分
+}
+
+// 公开展示的评价DTO（营销页面用）
+export interface PublicTestimonialDTO {
+  id: string;                          // 评价ID
+  userNickname: string;                // 用户昵称
+  content: string;                     // 评价内容
+  rating: number;                      // 评分（1-5分）
+}

@@ -8,6 +8,8 @@ export { CategoriesService } from './categories.service';
 export { CoursesService } from './courses.service';
 export { ChaptersService } from './chapters.service';
 export { AdminUserService } from './admin-user.service';
+export { AdminTestimonialService } from './admin-testimonial.service';
+export { TestimonialService } from './testimonial.service';
 export { SubscribeService, FollowService } from './subscribe.service';
 export { SubscriptionPlansService } from './subscription-plans.service';
 export { SubscriptionPlanCoursesService } from './subscription-plan-courses.service';
@@ -42,6 +44,14 @@ export type {
   AdminUserQueryRequest,
   AdminUserDTO,
   UpdateUserDeviceCountRequest,
+  AdminTestimonialDTO,
+  QueryTestimonialRequest,
+  ChangeStatusRequest,
+  TestimonialStatus,
+  TestimonialDTO,
+  CreateTestimonialRequest,
+  UpdateTestimonialRequest,
+  PublicTestimonialDTO,
   SubscriptionPlanDTO,
   CreateSubscriptionPlanRequest,
   UpdateSubscriptionPlanRequest,

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useParams, useNavigate } from 'react-router-do
 import { UserBackendLayout } from './UserBackendLayout';
 import { MyArticlesPage } from './MyArticlesPage';
 import { MyCommentsPage } from './MyCommentsPage';
+import { MyTestimonialPage } from './MyTestimonialPage';
 import { MessageCenterPage } from './MessageCenterPage';
 import { ProfileSettingsPage } from './ProfileSettingsPage';
 import { CreatePostPage } from '../../user-portal/components/CreatePostPage';
@@ -85,6 +86,7 @@ export const UserBackend: React.FC = () => {
         <Route path="/articles" element={<MyArticlesPage />} />
         <Route path="/articles/create" element={<CreateArticlePage />} />
         <Route path="/articles/edit/:id" element={<EditArticlePage />} />
+        <Route path="/testimonial" element={<MyTestimonialPage />} />
         <Route path="/messages" element={<MessageCenterPage />} />
         <Route path="/profile" element={<ProfileSettingsPage />} />
         

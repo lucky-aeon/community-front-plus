@@ -2,20 +2,21 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   ArrowLeft, 
-  FileText, 
-  MessageSquare, 
-  Heart, 
-  Bell, 
-  Users, 
-  BarChart3, 
-  Settings, 
-  User, 
-  Shield, 
+  FileText,
+  MessageSquare,
+  Heart,
+  Bell,
+  Users,
+  BarChart3,
+  Settings,
+  User,
+  Shield,
   Smartphone,
   Menu,
   X,
   ChevronRight,
-  LogOut
+  LogOut,
+  Star
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
@@ -55,6 +56,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
       items: [
         { id: 'articles', name: '我的文章', icon: FileText, path: '/dashboard/user-backend/articles' },
         { id: 'comments', name: '我的评论', icon: MessageSquare, path: '/dashboard/user-backend/comments' },
+        { id: 'testimonial', name: '我的评价', icon: Star, path: '/dashboard/user-backend/testimonial' },
         { id: 'favorites', name: '我的收藏', icon: Heart, path: '/dashboard/user-backend/favorites' }
       ]
     },
