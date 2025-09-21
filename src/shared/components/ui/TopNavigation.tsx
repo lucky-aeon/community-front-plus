@@ -106,8 +106,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
 
   return (
     <header className={cn(
-      "sticky top-0 z-40 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/85",
-      "border-honey-border shadow-sm",
+      "sticky top-0 z-40 w-full",
       className
     )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -117,16 +116,13 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
             {/* Logo */}
             <button
               onClick={handleLogoClick}
-              className="flex items-center space-x-3 hover:opacity-80 transition-opacity group"
+              className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
             >
-              <div className="relative">
-                <img
-                  src="/logo.jpg"
-                  alt="敲鸭社区"
-                  className="h-10 w-10 rounded-xl shadow-sm group-hover:shadow-md transition-shadow"
-                />
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-honey-400/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
+              <img
+                src="/logo.jpg"
+                alt="敲鸭社区"
+                className="h-10 w-10 rounded-xl"
+              />
               <div className="hidden sm:block">
                 <h1 className="text-xl font-bold text-gray-900">
                   敲鸭

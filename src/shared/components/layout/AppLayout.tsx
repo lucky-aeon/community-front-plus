@@ -25,12 +25,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       <div className="fixed inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none" />
 
       {/* Navigation */}
-      <TopNavigation
-        className={cn(
-          "transition-all duration-300",
-          isScrolled && "shadow-lg backdrop-blur-xl bg-white/90"
-        )}
-      />
+      <TopNavigation />
 
       {/* Main Content */}
       <main className="relative">

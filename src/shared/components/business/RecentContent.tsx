@@ -41,10 +41,14 @@ interface ContentItem {
 interface RecentContentProps {
   className?: string;
   items?: ContentItem[];
+  showHeader?: boolean;
+  compact?: boolean;
 }
 
 export const RecentContent: React.FC<RecentContentProps> = ({
   className,
+  showHeader = true,
+  compact = false,
   items = [
     {
       id: '1',
@@ -150,20 +154,22 @@ export const RecentContent: React.FC<RecentContentProps> = ({
   return (
     <div className={cn("space-y-6", className)}>
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">最新内容</h2>
-          <p className="text-warm-gray-600">发现社区最新的优质内容</p>
+      {showHeader && (
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">最新文章</h2>
+            <p className="text-warm-gray-600">发现社区最新的优质内容</p>
+          </div>
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/dashboard/discussions')}
+            className="text-honey-600 hover:text-honey-700 hover:bg-honey-50"
+          >
+            查看全部
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/dashboard/discussions')}
-          className="text-honey-600 hover:text-honey-700 hover:bg-honey-50"
-        >
-          查看全部
-          <ChevronRight className="h-4 w-4 ml-1" />
-        </Button>
-      </div>
+      )}
 
       {/* Content List */}
       <div className="space-y-4">
