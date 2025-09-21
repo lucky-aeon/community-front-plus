@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { User, Mail, Calendar, Crown, Edit, Save, X, CreditCard, CheckCircle } from 'lucide-react';
-import { Card } from '@shared/components/ui/Card';
-import { Badge } from '@shared/components/ui/Badge';
-import { Button } from '@shared/components/ui/Button';
-import { Input } from '@shared/components/ui/Input';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useAuth } from '../../../context/AuthContext';
 import { membershipPlans } from '@shared/constants/mockData';
 

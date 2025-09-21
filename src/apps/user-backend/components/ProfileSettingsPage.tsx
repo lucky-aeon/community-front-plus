@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Save, Eye, EyeOff, Bell, BellOff } from 'lucide-react';
-import { Card } from '@shared/components/ui/Card';
-import { Button } from '@shared/components/ui/Button';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { UserService } from '../../../shared/services/api';
 import { UserDTO } from '../../../shared/types';
 import { useAuth } from '../../../context/AuthContext';

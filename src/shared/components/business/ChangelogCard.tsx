@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, MessageSquare, ChevronDown, ChevronUp, User } from 'lucide-react';
-import { Card } from '@shared/components/ui/Card';
-import { Badge } from '@shared/components/ui/Badge';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { VersionBadge } from './VersionBadge';
 import { ChangeTypeIcon, getChangeTypeLabel } from './ChangeTypeIcon';
 import { ChangelogEntry } from '@shared/types';

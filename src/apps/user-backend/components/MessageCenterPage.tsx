@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Bell, MessageCircle, Heart, User, CheckCircle, Clock, Trash2 } from 'lucide-react';
-import { Card } from '@shared/components/ui/Card';
-import { Button } from '@shared/components/ui/Button';
-import { Badge } from '@shared/components/ui/Badge';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export const MessageCenterPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');

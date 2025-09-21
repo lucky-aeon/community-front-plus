@@ -1,6 +1,6 @@
 import React from 'react';
 import { Star, Quote } from 'lucide-react';
-import { Card } from '@shared/components/ui/Card';
+import { Card } from '@/components/ui/card';
 
 export const Testimonials: React.FC = () => {
   const testimonials = [

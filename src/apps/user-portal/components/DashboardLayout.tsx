@@ -3,7 +3,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Home, MessageSquare, BookOpen, Menu, X, ChevronLeft, ChevronRight, Settings, FileText, LogOut } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { navigationConfig } from '@shared/routes/routes';
-import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
+import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarSection, SidebarSectionTitle } from '@/components/ui/sidebar';

@@ -7,10 +7,10 @@ import {
   Star,
   Play
 } from 'lucide-react';
-import { Card } from '@shared/components/ui/Card';
-import { Button } from '@shared/components/ui/Button';
-import { Badge } from '@shared/components/ui/Badge';
-import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { LoadingPage as LoadingSpinner } from '@shared/components/common/LoadingPage';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { Comments } from '@/components/ui/comments';
 import { CoursesService, ChaptersService } from '@shared/services/api';

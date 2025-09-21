@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Filter, FileText, Clock } from 'lucide-react';
-import { Input } from '@shared/components/ui/Input';
-import { Badge } from '@shared/components/ui/Badge';
-import { Button } from '@shared/components/ui/Button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ChangelogCard } from '@shared/components/business/ChangelogCard';
 import { changelogEntries } from '@shared/constants/mockData';
 

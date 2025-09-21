@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BookOpen } from 'lucide-react';
-import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
+import { LoadingPage as LoadingSpinner } from '@shared/components/common/LoadingPage';
 import { CourseCard } from '@shared/components/business/CourseCard';
 import { CoursesService } from '@shared/services/api';
 import { FrontCourseDTO, AppCourseQueryRequest } from '@shared/types';

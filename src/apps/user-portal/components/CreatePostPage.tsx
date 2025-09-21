@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Save, Hash, FileText, HelpCircle } from 'lucide-react';
-import { Card } from '@shared/components/ui/Card';
-import { Button } from '@shared/components/ui/Button';
-import { Input } from '@shared/components/ui/Input';
-import { Textarea } from '@shared/components/ui/Textarea';
-import { ImageUpload } from '@shared/components/ui/ImageUpload';
-import { Badge } from '@shared/components/ui/Badge';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { ImageUpload } from '@shared/components/common/ImageUpload';
+import { Badge } from '@/components/ui/badge';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
-import { CategorySelect } from '@shared/components/ui/CategorySelect';
+import { CategorySelect } from '@shared/components/common/CategorySelect';
 import { PostsService } from '@shared/services/api/posts.service';
 import { PostDTO } from '@shared/types';
-import { showToast } from '@shared/components/ui/Toast';
+import { showToast } from '@shared/utils/toast';
 
 interface CreatePostPageProps {
   onPostCreated: () => void;

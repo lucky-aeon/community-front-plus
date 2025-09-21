@@ -1,8 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, BookOpen, Calendar } from 'lucide-react';
-import { Card } from '@shared/components/ui/Card';
-import { Badge } from '@shared/components/ui/Badge';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { ChaptersService } from '@shared/services/api/chapters.service';
 
 // 章节数据接口（基于现有类型）

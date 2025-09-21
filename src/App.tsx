@@ -6,7 +6,7 @@ import { ProtectedRoute, PublicOnlyRoute } from '@shared/routes/ProtectedRoute';
 import { MarketingPage } from '@apps/marketing/components/MarketingPage';
 import { Dashboard } from '@apps/user-portal/components/Dashboard';
 import { AdminBackend } from '@admin-backend/components/AdminBackend';
-import { CustomToaster } from '@shared/components/ui/Toast';
+import { Toaster } from '@/components/ui/toaster';
 
 const AppContent: React.FC = () => {
   return (
@@ -52,7 +52,7 @@ function App() {
       <AuthProvider>
         <ThemeProvider>
           <AppContent />
-          <CustomToaster />
+          <Toaster />
         </ThemeProvider>
       </AuthProvider>
     </Router>

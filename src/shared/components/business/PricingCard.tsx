@@ -2,9 +2,9 @@ import React from 'react';
 import { Check, Crown, Star } from 'lucide-react';
 import { MembershipPlan } from '../../shared/types';
 import { useAuth } from '../../../context/AuthContext';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { Badge } from '../ui/Badge';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 interface PricingCardProps {
   plan: MembershipPlan;

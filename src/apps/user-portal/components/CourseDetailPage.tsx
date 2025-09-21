@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, Clock, Star, BookOpen, Github } from 'lucide-react';
-import { Card } from '@shared/components/ui/Card';
-import { Button } from '@shared/components/ui/Button';
-import { Badge } from '@shared/components/ui/Badge';
-import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { LoadingPage as LoadingSpinner } from '@shared/components/common/LoadingPage';
 import { SubscribeButton } from '@/components/ui/subscribe-button';
 import { Comments } from '@/components/ui/comments';
 import { CoursesService } from '@shared/services/api';

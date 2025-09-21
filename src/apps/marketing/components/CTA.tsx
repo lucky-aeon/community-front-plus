@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowRight, Sparkles } from 'lucide-react';
-import { Button } from '@shared/components/ui/Button';
+import { Button } from '@/components/ui/button';
 
 interface CTAProps {
   onGetStarted: () => void;

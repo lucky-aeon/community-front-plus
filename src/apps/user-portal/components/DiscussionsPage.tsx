@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Search, Filter, CheckCircle, Heart } from 'lucide-react';
-import { Badge } from '@shared/components/ui/Badge';
-import { Button } from '@shared/components/ui/Button';
-import { Input } from '@shared/components/ui/Input';
-import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { LoadingPage as LoadingSpinner } from '@shared/components/common/LoadingPage';
 import { PostCard } from '@shared/components/business/PostCard';
 import { routeUtils } from '@shared/routes/routes';
 import { PostsService } from '@shared/services/api/posts.service';

@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Edit, Trash2, Plus, Search, Filter, AlertCircle, Send, Archive } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '@shared/components/ui/Card';
-import { Button } from '@shared/components/ui/Button';
-import { Badge } from '@shared/components/ui/Badge';
-import { Select } from '@shared/components/ui/Select';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Select } from '@/components/ui/select';
 import { PostsService } from '@shared/services/api/posts.service';
 import { PostDTO, PageResponse } from '@shared/types';
-import { showToast } from '@shared/components/ui/Toast';
-import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
-import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
+import { showToast } from '@shared/utils/toast';
+import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
+import { LoadingPage as LoadingSpinner } from '@shared/components/common/LoadingPage';
 import { ROUTES, routeUtils } from '@shared/routes/routes';
 
 interface MyArticlesPageProps {

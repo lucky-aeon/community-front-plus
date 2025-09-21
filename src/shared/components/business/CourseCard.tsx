@@ -1,9 +1,9 @@
 import React from 'react';
 import { Clock, Star, BookOpen, ExternalLink } from 'lucide-react';
 import { FrontCourseDTO } from '../../types';
-import { Card } from '../ui/Card';
-import { Badge } from '../ui/Badge';
-import { Button } from '../ui/Button';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { CoursesService } from '../../services/api';
 
 interface CourseCardProps {

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Heart, MessageSquare, Trash2 } from 'lucide-react';
-import { Card } from '@shared/components/ui/Card';
-import { Button } from '@shared/components/ui/Button';
-import { Badge } from '@shared/components/ui/Badge';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
-import { LoadingSpinner } from '@shared/components/ui/LoadingSpinner';
-import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
+import { LoadingPage as LoadingSpinner } from '@shared/components/common/LoadingPage';
+import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { CommentsService } from '@shared/services/api';
 import { CommentDTO, User, BusinessType } from '@shared/types';
 

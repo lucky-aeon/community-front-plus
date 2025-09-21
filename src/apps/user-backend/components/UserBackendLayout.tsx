@@ -18,7 +18,7 @@ import {
   LogOut
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
-import { ConfirmDialog } from '@shared/components/ui/ConfirmDialog';
+import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 
 interface UserBackendLayoutProps {
   children: React.ReactNode;
