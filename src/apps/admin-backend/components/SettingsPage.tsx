@@ -233,13 +233,13 @@ export const SettingsPage: React.FC = () => {
               onClick={async () => {
                 // 校验
                 if (sessionCfg.maxActiveIps < 1 || sessionCfg.maxActiveIps > 10) {
-                  return toast.error('最大并发活跃IP数需在 1-10 范围内');
+                  return showToast.error('最大并发活跃IP数需在 1-10 范围内');
                 }
                 try {
                   setSavingSessionCfg(true);
                   await SystemConfigService.updateUserSessionLimitConfig(sessionCfg);
                   setInitialSessionCfg(sessionCfg);
-                  toast.success('会话限制配置已更新');
+                  showToast.success('会话限制配置已更新');
                 } catch (e) {
                   // 错误由拦截器提示
                 } finally {
