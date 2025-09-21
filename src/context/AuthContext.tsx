@@ -43,6 +43,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
+  // 会话心跳：登录状态下每30秒校验一次
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    let timer: number | undefined;
+
+    const tick = async () => {
+      try {
+        await AuthService.heartbeat();
+      } catch (e: any) {
+        // 仅在401时登出，其他网络错误忽略并继续轮询
+        const status = e?.response?.status;
+        if (status === 401) {
+          logout();
+          return; // 停止后续心跳
+        }
+      } finally {
+        if (!cancelled) {
+          timer = window.setTimeout(tick, 30_000);
+        }
+      }
+    };
+
+    // 首次延时 30s 执行，避免刚进入页面立刻触发
+    timer = window.setTimeout(tick, 30_000);
+
+    return () => {
+      cancelled = true;
+      if (timer) window.clearTimeout(timer);
+    };
+  }, [user?.id]);
+
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {

@@ -593,6 +593,60 @@ export interface UpdateUserDeviceCountRequest {
   maxConcurrentDevices: number;  // 新的最大并发设备数，必须为正整数
 }
 
+// ================ 管理员设备会话相关接口定义 ================
+
+// 活跃会话（IP维度）
+export interface ActiveSessionDTO {
+  ip: string;                    // IP 地址
+  lastSeenTime: string;          // 最近活跃时间（ISO字符串）
+  isCurrent: boolean;            // 是否为当前会话
+}
+
+// 管理员查看的用户会话汇总
+export interface UserSessionSummaryDTO {
+  userId: string;                // 用户ID
+  username: string;              // 用户名
+  email: string;                 // 邮箱
+  maxDevices: number;            // 最大并发设备数
+  activeIpCount: number;         // 活跃IP数量
+  activeIps: ActiveSessionDTO[]; // 活跃IP列表
+  isBanned: boolean;             // 是否被封禁
+}
+
+// 管理端会话查询参数
+export interface AdminDeviceSessionQueryRequest {
+  pageNum?: number;              // 页码
+  pageSize?: number;             // 每页大小
+  userId?: string;               // 过滤：用户ID
+  username?: string;             // 过滤：用户名（模糊）
+  ip?: string;                   // 过滤：IP
+}
+
+// Token 黑名单统计信息
+export interface TokenBlacklistStatsDTO {
+  totalBlacklistedTokens: number; // 当前黑名单中的token数量
+  description: string;            // 描述信息
+}
+
+// 被拉黑用户查询请求
+export interface BlacklistQueryRequest {
+  pageNum?: number;               // 页码
+  pageSize?: number;              // 每页大小
+  username?: string;              // 用户名搜索
+  email?: string;                 // 邮箱搜索
+}
+
+// 被拉黑用户信息 DTO
+export interface BlacklistedUserDTO {
+  userId: string;                 // 用户ID
+  username: string;               // 用户名
+  email: string;                  // 邮箱
+  blacklistedAt?: number;         // 被拉黑时间戳（毫秒 or 秒，后端为Long）
+  blacklistedTime?: string;       // 被拉黑时间（ISO字符串）
+  tokenCount: number;             // 被拉黑token数量
+  blacklistedTokens?: string[];   // 可选：被拉黑token列表
+}
+
 // ================ 前台课程相关接口定义 ================
 
 // 前台课程查询请求参数
@@ -916,7 +970,7 @@ export interface CDKQueryRequest {
 // ================ 系统配置管理相关接口定义 ================
 
 // 系统配置类型枚举
-export type SystemConfigType = 'DEFAULT_SUBSCRIPTION_PLAN' | 'EMAIL_TEMPLATE' | 'SYSTEM_MAINTENANCE';
+export type SystemConfigType = 'DEFAULT_SUBSCRIPTION_PLAN' | 'EMAIL_TEMPLATE' | 'SYSTEM_MAINTENANCE' | 'USER_SESSION_LIMIT';
 
 // 默认套餐配置数据结构
 export interface DefaultSubscriptionConfig {
@@ -936,6 +990,22 @@ export interface SystemConfigDTO {
 // 更新系统配置请求参数
 export interface UpdateSystemConfigRequest {
   data: unknown;                        // 配置数据，根据配置类型而定
+}
+
+// 用户会话限制配置（管理员可动态调整部分）
+export type SessionEvictionPolicy = 'DENY_NEW' | 'EVICT_OLDEST';
+export interface UserSessionLimitConfigData {
+  maxActiveIps: number;                 // 默认最大并发活跃IP数 (1-10)
+  policy: SessionEvictionPolicy;        // 超配额策略
+  banTtlDays: number;                   // 封禁时长（天，0=永久）
+}
+
+// 用户会话限制固定参数（只读展示用）
+export interface UserSessionLimitFixedParams {
+  sessionTtlDays: number;               // 会话TTL: 30天
+  historyWindowDays: number;            // 历史滑窗: 30天
+  banThresholdIps: number;              // 封禁阈值: 10个IP
+  heartbeatIntervalSeconds: number;     // 续活间隔: 60秒
 }
 
 // ================ 更新日志管理相关接口定义 ================

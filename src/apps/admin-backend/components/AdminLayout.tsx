@@ -17,7 +17,8 @@ import {
   ArrowLeft,
   Package,
   Key,
-  Calendar
+  Calendar,
+  Smartphone
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -56,6 +57,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       title: '用户管理',
       items: [
         { id: 'users', name: '用户列表', icon: Users, path: '/dashboard/admin/users' },
+        { id: 'sessions', name: '会话管理', icon: Smartphone, path: '/dashboard/admin/sessions' },
         { id: 'permissions', name: '权限管理', icon: Shield, path: '/dashboard/admin/permissions' },
         { id: 'subscription-plans', name: '套餐管理', icon: Package, path: '/dashboard/admin/subscription-plans' },
         { id: 'cdk', name: 'CDK管理', icon: Key, path: '/dashboard/admin/cdk' }

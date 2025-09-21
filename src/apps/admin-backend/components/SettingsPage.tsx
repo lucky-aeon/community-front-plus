@@ -5,9 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SystemConfigService } from '@shared/services/api/system-config.service';
 import { SubscriptionPlanCoursesService } from '@shared/services/api/subscription-plan-courses.service';
-import type { SimpleSubscriptionPlanDTO, SystemConfigDTO } from '@shared/types';
+import type { SimpleSubscriptionPlanDTO, SystemConfigDTO, UserSessionLimitConfigData } from '@shared/types';
 import { RefreshCw, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Input } from '@/components/ui/input';
 
 export const SettingsPage: React.FC = () => {
   // 默认套餐配置 - 数据与状态
@@ -20,6 +21,17 @@ export const SettingsPage: React.FC = () => {
   const [selectedPlanId, setSelectedPlanId] = useState<string>('');
 
   const isDirty = useMemo(() => selectedPlanId !== initialPlanId, [selectedPlanId, initialPlanId]);
+
+  // 会话限制配置
+  const [sessionCfg, setSessionCfg] = useState<UserSessionLimitConfigData>({ maxActiveIps: 2, policy: 'EVICT_OLDEST', banTtlDays: 0 });
+  const [initialSessionCfg, setInitialSessionCfg] = useState<UserSessionLimitConfigData>({ maxActiveIps: 2, policy: 'EVICT_OLDEST', banTtlDays: 0 });
+  const [loadingSessionCfg, setLoadingSessionCfg] = useState(false);
+  const [savingSessionCfg, setSavingSessionCfg] = useState(false);
+  const sessionDirty = useMemo(() =>
+    sessionCfg.maxActiveIps !== initialSessionCfg.maxActiveIps ||
+    sessionCfg.policy !== initialSessionCfg.policy ||
+    sessionCfg.banTtlDays !== initialSessionCfg.banTtlDays,
+  [sessionCfg, initialSessionCfg]);
 
   // 加载所有套餐（用于绑定）
   const fetchPlans = async () => {
@@ -51,9 +63,33 @@ export const SettingsPage: React.FC = () => {
     }
   };
 
+  // 加载会话限制配置
+  const fetchSessionLimitConfig = async () => {
+    try {
+      setLoadingSessionCfg(true);
+      const cfg: SystemConfigDTO = await SystemConfigService.getUserSessionLimitConfig();
+      const data = (cfg?.data as any) as Partial<UserSessionLimitConfigData>;
+      const norm: UserSessionLimitConfigData = {
+        maxActiveIps: Math.min(10, Math.max(1, Number(data?.maxActiveIps ?? 2))),
+        policy: (data?.policy === 'DENY_NEW' || data?.policy === 'EVICT_OLDEST') ? data.policy : 'EVICT_OLDEST',
+        banTtlDays: Math.max(0, Number(data?.banTtlDays ?? 0))
+      };
+      setInitialSessionCfg(norm);
+      setSessionCfg(norm);
+    } catch (e) {
+      // 404等情况：采用默认
+      const defVal: UserSessionLimitConfigData = { maxActiveIps: 2, policy: 'EVICT_OLDEST', banTtlDays: 0 };
+      setInitialSessionCfg(defVal);
+      setSessionCfg(defVal);
+    } finally {
+      setLoadingSessionCfg(false);
+    }
+  };
+
   useEffect(() => {
     fetchPlans();
     fetchDefaultConfig();
+    fetchSessionLimitConfig();
   }, []);
 
   const handleSave = async () => {
@@ -71,6 +107,7 @@ export const SettingsPage: React.FC = () => {
   };
 
   const loading = loadingPlans || loadingConfig;
+  const sessionLoading = loadingSessionCfg;
 
   return (
     <div className="space-y-6">
@@ -131,6 +168,97 @@ export const SettingsPage: React.FC = () => {
               当前默认：{plans.find(p => p.id === initialPlanId)?.name ?? '未知套餐'}
             </p>
           )}
+        </CardContent>
+      </Card>
+
+      {/* 用户会话限制配置 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>会话与设备限制</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="maxActiveIps">最大并发活跃IP数 (1-10)</Label>
+              <Input
+                id="maxActiveIps"
+                type="number"
+                min={1}
+                max={10}
+                value={sessionCfg.maxActiveIps}
+                onChange={(e) => setSessionCfg(prev => ({ ...prev, maxActiveIps: Math.min(10, Math.max(1, Number(e.target.value || 0))) }))}
+                disabled={sessionLoading || savingSessionCfg}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>超配额策略</Label>
+              <Select
+                value={sessionCfg.policy}
+                onValueChange={(v) => setSessionCfg(prev => ({ ...prev, policy: v as UserSessionLimitConfigData['policy'] }))}
+                disabled={sessionLoading || savingSessionCfg}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="选择策略" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DENY_NEW">拒绝新会话 (DENY_NEW)</SelectItem>
+                  <SelectItem value="EVICT_OLDEST">驱逐最早会话 (EVICT_OLDEST)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="banTtlDays">封禁时长（天，0=永久）</Label>
+              <Input
+                id="banTtlDays"
+                type="number"
+                min={0}
+                value={sessionCfg.banTtlDays}
+                onChange={(e) => setSessionCfg(prev => ({ ...prev, banTtlDays: Math.max(0, Number(e.target.value || 0)) }))}
+                disabled={sessionLoading || savingSessionCfg}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={fetchSessionLimitConfig}
+              disabled={sessionLoading}
+            >
+              <RefreshCw className="mr-2 h-4 w-4" />刷新
+            </Button>
+            <Button
+              onClick={async () => {
+                // 校验
+                if (sessionCfg.maxActiveIps < 1 || sessionCfg.maxActiveIps > 10) {
+                  return toast.error('最大并发活跃IP数需在 1-10 范围内');
+                }
+                try {
+                  setSavingSessionCfg(true);
+                  await SystemConfigService.updateUserSessionLimitConfig(sessionCfg);
+                  setInitialSessionCfg(sessionCfg);
+                  toast.success('会话限制配置已更新');
+                } catch (e) {
+                  // 错误由拦截器提示
+                } finally {
+                  setSavingSessionCfg(false);
+                }
+              }}
+              disabled={!sessionDirty || savingSessionCfg}
+            >
+              <Save className="mr-2 h-4 w-4" />保存配置
+            </Button>
+          </div>
+
+          {/* 固定参数展示 */}
+          <div className="mt-6 text-sm text-muted-foreground space-y-1">
+            <div>会话TTL：30天</div>
+            <div>历史滑窗：30天</div>
+            <div>封禁阈值：10个IP</div>
+            <div>续活间隔：60秒</div>
+          </div>
         </CardContent>
       </Card>
     </div>

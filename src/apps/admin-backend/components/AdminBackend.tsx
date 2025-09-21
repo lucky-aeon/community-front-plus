@@ -6,6 +6,7 @@ import { CategoriesPage } from './CategoriesPage';
 import { CoursesPage } from './CoursesPage';
 import { PostsPage } from './PostsPage';
 import { UsersPage } from './UsersPage';
+import { SessionsPage } from './SessionsPage';
 import { LogsPage } from './LogsPage';
 import { SubscriptionPlansPage } from './SubscriptionPlansPage';
 import { UpdateLogPage } from './UpdateLogPage';
@@ -34,6 +35,7 @@ export const AdminBackend: React.FC = () => {
         
         {/* 用户管理 */}
         <Route path="/users" element={<UsersPage />} />
+        <Route path="/sessions" element={<SessionsPage />} />
         <Route path="/permissions" element={<ComingSoonPage title="权限管理" />} />
         <Route path="/subscription-plans" element={<SubscriptionPlansPage />} />
         <Route path="/cdk" element={<CDKPage />} />

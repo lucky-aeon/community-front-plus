@@ -2,7 +2,8 @@ import { apiClient, ApiResponse } from './config';
 import {
   SystemConfigDTO,
   SystemConfigType,
-  UpdateSystemConfigRequest
+  UpdateSystemConfigRequest,
+  UserSessionLimitConfigData
 } from '@shared/types';
 
 /**
@@ -54,5 +55,19 @@ export class SystemConfigService {
       subscriptionPlanId
     };
     return this.updateConfigByType('DEFAULT_SUBSCRIPTION_PLAN', data);
+  }
+
+  /**
+   * 获取用户会话限制配置（USER_SESSION_LIMIT）
+   */
+  static async getUserSessionLimitConfig(): Promise<SystemConfigDTO> {
+    return this.getConfigByType('USER_SESSION_LIMIT');
+  }
+
+  /**
+   * 更新用户会话限制配置（USER_SESSION_LIMIT）
+   */
+  static async updateUserSessionLimitConfig(data: UserSessionLimitConfigData): Promise<SystemConfigDTO> {
+    return this.updateConfigByType('USER_SESSION_LIMIT', data);
   }
 }

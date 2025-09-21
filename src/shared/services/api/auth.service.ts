@@ -163,6 +163,14 @@ export class AuthService {
   }
 
   /**
+   * 会话心跳：用于保持/校验当前登录状态
+   * GET /api/user/heartbeat
+   */
+  static async heartbeat(): Promise<void> {
+    await apiClient.get<ApiResponse<void>>('/user/heartbeat');
+  }
+
+  /**
    * 将后端用户数据映射为前端用户数据
    */
   private static mapBackendUserToFrontendUser(backendUser: BackendUser): User {

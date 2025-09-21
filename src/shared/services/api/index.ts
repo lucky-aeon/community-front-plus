@@ -13,6 +13,7 @@ export { SubscriptionPlansService } from './subscription-plans.service';
 export { SubscriptionPlanCoursesService } from './subscription-plan-courses.service';
 export { CDKService } from './cdk.service';
 export { UpdateLogService } from './update-log.service';
+export { AdminDeviceSessionService } from './admin-device-session.service';
 export { apiClient, type ApiResponse } from './config';
 
 // 导出类型定义
@@ -61,4 +62,12 @@ export type {
   ChangeDetailDTO,
   ChangeType,
   UpdateLogStatus,
+  ActiveSessionDTO,
+  UserSessionSummaryDTO,
+  AdminDeviceSessionQueryRequest,
+  TokenBlacklistStatsDTO,
+  BlacklistQueryRequest,
+  BlacklistedUserDTO,
+  SystemConfigType,
+  UserSessionLimitConfigData,
 } from '../../types';
