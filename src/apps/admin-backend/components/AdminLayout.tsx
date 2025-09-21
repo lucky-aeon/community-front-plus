@@ -22,7 +22,7 @@ import {
 import { useAuth } from '../../../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarSection, SidebarSectionTitle } from '@/components/ui/sidebar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -174,6 +174,10 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
 
         <Dialog open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
           <DialogContent className="p-0 max-w-[320px] left-0 top-0 bottom-0 translate-x-0 translate-y-0 h-screen w-[80vw] sm:w-[360px] rounded-none border-r">
+            {/* 无障碍要求：为 Dialog 提供可读标题（隐藏可视显示） */}
+            <DialogHeader className="sr-only">
+              <DialogTitle>移动侧边导航</DialogTitle>
+            </DialogHeader>
             <Sidebar className="h-full" collapsed={false}>
               <SidebarHeader>
                 <div className="flex items-center justify-between">
@@ -181,9 +185,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                     <img src="/logo.jpg" className="h-8 w-8 rounded" />
                     <span className="font-bold">管理后台</span>
                   </div>
-                  <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)}>
-                    <X className="h-4 w-4" />
-                  </Button>
                 </div>
               </SidebarHeader>
               <SidebarContent>

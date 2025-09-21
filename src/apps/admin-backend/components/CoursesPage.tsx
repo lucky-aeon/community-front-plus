@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RefreshCw, Plus, Pencil, Trash2, GripVertical } from 'lucide-react';
+import { RefreshCw, Plus, Pencil, Trash2, GripVertical, Search, XCircle } from 'lucide-react';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { Rating } from '@/components/ui/rating';
 import { TagsInput } from '@/components/ui/tags-input';
@@ -29,6 +29,7 @@ import type {
   CreateCourseRequest,
   UpdateCourseRequest
 } from '@shared/types';
+import AdminPagination from '@shared/components/AdminPagination';
 
 type Filters = { pageNum: number; pageSize: number; keyword: string; status?: CourseStatus };
 
@@ -58,12 +59,12 @@ export const CoursesPage: React.FC = () => {
   // 删除
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; item?: CourseDTO }>({ open: false });
 
-  const loadCourses = useCallback(async () => {
+  const loadCourses = useCallback(async (pageNum?: number, pageSize?: number) => {
     try {
       setLoading(true);
       const req: CourseQueryRequest = {
-        pageNum: filters.pageNum,
-        pageSize: filters.pageSize,
+        pageNum: pageNum ?? filters.pageNum,
+        pageSize: pageSize ?? filters.pageSize,
         ...(filters.status && { status: filters.status }),
         ...(filters.keyword && { keyword: filters.keyword })
       };
@@ -92,6 +93,8 @@ export const CoursesPage: React.FC = () => {
 
   const handleReset = () => setFilters({ pageNum: 1, pageSize: 10, keyword: '', status: undefined });
   const handlePageChange = (p: number) => setFilters(prev => ({ ...prev, pageNum: p }));
+  const handleRefresh = () => loadCourses(pagination.current, pagination.size);
+  const handleQuery = () => { setFilters(prev => ({ ...prev, pageNum: 1 })); loadCourses(1, pagination.size); };
 
   // 打开创建/编辑
   const openCreate = () => setEditDialog({ open: true, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: '', tags: '' } });
@@ -282,48 +285,42 @@ export const CoursesPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">课程管理</h1>
-          <p className="text-muted-foreground mt-1">管理系统中的所有课程内容和状态</p>
-        </div>
-        <Button onClick={openCreate}><Plus className="w-4 h-4 mr-2" /> 新建课程</Button>
-      </div>
-
-      {/* 筛选 */}
+    <div className="h-full flex flex-col">
+      {/* 单卡片：筛选 + 操作 + 表格 + 分页 */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">筛选 {loading && <RefreshCw className="w-4 h-4 animate-spin" />}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="lg:col-span-2">
-              <Input placeholder="按标题/描述搜索..." value={filters.keyword} onChange={(e) => setFilters(prev => ({ ...prev, keyword: e.target.value, pageNum: 1 }))} />
+        <CardContent className="pt-6">
+          {/* 筛选行：placeholder，无标签 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 mb-3 min-w-0">
+            <Input placeholder="按标题/描述搜索" value={filters.keyword} onChange={(e) => setFilters(prev => ({ ...prev, keyword: e.target.value }))} />
+            <Select value={filters.status || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, status: v === 'all' ? undefined : (v as CourseStatus) }))}>
+              <SelectTrigger><SelectValue placeholder="状态" /></SelectTrigger>
+              <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+                <SelectItem value="all">全部</SelectItem>
+                <SelectItem value="PENDING">待更新</SelectItem>
+                <SelectItem value="IN_PROGRESS">更新中</SelectItem>
+                <SelectItem value="COMPLETED">已完成</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {/* 操作按钮行：左新建，右重置/刷新/查询 */}
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2">
+              <Button onClick={openCreate}><Plus className="w-4 h-4 mr-2" /> 新建课程</Button>
             </div>
-            <div>
-              <Label className="sr-only">状态</Label>
-              <Select value={filters.status || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, status: v === 'all' ? undefined : (v as CourseStatus), pageNum: 1 }))}>
-                <SelectTrigger><SelectValue placeholder="选择状态" /></SelectTrigger>
-                <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
-                  <SelectItem value="all">全部</SelectItem>
-                  <SelectItem value="PENDING">待更新</SelectItem>
-                  <SelectItem value="IN_PROGRESS">更新中</SelectItem>
-                  <SelectItem value="COMPLETED">已完成</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleReset} disabled={loading}>
+                <XCircle className="mr-2 h-4 w-4" /> 重置
+              </Button>
+              <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+                <RefreshCw className="mr-2 h-4 w-4" /> 刷新
+              </Button>
+              <Button onClick={handleQuery} disabled={loading}>
+                <Search className="mr-2 h-4 w-4" /> 查询
+              </Button>
             </div>
           </div>
-          <div className="flex justify-end mt-4">
-            <Button variant="outline" onClick={handleReset} disabled={loading}><RefreshCw className="w-4 h-4 mr-2" /> 重置筛选</Button>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* 列表 */}
-      <Card>
-        <CardHeader><CardTitle className="text-lg">课程列表</CardTitle></CardHeader>
-        <CardContent>
+          {/* 列表 */}
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
@@ -385,19 +382,20 @@ export const CoursesPage: React.FC = () => {
             </Table>
           </div>
 
-          {/* 分页 */}
-          {!loading && pagination.total > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4">
-              <div className="text-sm text-muted-foreground">共 {pagination.total} 条记录，第 {pagination.current} / {pagination.pages} 页</div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled={pagination.current <= 1} onClick={() => handlePageChange(1)}>首页</Button>
-                <Button variant="outline" size="sm" disabled={pagination.current <= 1} onClick={() => handlePageChange(pagination.current - 1)}>上一页</Button>
-                <span className="text-sm px-2">{pagination.current} / {pagination.pages}</span>
-                <Button variant="outline" size="sm" disabled={pagination.current >= pagination.pages} onClick={() => handlePageChange(pagination.current + 1)}>下一页</Button>
-                <Button variant="outline" size="sm" disabled={pagination.current >= pagination.pages} onClick={() => handlePageChange(pagination.pages)}>尾页</Button>
-              </div>
+          {/* 分页：统计始终可见；多页时显示按钮 */}
+          <div className="pt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-muted-foreground whitespace-nowrap">共 {pagination.total} 条，第 {Math.max(pagination.current, 1)} / {Math.max(pagination.pages, 1)} 页</div>
+              {pagination.pages > 1 && (
+                <AdminPagination
+                  current={pagination.current}
+                  totalPages={pagination.pages}
+                  onChange={(p) => { handlePageChange(p); loadCourses(p, pagination.size); }}
+                  mode="full"
+                />
+              )}
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 

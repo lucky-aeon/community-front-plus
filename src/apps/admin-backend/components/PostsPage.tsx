@@ -1,15 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import AdminPagination from '@shared/components/AdminPagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Search, XCircle } from 'lucide-react';
 import { PostsService } from '@shared/services/api/posts.service';
 import type { AdminPostDTO, AdminPostQueryRequest, PageResponse } from '@shared/types';
 
@@ -28,10 +27,10 @@ export const PostsPage: React.FC = () => {
   // 删除对话框
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; item?: AdminPostDTO }>({ open: false });
 
-  const loadPosts = useCallback(async () => {
+  const loadPosts = useCallback(async (pageNum?: number, pageSize?: number) => {
     try {
       setLoading(true);
-      const req: AdminPostQueryRequest = { pageNum: filters.pageNum, pageSize: filters.pageSize };
+      const req: AdminPostQueryRequest = { pageNum: pageNum ?? filters.pageNum, pageSize: pageSize ?? filters.pageSize };
       // 透传额外字段（后端如果支持将生效）
       const reqAny: any = { ...req };
       if (filters.keyword?.trim()) reqAny.keyword = filters.keyword.trim();
@@ -65,6 +64,8 @@ export const PostsPage: React.FC = () => {
 
   const handlePageChange = (page: number) => setFilters(prev => ({ ...prev, pageNum: page }));
   const handleReset = () => setFilters({ pageNum: 1, pageSize: 10, keyword: '', status: undefined });
+  const handleRefresh = () => loadPosts(pagination.current, pagination.size);
+  const handleQuery = () => { setFilters(prev => ({ ...prev, pageNum: 1 })); loadPosts(1, pagination.size); };
 
   // 操作：删除（当前无触发入口，仅保留处理逻辑）
   const handleDelete = async () => {
@@ -85,63 +86,35 @@ export const PostsPage: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">文章管理</h1>
-          <p className="text-muted-foreground mt-1">管理系统中的所有用户文章</p>
-        </div>
-        
-      </div>
-
-      {/* 筛选区 */}
+    <div className="h-full flex flex-col">
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            搜索筛选
-            {loading && <RefreshCw className="w-4 h-4 animate-spin" />}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            <div className="lg:col-span-2">
-              <Input
-                placeholder="按标题/摘要搜索..."
-                value={filters.keyword}
-                onChange={(e) => setFilters(prev => ({ ...prev, keyword: e.target.value, pageNum: 1 }))}
-              />
-            </div>
-            <div>
-              <Label className="sr-only">状态</Label>
-              <Select
-                value={filters.status || 'all'}
-                onValueChange={(v) => setFilters(prev => ({ ...prev, status: v === 'all' ? undefined : (v as PostStatus), pageNum: 1 }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="状态筛选" />
-                </SelectTrigger>
-                <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
-                  <SelectItem value="all">全部</SelectItem>
-                  <SelectItem value="PUBLISHED">已发布</SelectItem>
-                  <SelectItem value="DRAFT">草稿</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <CardContent className="pt-6">
+          {/* 筛选行：placeholder，无标签 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 mb-3 min-w-0">
+            <Input placeholder="按标题/摘要搜索" value={filters.keyword} onChange={(e) => setFilters(prev => ({ ...prev, keyword: e.target.value }))} />
+            <Select value={filters.status || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, status: v === 'all' ? undefined : (v as PostStatus) }))}>
+              <SelectTrigger><SelectValue placeholder="状态" /></SelectTrigger>
+              <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+                <SelectItem value="all">全部</SelectItem>
+                <SelectItem value="PUBLISHED">已发布</SelectItem>
+                <SelectItem value="DRAFT">草稿</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex justify-end mt-4">
+          {/* 操作按钮行 */}
+          <div className="flex flex-wrap items-center justify-end gap-2 mb-4">
             <Button variant="outline" onClick={handleReset} disabled={loading}>
-              <RefreshCw className="w-4 h-4 mr-2" /> 重置筛选
+              <XCircle className="mr-2 h-4 w-4" /> 重置
+            </Button>
+            <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+              <RefreshCw className="mr-2 h-4 w-4" /> 刷新
+            </Button>
+            <Button onClick={handleQuery} disabled={loading}>
+              <Search className="mr-2 h-4 w-4" /> 查询
             </Button>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* 列表 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">文章列表</CardTitle>
-        </CardHeader>
-        <CardContent>
+          {/* 列表 */}
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
@@ -194,18 +167,20 @@ export const PostsPage: React.FC = () => {
             </Table>
           </div>
 
-          {/* 分页（统一使用 AdminPagination 适配 shadcn） */}
-          {!loading && pagination.total > 0 && (
-            <div className="pt-4">
-              <AdminPagination
-                current={pagination.current}
-                totalPages={pagination.pages}
-                total={pagination.total}
-                onChange={handlePageChange}
-                mode="simple"
-              />
+          {/* 分页：统计始终可见；多页时显示按钮 */}
+          <div className="pt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-muted-foreground whitespace-nowrap">共 {pagination.total} 条，第 {Math.max(pagination.current, 1)} / {Math.max(pagination.pages, 1)} 页</div>
+              {pagination.pages > 1 && (
+                <AdminPagination
+                  current={pagination.current}
+                  totalPages={pagination.pages}
+                  onChange={(p) => { handlePageChange(p); loadPosts(p, pagination.size); }}
+                  mode="full"
+                />
+              )}
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 

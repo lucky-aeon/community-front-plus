@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,7 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 // 描述使用共享的 Cherry Markdown 编辑器
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
-import { RefreshCw, Plus, Pencil, Trash2, ArrowUpToLine, ArrowDownToLine } from 'lucide-react';
+import { RefreshCw, Plus, Pencil, Trash2, ArrowUpToLine, ArrowDownToLine, Search, XCircle } from 'lucide-react';
+import AdminPagination from '@shared/components/AdminPagination';
 
 import { UpdateLogService } from '@shared/services/api/update-log.service';
 import type {
@@ -46,10 +47,16 @@ export const UpdateLogPage: React.FC = () => {
   // 删除
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; item?: UpdateLogDTO }>({ open: false });
 
-  const loadLogs = useCallback(async () => {
+  const loadLogs = useCallback(async (pageNum?: number, pageSize?: number) => {
     try {
       setLoading(true);
-      const req: AdminUpdateLogQueryRequest = { pageNum: filters.pageNum, pageSize: filters.pageSize, ...(filters.status && { status: filters.status }), ...(filters.version && { version: filters.version }), ...(filters.title && { title: filters.title }) };
+      const req: AdminUpdateLogQueryRequest = {
+        pageNum: pageNum ?? filters.pageNum,
+        pageSize: pageSize ?? filters.pageSize,
+        ...(filters.status && { status: filters.status }),
+        ...(filters.version && { version: filters.version }),
+        ...(filters.title && { title: filters.title })
+      };
       const res: PageResponse<UpdateLogDTO> = await UpdateLogService.getUpdateLogs(req);
       setLogs(res.records);
       setPagination({ current: res.current, size: res.size, total: res.total, pages: res.pages });
@@ -64,6 +71,11 @@ export const UpdateLogPage: React.FC = () => {
 
   const handlePageChange = (p: number) => setFilters(prev => ({ ...prev, pageNum: p }));
   const handleReset = () => setFilters({ pageNum: 1, pageSize: 10 });
+  const handleRefresh = () => loadLogs(pagination.current, pagination.size);
+  const handleQuery = () => {
+    setFilters(prev => ({ ...prev, pageNum: 1 }));
+    loadLogs(1, pagination.size);
+  };
 
   const openCreate = () => setEditDialog({ open: true, mode: 'create', submitting: false, form: { version: '', title: '', description: '', isImportant: false, changeDetails: [] } });
   const openEdit = (item: UpdateLogDTO) => setEditDialog({ open: true, mode: 'edit', id: item.id, submitting: false, form: { version: item.version, title: item.title, description: item.description, isImportant: item.isImportant, changeDetails: item.changeDetails || [] } });
@@ -128,116 +140,127 @@ export const UpdateLogPage: React.FC = () => {
   const statusBadge = (status: UpdateLogStatus) => <Badge variant={status === 'PUBLISHED' ? 'default' : 'secondary'}>{status === 'PUBLISHED' ? '已发布' : '草稿'}</Badge>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">更新日志</h1>
-          <p className="text-muted-foreground mt-1">管理系统版本更新记录</p>
-        </div>
-        <Button onClick={openCreate}><Plus className="w-4 h-4 mr-2" /> 新建更新</Button>
-      </div>
-
-      {/* 筛选 */}
+    <div className="h-full flex flex-col">
+      {/* 顶部标题删除，根据要求合并到筛选区 */}
+      {/* 统一布局：单卡片包含筛选、表格、分页 */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">筛选 {loading && <RefreshCw className="w-4 h-4 animate-spin" />}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <Label>状态</Label>
-              <Select value={filters.status || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, status: v === 'all' ? undefined : (v as UpdateLogStatus), pageNum: 1 }))}>
-                <SelectTrigger><SelectValue placeholder="选择状态" /></SelectTrigger>
+        <CardContent className="pt-6">
+          {/* 顶部筛选和操作区域 */}
+          <div className="flex-shrink-0">
+            {/* 筛选行：placeholder，无标签，统一栅格 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 mb-3 min-w-0">
+              <Select
+                value={filters.status || 'all'}
+                onValueChange={(v) => setFilters(prev => ({ ...prev, status: v === 'all' ? undefined : (v as UpdateLogStatus) }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="状态" />
+                </SelectTrigger>
                 <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
                   <SelectItem value="all">全部</SelectItem>
                   <SelectItem value="PUBLISHED">已发布</SelectItem>
                   <SelectItem value="DRAFT">草稿</SelectItem>
                 </SelectContent>
               </Select>
+              <Input
+                placeholder="版本号（如 1.2.3）"
+                value={filters.version || ''}
+                onChange={(e) => setFilters(prev => ({ ...prev, version: e.target.value }))}
+              />
+              <Input
+                placeholder="标题关键词"
+                value={filters.title || ''}
+                onChange={(e) => setFilters(prev => ({ ...prev, title: e.target.value }))}
+              />
             </div>
-            <div>
-              <Label>版本号</Label>
-              <Input placeholder="如 1.2.3" value={filters.version || ''} onChange={(e) => setFilters(prev => ({ ...prev, version: e.target.value, pageNum: 1 }))} />
-            </div>
-            <div className="lg:col-span-2">
-              <Label>标题关键词</Label>
-              <Input placeholder="按标题搜索" value={filters.title || ''} onChange={(e) => setFilters(prev => ({ ...prev, title: e.target.value, pageNum: 1 }))} />
-            </div>
-          </div>
-          <div className="flex justify-end mt-4">
-            <Button variant="outline" onClick={handleReset} disabled={loading}><RefreshCw className="w-4 h-4 mr-2" /> 重置筛选</Button>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* 列表 */}
-      <Card>
-        <CardHeader><CardTitle className="text-lg">更新日志列表</CardTitle></CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
-            <Table enableVerticalScroll maxHeight="max-h-[600px]">
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[120px]">版本</TableHead>
-                  <TableHead className="min-w-[220px]">标题</TableHead>
-                  <TableHead className="min-w-[100px]">状态</TableHead>
-                  <TableHead className="min-w-[100px]">重要</TableHead>
-                  <TableHead className="min-w-[160px]">发布时间</TableHead>
-                  <TableHead className="min-w-[160px]">更新时间</TableHead>
-                  <TableHead className="text-right min-w-[220px]">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i}>
-                      {Array.from({ length: 7 }).map((__, j) => (
-                        <TableCell key={j}><Skeleton className="h-4 w-[120px]" /></TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : logs.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">暂无数据</TableCell>
-                  </TableRow>
-                ) : (
-                  logs.map(item => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-mono">{item.version}</TableCell>
-                      <TableCell className="line-clamp-1" title={item.title}>{item.title}</TableCell>
-                      <TableCell>{statusBadge(item.status)}</TableCell>
-                      <TableCell>{item.isImportant ? <Badge variant="destructive">是</Badge> : <Badge variant="secondary">否</Badge>}</TableCell>
-                      <TableCell className="text-xs">{item.publishTime ? new Date(item.publishTime).toLocaleString('zh-CN') : '-'}</TableCell>
-                      <TableCell className="text-xs">{new Date(item.updateTime).toLocaleString('zh-CN')}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm" onClick={() => openEdit(item)}><Pencil className="w-4 h-4 mr-2" /> 编辑</Button>
-                          <Button variant="outline" size="sm" onClick={() => toggleStatus(item)}>
-                            {item.status === 'PUBLISHED' ? (<><ArrowDownToLine className="w-4 h-4 mr-2" /> 撤回</>) : (<><ArrowUpToLine className="w-4 h-4 mr-2" /> 发布</>)}
-                          </Button>
-                          <Button variant="outline" size="sm" className="text-red-600" onClick={() => confirmDelete(item)}><Trash2 className="w-4 h-4 mr-2" /> 删除</Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* 分页 */}
-          {!loading && pagination.total > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4">
-              <div className="text-sm text-muted-foreground">共 {pagination.total} 条记录，第 {pagination.current} / {pagination.pages} 页</div>
+            {/* 操作按钮行：左侧新建，右侧重置/刷新/查询 */}
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" disabled={pagination.current <= 1} onClick={() => handlePageChange(1)}>首页</Button>
-                <Button variant="outline" size="sm" disabled={pagination.current <= 1} onClick={() => handlePageChange(pagination.current - 1)}>上一页</Button>
-                <span className="text-sm px-2">{pagination.current} / {pagination.pages}</span>
-                <Button variant="outline" size="sm" disabled={pagination.current >= pagination.pages} onClick={() => handlePageChange(pagination.current + 1)}>下一页</Button>
-                <Button variant="outline" size="sm" disabled={pagination.current >= pagination.pages} onClick={() => handlePageChange(pagination.pages)}>尾页</Button>
+                <Button onClick={openCreate}><Plus className="w-4 h-4 mr-2" /> 新建更新</Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" onClick={handleReset} disabled={loading}>
+                  <XCircle className="mr-2 h-4 w-4" /> 重置
+                </Button>
+                <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+                  <RefreshCw className="mr-2 h-4 w-4" /> 刷新
+                </Button>
+                <Button onClick={handleQuery} disabled={loading}>
+                  <Search className="mr-2 h-4 w-4" /> 查询
+                </Button>
               </div>
             </div>
-          )}
+          </div>
+
+          {/* 表格区域：内容自适应，不铺满；横向滚动放在外层容器，避免移动端拖动受限 */}
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[120px]">版本</TableHead>
+                    <TableHead className="min-w-[220px]">标题</TableHead>
+                    <TableHead className="min-w-[100px]">状态</TableHead>
+                    <TableHead className="min-w-[100px]">重要</TableHead>
+                    <TableHead className="min-w-[160px]">发布时间</TableHead>
+                    <TableHead className="min-w-[160px]">更新时间</TableHead>
+                    <TableHead className="text-right min-w-[220px]">操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <TableRow key={i}>
+                        {Array.from({ length: 7 }).map((__, j) => (
+                          <TableCell key={j}><Skeleton className="h-4 w-[120px]" /></TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  ) : logs.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">暂无数据</TableCell>
+                    </TableRow>
+                  ) : (
+                    logs.map(item => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-mono">{item.version}</TableCell>
+                        <TableCell className="line-clamp-1" title={item.title}>{item.title}</TableCell>
+                        <TableCell>{statusBadge(item.status)}</TableCell>
+                        <TableCell>{item.isImportant ? <Badge variant="destructive">是</Badge> : <Badge variant="secondary">否</Badge>}</TableCell>
+                        <TableCell className="text-xs">{item.publishTime ? new Date(item.publishTime).toLocaleString('zh-CN') : '-'}</TableCell>
+                        <TableCell className="text-xs">{new Date(item.updateTime).toLocaleString('zh-CN')}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="outline" size="sm" onClick={() => openEdit(item)}><Pencil className="w-4 h-4 mr-2" /> 编辑</Button>
+                            <Button variant="outline" size="sm" onClick={() => toggleStatus(item)}>
+                              {item.status === 'PUBLISHED' ? (<><ArrowDownToLine className="w-4 h-4 mr-2" /> 撤回</>) : (<><ArrowUpToLine className="w-4 h-4 mr-2" /> 发布</>)}
+                            </Button>
+                            <Button variant="outline" size="sm" className="text-red-600" onClick={() => confirmDelete(item)}><Trash2 className="w-4 h-4 mr-2" /> 删除</Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+          </div>
+
+          {/* 分页：始终展示统计信息；页数>1 时展示按钮 */}
+          <div className="pt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-muted-foreground whitespace-nowrap">
+                共 {pagination.total} 条，第 {Math.max(pagination.current, 1)} / {Math.max(pagination.pages, 1)} 页
+              </div>
+              {pagination.pages > 1 && (
+                <AdminPagination
+                  current={pagination.current}
+                  totalPages={pagination.pages}
+                  onChange={(p) => { handlePageChange(p); loadLogs(p, pagination.size); }}
+                  mode="full"
+                />
+              )}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
