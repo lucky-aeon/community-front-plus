@@ -174,8 +174,8 @@ export const UpdateLogPage: React.FC = () => {
       <Card>
         <CardHeader><CardTitle className="text-lg">更新日志列表</CardTitle></CardHeader>
         <CardContent>
-          <div className="rounded-md border overflow-x-auto">
-            <Table>
+          <div className="rounded-md border">
+            <Table enableVerticalScroll maxHeight="max-h-[600px]">
               <TableHeader>
                 <TableRow>
                   <TableHead className="min-w-[120px]">版本</TableHead>

@@ -1,8 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -89,7 +88,7 @@ export const LogsPage: React.FC = () => {
   // 列表数据 & 状态
   const [logs, setLogs] = useState<UserActivityLogDTO[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [paging, setPaging] = useState({ current: 1, size: 10, total: 0, pages: 0 });
+  const [paging, setPaging] = useState({ current: 1, size: 15, total: 0, pages: 0 });
 
   const [contextDialog, setContextDialog] = useState<{ open: boolean; log?: UserActivityLogDTO }>({ open: false });
 
@@ -138,46 +137,33 @@ export const LogsPage: React.FC = () => {
   // 统一使用 AdminPagination（shadcn 适配器）
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">操作日志</h1>
-        <p className="text-muted-foreground mt-1">查看系统操作记录和审计日志</p>
-      </div>
-
-      {/* 筛选卡片 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>筛选条件</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="userId">用户ID</Label>
+    <div className="h-full flex flex-col">
+      {/* 单卡片：顶部为筛选行，下面是表格 */}
+      <Card className="flex-1 flex flex-col min-h-0">
+        <CardContent className="pt-6 flex-1 flex flex-col min-h-0">
+          {/* 顶部筛选和操作区域 */}
+          <div className="flex-shrink-0">
+            {/* 顶部筛选行（无标签，使用占位符） */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 mb-3 min-w-0">
               <Input
                 id="userId"
-                placeholder="输入用户ID"
+                placeholder="用户ID"
                 value={form.userId}
                 onChange={(e) => setForm(prev => ({ ...prev, userId: e.target.value }))}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="ip">IP 地址</Label>
               <Input
                 id="ip"
-                placeholder="例如 127.0.0.1"
+                placeholder="IP 地址"
                 value={form.ip}
                 onChange={(e) => setForm(prev => ({ ...prev, ip: e.target.value }))}
               />
-            </div>
-            <div className="space-y-2">
-              <Label>活动分类</Label>
               <Select
                 value={form.activityCategory}
                 onValueChange={(v) => setForm(prev => ({ ...prev, activityCategory: v, activityType: '' }))}
                 disabled={categoryDisabled}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={categoryDisabled ? '已选择活动类型，分类不可选' : '全部分类'} />
+                  <SelectValue placeholder={categoryDisabled ? '活动分类（类型已选不可选）' : '活动分类'} />
                 </SelectTrigger>
                 <SelectContent>
                   {CATEGORY_OPTIONS.map((c) => (
@@ -185,16 +171,13 @@ export const LogsPage: React.FC = () => {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>活动类型</Label>
               <Select
                 value={form.activityType}
                 onValueChange={(v) => setForm(prev => ({ ...prev, activityType: v, activityCategory: '' }))}
                 disabled={typeDisabled}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={typeDisabled ? '已选择活动分类，类型不可选' : '全部类型'} />
+                  <SelectValue placeholder={typeDisabled ? '活动类型（分类已选不可选）' : '活动类型'} />
                 </SelectTrigger>
                 <SelectContent>
                   {TYPE_OPTIONS.map((t) => (
@@ -202,110 +185,103 @@ export const LogsPage: React.FC = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <DateRangePicker value={timeRange} onChange={setTimeRange} placeholder="时间范围" />
             </div>
-            <div className="space-y-2 md:col-span-2 lg:col-span-1">
-              <Label>时间范围</Label>
-              <DateRangePicker value={timeRange} onChange={setTimeRange} placeholder="选择时间范围" />
+
+            {/* 操作按钮行 */}
+            <div className="flex flex-wrap gap-2 mb-4 justify-end">
+              <Button variant="outline" onClick={() => resetForm()}>
+                <XCircle className="mr-2 h-4 w-4" /> 重置
+              </Button>
+              <Button variant="outline" onClick={() => loadLogs(paging.current, paging.size)} disabled={loading}>
+                <RefreshCw className="mr-2 h-4 w-4" /> 刷新
+              </Button>
+              <Button onClick={() => loadLogs(1, paging.size)} disabled={loading}>
+                <Search className="mr-2 h-4 w-4" /> 查询
+              </Button>
             </div>
           </div>
 
-          <div className="flex gap-2 mt-4 justify-end">
-            <Button variant="outline" onClick={() => resetForm()}>
-              <XCircle className="mr-2 h-4 w-4" /> 重置
-            </Button>
-            <Button variant="outline" onClick={() => loadLogs(paging.current, paging.size)} disabled={loading}>
-              <RefreshCw className="mr-2 h-4 w-4" /> 刷新
-            </Button>
-            <Button onClick={() => loadLogs(1, paging.size)} disabled={loading}>
-              <Search className="mr-2 h-4 w-4" /> 查询
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 列表卡片 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>日志列表</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="w-full overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>时间</TableHead>
-                  <TableHead>用户</TableHead>
-                  <TableHead>类型</TableHead>
-                  <TableHead>目标</TableHead>
-                  <TableHead>IP/设备</TableHead>
-                  <TableHead>请求路径</TableHead>
-                  <TableHead className="text-right">操作</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  Array.from({ length: 6 }).map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-40" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                      <TableCell><Skeleton className="h-4 w-56" /></TableCell>
-                      <TableCell className="text-right"><Skeleton className="h-8 w-16 ml-auto" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : logs.length === 0 ? (
+          {/* 表格区域：使用flex-1自动填充剩余空间 */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 rounded-md border min-h-0">
+              <Table enableVerticalScroll className="h-full">
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">暂无数据</TableCell>
+                    <TableHead>时间</TableHead>
+                    <TableHead>用户</TableHead>
+                    <TableHead>类型</TableHead>
+                    <TableHead>目标</TableHead>
+                    <TableHead>IP/设备</TableHead>
+                    <TableHead>请求路径</TableHead>
+                    <TableHead className="text-right">操作</TableHead>
                   </TableRow>
-                ) : (
-                  logs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="whitespace-nowrap">{log.createTime}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{log.nickname || '未知用户'}</span>
-                          <span className="text-xs text-muted-foreground">ID: {log.userId}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
-                          <Badge variant="secondary" className="w-fit">{log.activityTypeDesc || log.activityType}</Badge>
-                          {log.failureReason && (
-                            <span className="text-xs text-red-600">失败：{log.failureReason}</span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{log.targetName || '—'}</span>
-                          <span className="text-xs text-muted-foreground">{log.targetType || '—'}{log.targetId ? `（${log.targetId}）` : ''}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span>{log.ip || '—'}</span>
-                          <span className="text-xs text-muted-foreground line-clamp-2">{log.browser || log.equipment || '—'}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="max-w-[320px]">
-                        <span className="text-sm text-muted-foreground break-all">{log.requestPath || '—'}</span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button size="sm" variant="outline" onClick={() => setContextDialog({ open: true, log })}>
-                          <Eye className="mr-2 h-4 w-4" /> 详情
-                        </Button>
-                      </TableCell>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-40" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-48" /></TableCell>
+                        <TableCell><Skeleton className="h-4 w-56" /></TableCell>
+                        <TableCell className="text-right"><Skeleton className="h-8 w-16 ml-auto" /></TableCell>
+                      </TableRow>
+                    ))
+                  ) : logs.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground py-8">暂无数据</TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    logs.map((log) => (
+                      <TableRow key={log.id}>
+                        <TableCell className="whitespace-nowrap">{log.createTime}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{log.nickname || '未知用户'}</span>
+                            <span className="text-xs text-muted-foreground">ID: {log.userId}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            <Badge variant="secondary" className="w-fit">{log.activityTypeDesc || log.activityType}</Badge>
+                            {log.failureReason && (
+                              <span className="text-xs text-red-600">失败：{log.failureReason}</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{log.targetName || '—'}</span>
+                            <span className="text-xs text-muted-foreground">{log.targetType || '—'}{log.targetId ? `（${log.targetId}）` : ''}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span>{log.ip || '—'}</span>
+                            <span className="text-xs text-muted-foreground line-clamp-2">{log.browser || log.equipment || '—'}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="max-w-[320px]">
+                          <span className="text-sm text-muted-foreground break-all">{log.requestPath || '—'}</span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button size="sm" variant="outline" onClick={() => setContextDialog({ open: true, log })}>
+                            <Eye className="mr-2 h-4 w-4" /> 详情
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
 
-          {/* 分页 */}
-          <div className="mt-4">
+          {/* 分页组件：固定在底部 */}
+          <div className="flex-shrink-0 pt-4">
             <AdminPagination
               current={paging.current}
               totalPages={paging.pages}

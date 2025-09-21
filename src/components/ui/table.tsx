@@ -2,11 +2,20 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+interface TableProps extends React.HTMLAttributes<HTMLTableElement> {
+  maxHeight?: string;
+  enableVerticalScroll?: boolean;
+}
+
 const Table = React.forwardRef<
   HTMLTableElement,
-  React.HTMLAttributes<HTMLTableElement>
->(({ className, ...props }, ref) => (
-  <div className="relative w-full overflow-auto">
+  TableProps
+>(({ className, maxHeight, enableVerticalScroll = false, ...props }, ref) => (
+  <div className={cn(
+    "relative w-full overflow-x-auto",
+    enableVerticalScroll && "overflow-y-auto",
+    enableVerticalScroll && (maxHeight || "max-h-[600px]")
+  )}>
     <table
       ref={ref}
       className={cn("w-full caption-bottom text-sm", className)}

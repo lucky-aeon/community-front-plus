@@ -57,7 +57,7 @@ export const AdminPagination: React.FC<AdminPaginationProps> = ({
     return (
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         {typeof total === 'number' && (
-          <div className="text-sm text-muted-foreground">共 {total} 条记录，第 {current} / {totalPages} 页</div>
+          <div className="text-sm text-muted-foreground whitespace-nowrap">共 {total} 条，第 {current}/{totalPages} 页</div>
         )}
         <div className="flex items-center gap-2">
           <ShadcnPagination>
@@ -76,9 +76,11 @@ export const AdminPagination: React.FC<AdminPaginationProps> = ({
                   上一页
                 </PaginationLink>
               </PaginationItem>
+              <div className="mx-2" />
               <PaginationItem>
                 <span className="px-2 text-sm">{current} / {totalPages}</span>
               </PaginationItem>
+              <div className="mx-2" />
               <PaginationItem>
                 <PaginationLink
                   href="#"
@@ -107,7 +109,7 @@ export const AdminPagination: React.FC<AdminPaginationProps> = ({
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
       {typeof total === 'number' && (
-        <div className="text-sm text-muted-foreground">共 {total} 条记录，第 {current} / {totalPages} 页</div>
+        <div className="text-sm text-muted-foreground whitespace-nowrap">共 {total} 条，第 {current}/{totalPages} 页</div>
       )}
       <ShadcnPagination>
         <PaginationContent>
@@ -116,6 +118,7 @@ export const AdminPagination: React.FC<AdminPaginationProps> = ({
               上一页
             </PaginationLink>
           </PaginationItem>
+          <div className="mx-2" />
           {items.map((it, idx) => (
             <PaginationItem key={idx}>
               {it === 'start-ellipsis' || it === 'end-ellipsis' ? (
@@ -127,6 +130,7 @@ export const AdminPagination: React.FC<AdminPaginationProps> = ({
               )}
             </PaginationItem>
           ))}
+          <div className="mx-2" />
           <PaginationItem>
             <PaginationLink href="#" onClick={(e) => { e.preventDefault(); goto(current + 1); }} aria-label="下一页">
               下一页

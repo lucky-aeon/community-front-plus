@@ -82,7 +82,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   return (
     <div className="min-h-screen bg-muted/20 flex">
       {/* Desktop sidebar */}
-      <div className="hidden lg:block">
+      <div className="hidden lg:block shrink-0 relative z-10">
         <Sidebar collapsed={isCollapsed} className="shadow-sm">
           <SidebarHeader className={isCollapsed ? 'px-2' : ''}>
             <div className="flex items-center justify-between">
@@ -217,7 +217,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           </DialogContent>
         </Dialog>
 
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-6 min-w-0">
           {children}
         </main>
       </div>
