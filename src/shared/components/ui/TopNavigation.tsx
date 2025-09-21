@@ -105,10 +105,16 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
   };
 
   return (
-    <header className={cn(
-      "sticky top-0 z-40 w-full",
-      className
-    )}>
+    <header
+      className={cn(
+        // 置顶在页面顶部，确保在内容之上
+        "sticky top-0 z-40 w-full",
+        // 增加不透明背景与毛玻璃，避免滚动时页面内容透出造成视觉重叠
+        // 与营销页 Header 保持一致的感觉
+        "bg-white/90 supports-[backdrop-filter]:bg-white/75 backdrop-blur border-b border-honey-border shadow-sm",
+        className
+      )}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left section: Logo + Brand + Membership */}
