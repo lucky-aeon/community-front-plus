@@ -1,15 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { RefreshCw, Plus, Trash2, Copy } from 'lucide-react';
+import { RefreshCw, Plus, Trash2, Copy, Search, XCircle } from 'lucide-react';
 
 import { CDKService } from '@shared/services/api/cdk.service';
 import AdminPagination from '@shared/components/AdminPagination';
@@ -74,12 +74,12 @@ export const CDKPage: React.FC = () => {
     }
   }, []);
 
-  const loadCdks = useCallback(async () => {
+  const loadCdks = useCallback(async (pageNum?: number, pageSize?: number) => {
     try {
       setLoading(true);
       const req: CDKQueryRequest = {
-        pageNum: filters.pageNum,
-        pageSize: filters.pageSize,
+        pageNum: pageNum ?? filters.pageNum,
+        pageSize: pageSize ?? filters.pageSize,
         ...(filters.cdkType && { cdkType: filters.cdkType }),
         ...(filters.status && { status: filters.status }),
         ...(filters.targetId && { targetId: filters.targetId }),
@@ -100,6 +100,8 @@ export const CDKPage: React.FC = () => {
 
   const handleReset = () => setFilters({ pageNum: 1, pageSize: 10 });
   const handlePageChange = (page: number) => setFilters(prev => ({ ...prev, pageNum: page }));
+  const handleRefresh = () => loadCdks(pagination.current, pagination.size);
+  const handleQuery = () => { setFilters(prev => ({ ...prev, pageNum: 1 })); loadCdks(1, pagination.size); };
 
   // 删除
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; item?: CDKDTO }>({ open: false });
@@ -155,30 +157,12 @@ export const CDKPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">CDK管理</h1>
-          <p className="text-muted-foreground mt-1">管理系统激活码与绑定对象</p>
-        </div>
-        <Button onClick={openCreate}>
-          <Plus className="w-4 h-4 mr-2" /> 生成CDK
-        </Button>
-      </div>
-
-      {/* 筛选区 */}
+    <div className="h-full flex flex-col">
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            筛选
-            {loading && <RefreshCw className="w-4 h-4 animate-spin" />}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <Label>类型</Label>
-              <Select
+        <CardContent className="pt-6">
+          {/* 筛选行 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 mb-3 min-w-0">
+            <Select
                 value={filters.cdkType || 'all'}
                 onValueChange={(v) => {
                   const type = v === 'all' ? undefined : (v as CDKType);
@@ -186,22 +170,19 @@ export const CDKPage: React.FC = () => {
                   if (v !== 'all') loadTargets(v as CDKType);
                 }}
               >
-                <SelectTrigger><SelectValue placeholder="选择类型" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="类型" /></SelectTrigger>
                 <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
                   <SelectItem value="all">全部</SelectItem>
                   <SelectItem value="SUBSCRIPTION_PLAN">套餐</SelectItem>
                   <SelectItem value="COURSE">课程</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-            <div>
-              <Label>目标</Label>
-              <Select
+            <Select
                 value={filters.targetId || 'all'}
                 onValueChange={(v) => setFilters(prev => ({ ...prev, targetId: v === 'all' ? undefined : v, pageNum: 1 }))}
                 disabled={!filters.cdkType}
               >
-                <SelectTrigger><SelectValue placeholder={filters.cdkType ? '选择目标' : '先选择类型'} /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder={filters.cdkType ? '目标' : '先选择类型'} /></SelectTrigger>
                 <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
                   <SelectItem value="all">全部</SelectItem>
                   {(filters.cdkType === 'SUBSCRIPTION_PLAN' ? planOptions : courseOptions).map(opt => (
@@ -211,14 +192,11 @@ export const CDKPage: React.FC = () => {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div>
-              <Label>状态</Label>
-              <Select
+            <Select
                 value={filters.status || 'all'}
                 onValueChange={(v) => setFilters(prev => ({ ...prev, status: v === 'all' ? undefined : (v as CDKStatus), pageNum: 1 }))}
               >
-                <SelectTrigger><SelectValue placeholder="选择状态" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="状态" /></SelectTrigger>
                 <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
                   <SelectItem value="all">全部</SelectItem>
                   <SelectItem value="ACTIVE">可用</SelectItem>
@@ -226,22 +204,26 @@ export const CDKPage: React.FC = () => {
                   <SelectItem value="DISABLED">已禁用</SelectItem>
                 </SelectContent>
               </Select>
+          </div>
+          {/* 操作按钮行：左生成，右重置/刷新/查询 */}
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div className="flex items-center gap-2">
+              <Button onClick={openCreate}><Plus className="w-4 h-4 mr-2" /> 生成CDK</Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleReset} disabled={loading}>
+                <XCircle className="mr-2 h-4 w-4" /> 重置
+              </Button>
+              <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+                <RefreshCw className="mr-2 h-4 w-4" /> 刷新
+              </Button>
+              <Button onClick={handleQuery} disabled={loading}>
+                <Search className="mr-2 h-4 w-4" /> 查询
+              </Button>
             </div>
           </div>
-          <div className="flex justify-end mt-4">
-            <Button variant="outline" onClick={handleReset} disabled={loading}>
-              <RefreshCw className="w-4 h-4 mr-2" /> 重置筛选
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* 列表 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">CDK列表</CardTitle>
-        </CardHeader>
-        <CardContent>
+          {/* 表格区域：内容自适应，不铺满；横向滚动放在外层容器，避免移动端拖动受限 */}
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
@@ -267,7 +249,7 @@ export const CDKPage: React.FC = () => {
                   ))
                 ) : cdks.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">暂无数据</TableCell>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">暂无数据</TableCell>
                   </TableRow>
                 ) : (
                   cdks.map(item => (
@@ -302,18 +284,22 @@ export const CDKPage: React.FC = () => {
             </Table>
           </div>
 
-          {/* 分页（统一使用 AdminPagination 适配 shadcn） */}
-          {!loading && pagination.total > 0 && (
-            <div className="pt-4">
-              <AdminPagination
-                current={pagination.current}
-                totalPages={pagination.pages}
-                total={pagination.total}
-                onChange={handlePageChange}
-                mode="simple"
-              />
+          {/* 分页：始终展示统计信息；页数>1 时展示按钮 */}
+          <div className="pt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-muted-foreground whitespace-nowrap">
+                共 {pagination.total} 条，第 {Math.max(pagination.current, 1)} / {Math.max(pagination.pages, 1)} 页
+              </div>
+              {pagination.pages > 1 && (
+                <AdminPagination
+                  current={pagination.current}
+                  totalPages={pagination.pages}
+                  onChange={(p) => { handlePageChange(p); loadCdks(p, pagination.size); }}
+                  mode="full"
+                />
+              )}
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,10 +10,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { RefreshCw, Settings, UserX, UserCheck } from 'lucide-react';
+import { RefreshCw, Settings, UserX, UserCheck, Search, XCircle } from 'lucide-react';
 import { AdminUserService } from '@shared/services/api/admin-user.service';
 import { AdminUserDTO, AdminUserQueryRequest, PageResponse } from '@shared/types';
 import { toast } from 'react-hot-toast';
+import AdminPagination from '@shared/components/AdminPagination';
 
 export const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<AdminUserDTO[]>([]);
@@ -100,6 +101,8 @@ export const UsersPage: React.FC = () => {
       status: undefined
     });
   };
+  const handleRefresh = () => loadUsers();
+  const handleQuery = () => { setSearchParams(prev => ({ ...prev, pageNum: 1 })); loadUsers(); };
 
   // 切换用户状态
   const handleToggleStatus = async (userId: string) => {
@@ -184,74 +187,35 @@ export const UsersPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* 页面头部 */}
-      <div>
-        <h1 className="text-2xl font-bold">用户管理</h1>
-        <p className="text-muted-foreground mt-1">管理系统中的所有用户账户</p>
-      </div>
-
-      {/* 搜索筛选区域 */}
+    <div className="h-full flex flex-col">
+      {/* 筛选 + 操作 */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            搜索筛选
-            {loading && <RefreshCw className="w-4 h-4 animate-spin" />}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-            <div className="lg:col-span-2">
-              <Input
-                placeholder="搜索邮箱..."
-                value={searchParams.email || ''}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, email: e.target.value, pageNum: 1 }))}
-                className="w-full"
-              />
-            </div>
-            <div className="lg:col-span-2">
-              <Input
-                placeholder="搜索用户名..."
-                value={searchParams.name || ''}
-                onChange={(e) => setSearchParams(prev => ({ ...prev, name: e.target.value, pageNum: 1 }))}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <Select
-                value={searchParams.status || 'all'}
-                onValueChange={(value) => setSearchParams(prev => ({
-                  ...prev,
-                  status: value === 'all' ? undefined : (value as 'ACTIVE' | 'INACTIVE'),
-                  pageNum: 1
-                }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="状态筛选" />
-                </SelectTrigger>
-                <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
-                  <SelectItem value="all">全部状态</SelectItem>
-                  <SelectItem value="ACTIVE">激活</SelectItem>
-                  <SelectItem value="INACTIVE">禁用</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 mb-3 min-w-0">
+            <Input placeholder="搜索邮箱" value={searchParams.email || ''} onChange={(e) => setSearchParams(prev => ({ ...prev, email: e.target.value }))} />
+            <Input placeholder="搜索用户名" value={searchParams.name || ''} onChange={(e) => setSearchParams(prev => ({ ...prev, name: e.target.value }))} />
+            <Select value={searchParams.status || 'all'} onValueChange={(value) => setSearchParams(prev => ({ ...prev, status: value === 'all' ? undefined : (value as 'ACTIVE' | 'INACTIVE') }))}>
+              <SelectTrigger><SelectValue placeholder="状态" /></SelectTrigger>
+              <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+                <SelectItem value="all">全部状态</SelectItem>
+                <SelectItem value="ACTIVE">激活</SelectItem>
+                <SelectItem value="INACTIVE">禁用</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div className="flex flex-col sm:flex-row gap-2 justify-end mt-4">
-            <Button variant="outline" onClick={handleReset} disabled={loading} className="w-full sm:w-auto">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              重置筛选
+          <div className="flex flex-wrap items-center justify-end gap-2 mb-4">
+            <Button variant="outline" onClick={handleReset} disabled={loading}>
+              <XCircle className="mr-2 h-4 w-4" /> 重置
+            </Button>
+            <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+              <RefreshCw className="mr-2 h-4 w-4" /> 刷新
+            </Button>
+            <Button onClick={handleQuery} disabled={loading}>
+              <Search className="mr-2 h-4 w-4" /> 查询
             </Button>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* 用户数据表格 */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">用户列表</CardTitle>
-        </CardHeader>
-        <CardContent>
+          {/* 表格区域：内容自适应，不铺满；横向滚动放在外层容器，避免移动端拖动受限 */}
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
@@ -286,10 +250,8 @@ export const UsersPage: React.FC = () => {
                 ) : users.length === 0 ? (
                   // 空数据状态
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-12">
-                      <div className="text-muted-foreground">
-                        暂无用户数据
-                      </div>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      暂无用户数据
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -357,51 +319,22 @@ export const UsersPage: React.FC = () => {
             </Table>
           </div>
 
-          {/* 分页组件 */}
-          {!loading && pagination.total > 0 && (
-            <div className="flex flex-col sm:flex-row items-center justify-between pt-4 gap-4">
-              <div className="text-sm text-muted-foreground">
-                共 {pagination.total} 条记录，第 {pagination.current} / {pagination.pages} 页
+          {/* 分页：始终展示统计信息；页数>1 时展示按钮 */}
+          <div className="pt-4">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-sm text-muted-foreground whitespace-nowrap">
+                共 {pagination.total} 条，第 {Math.max(pagination.current, 1)} / {Math.max(pagination.pages, 1)} 页
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pagination.current <= 1}
-                  onClick={() => handlePageChange(1)}
-                >
-                  首页
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pagination.current <= 1}
-                  onClick={() => handlePageChange(pagination.current - 1)}
-                >
-                  上一页
-                </Button>
-                <span className="text-sm px-2">
-                  {pagination.current} / {pagination.pages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pagination.current >= pagination.pages}
-                  onClick={() => handlePageChange(pagination.current + 1)}
-                >
-                  下一页
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={pagination.current >= pagination.pages}
-                  onClick={() => handlePageChange(pagination.pages)}
-                >
-                  尾页
-                </Button>
-              </div>
+              {pagination.pages > 1 && (
+                <AdminPagination
+                  current={pagination.current}
+                  totalPages={pagination.pages}
+                  onChange={(p) => setSearchParams(prev => ({ ...prev, pageNum: p }))}
+                  mode="full"
+                />
+              )}
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 
