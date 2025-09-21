@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Clock, ChevronRight, Sparkles } from 'lucide-react';
+import { BookOpen, Clock, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FrontCourseDTO } from '@shared/types';
@@ -87,26 +86,8 @@ export const RecentCourseChapters: React.FC<RecentCourseChaptersProps> = ({
                     {course.title}
                   </h4>
 
-                  {/* Course Meta */}
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center space-x-2">
-                      {/* Tech Stack */}
-                      {course.techStack && course.techStack.length > 0 && (
-                        <Badge
-                          variant="outline"
-                          className="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 border-blue-200"
-                        >
-                          {course.techStack[0]}
-                        </Badge>
-                      )}
-
-                      {/* Rating */}
-                      <div className="flex items-center space-x-1 text-yellow-600">
-                        <Sparkles className="h-3 w-3" />
-                        <span className="font-medium">{course.rating}</span>
-                      </div>
-                    </div>
-
+                  {/* Course Meta：仅保留时间 */}
+                  <div className="flex items-center justify-end text-xs">
                     {/* Create Time */}
                     <div className="flex items-center space-x-1 text-warm-gray-500">
                       <Clock className="h-3 w-3" />
@@ -119,12 +100,6 @@ export const RecentCourseChapters: React.FC<RecentCourseChaptersProps> = ({
                     </div>
                   </div>
 
-                  {/* Description Preview */}
-                  {course.description && (
-                    <p className="text-xs text-warm-gray-600 line-clamp-1 leading-relaxed">
-                      {course.description}
-                    </p>
-                  )}
                 </div>
               </div>
             ))

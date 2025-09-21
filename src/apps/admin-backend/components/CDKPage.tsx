@@ -24,7 +24,7 @@ import type {
   SimpleSubscriptionPlanDTO,
   SimpleCourseDTO,
 } from '@shared/types';
-import { toast } from 'react-hot-toast';
+import { showToast } from '@shared/utils/toast';
 
 type FilterState = {
   pageNum: number;
@@ -123,17 +123,17 @@ export const CDKPage: React.FC = () => {
   };
   const submitCreate = async () => {
     const { cdkType, targetId, quantity } = createDialog;
-    if (!cdkType) return toast.error('请选择CDK类型');
-    if (!targetId) return toast.error('请选择绑定目标');
+    if (!cdkType) return showToast.error('请选择CDK类型');
+    if (!targetId) return showToast.error('请选择绑定目标');
     const qty = parseInt(quantity || '0', 10);
-    if (!Number.isInteger(qty) || qty < 1 || qty > 100) return toast.error('数量取值范围 1-100');
+    if (!Number.isInteger(qty) || qty < 1 || qty > 100) return showToast.error('数量取值范围 1-100');
 
     const payload: CreateCDKRequest = { cdkType, targetId, quantity: qty };
     try {
       setCreateDialog(prev => ({ ...prev, submitting: true }));
       const created = await CDKService.createCDK(payload);
       setCreateDialog(prev => ({ ...prev, submitting: false, result: created }));
-      toast.success(`成功生成 ${created.length} 个CDK`);
+      showToast.success(`成功生成 ${created.length} 个CDK`);
       await loadCdks();
     } catch (e) {
       console.error('创建CDK失败', e);
@@ -144,9 +144,9 @@ export const CDKPage: React.FC = () => {
   const copyCodes = async (codes: string[]) => {
     try {
       await navigator.clipboard.writeText(codes.join('\n'));
-      toast.success('已复制到剪贴板');
+      showToast.success('已复制到剪贴板');
     } catch {
-      toast.error('复制失败');
+      showToast.error('复制失败');
     }
   };
 

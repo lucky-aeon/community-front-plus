@@ -7,6 +7,7 @@ import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { CommentsService } from '@shared/services/api/comments.service';
 import type { CommentDTO, BusinessType, PageResponse } from '@shared/types';
 import { useAuth } from '@/context/AuthContext';
+import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 
 export interface CommentsProps {
   businessId: string;
@@ -29,6 +30,7 @@ export const Comments: React.FC<CommentsProps> = ({
   const [content, setContent] = useState('');
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id?: string }>({ open: false });
 
   const initials = (name?: string) => (name?.charAt(0).toUpperCase() || 'U');
 
@@ -84,6 +86,7 @@ export const Comments: React.FC<CommentsProps> = ({
   };
 
   return (
+    <>
     <Card className="p-4 md:p-6 space-y-4">
       {/* 新建评论 */}
       {user && (
@@ -142,7 +145,14 @@ export const Comments: React.FC<CommentsProps> = ({
                       <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => setReplyingTo(replyingTo === c.id ? null : c.id)}>回复</Button>
                     )}
                     {user?.id && CommentsService.canDeleteComment(c, user.id) && (
-                      <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => removeComment(c.id)}>删除</Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2"
+                        onClick={() => setDeleteConfirm({ open: true, id: c.id })}
+                      >
+                        删除
+                      </Button>
                     )}
                   </div>
                   {replyingTo === c.id && (
@@ -161,6 +171,21 @@ export const Comments: React.FC<CommentsProps> = ({
         )}
       </div>
     </Card>
+    {/* 删除确认 */}
+    <ConfirmDialog
+      isOpen={deleteConfirm.open}
+      title="确认删除"
+      message="删除后不可恢复，确定要删除这条评论吗？"
+      confirmText="删除"
+      cancelText="取消"
+      variant="danger"
+      onConfirm={async () => {
+        if (deleteConfirm.id) await removeComment(deleteConfirm.id);
+        setDeleteConfirm({ open: false, id: undefined });
+      }}
+      onCancel={() => setDeleteConfirm({ open: false, id: undefined })}
+    />
+    </>
   );
 };
 

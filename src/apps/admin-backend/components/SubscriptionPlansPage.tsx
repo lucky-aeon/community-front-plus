@@ -24,7 +24,7 @@ import type {
   PageResponse,
   SimpleCourseDTO
 } from '@shared/types';
-import { toast } from 'react-hot-toast';
+import { showToast } from '@shared/utils/toast';
 
 export const SubscriptionPlansPage: React.FC = () => {
   // 列表与分页
@@ -140,11 +140,11 @@ export const SubscriptionPlansPage: React.FC = () => {
     const level = parseInt(form.level, 10);
     const validityMonths = parseInt(form.validityMonths, 10);
     const price = Number(form.price);
-    if (!form.name || form.name.trim().length < 2) return toast.error('套餐名称至少2个字符');
-    if (!Number.isInteger(level) || level <= 0) return toast.error('套餐级别必须为正整数');
-    if (!Number.isInteger(validityMonths) || validityMonths <= 0) return toast.error('有效期必须为正整数');
-    if (!Number.isFinite(price) || price < 0) return toast.error('价格必须为非负数');
-    if (!form.benefits || form.benefits.length === 0) return toast.error('至少添加1个套餐权益');
+    if (!form.name || form.name.trim().length < 2) return showToast.error('套餐名称至少2个字符');
+    if (!Number.isInteger(level) || level <= 0) return showToast.error('套餐级别必须为正整数');
+    if (!Number.isInteger(validityMonths) || validityMonths <= 0) return showToast.error('有效期必须为正整数');
+    if (!Number.isFinite(price) || price < 0) return showToast.error('价格必须为非负数');
+    if (!form.benefits || form.benefits.length === 0) return showToast.error('至少添加1个套餐权益');
 
     const payload: CreateSubscriptionPlanRequest | UpdateSubscriptionPlanRequest = {
       name: form.name.trim(),
@@ -209,7 +209,7 @@ export const SubscriptionPlansPage: React.FC = () => {
       setBindDialog(prev => ({ ...prev, saving: true }));
       await SubscriptionPlanCoursesService.updateSubscriptionPlanCourses(bindDialog.plan.id, { courseIds: bindDialog.selected });
       setBindDialog({ open: false, loading: false, saving: false, plan: undefined, items: [], selected: [] });
-      toast.success('已更新套餐课程绑定');
+      showToast.success('已更新套餐课程绑定');
     } catch (e) {
       console.error('更新绑定失败', e);
       setBindDialog(prev => ({ ...prev, saving: false }));

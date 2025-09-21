@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { UserService } from '../../../shared/services/api';
 import { UserDTO } from '../../../shared/types';
 import { useAuth } from '../../../context/AuthContext';
-import toast from 'react-hot-toast';
+import { showToast } from '@shared/utils/toast';
 
 export const ProfileSettingsPage: React.FC = () => {
   const { user } = useAuth();
@@ -52,12 +52,12 @@ export const ProfileSettingsPage: React.FC = () => {
 
   const handleSave = async () => {
     if (!formData.bio.trim()) {
-      toast.error('请输入个人简介');
+      showToast.error('请输入个人简介');
       return;
     }
 
     if (formData.bio.length > 500) {
-      toast.error('个人简介不能超过500个字符');
+      showToast.error('个人简介不能超过500个字符');
       return;
     }
 
@@ -79,22 +79,22 @@ export const ProfileSettingsPage: React.FC = () => {
 
   const handlePasswordChange = async () => {
     if (!formData.currentPassword) {
-      toast.error('请输入当前密码');
+      showToast.error('请输入当前密码');
       return;
     }
 
     if (!formData.newPassword) {
-      toast.error('请输入新密码');
+      showToast.error('请输入新密码');
       return;
     }
 
     if (formData.newPassword.length < 6 || formData.newPassword.length > 20) {
-      toast.error('新密码长度必须为6-20位');
+      showToast.error('新密码长度必须为6-20位');
       return;
     }
 
     if (formData.newPassword !== formData.confirmPassword) {
-      toast.error('两次输入的密码不一致');
+      showToast.error('两次输入的密码不一致');
       return;
     }
 

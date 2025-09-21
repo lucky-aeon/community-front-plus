@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { RefreshCw, Settings, UserX, UserCheck, Search, XCircle } from 'lucide-react';
 import { AdminUserService } from '@shared/services/api/admin-user.service';
 import { AdminUserDTO, AdminUserQueryRequest, PageResponse } from '@shared/types';
-import { toast } from 'react-hot-toast';
+import { showToast } from '@shared/utils/toast';
 import AdminPagination from '@shared/components/AdminPagination';
 
 export const UsersPage: React.FC = () => {
@@ -140,7 +140,7 @@ export const UsersPage: React.FC = () => {
 
     const newCount = parseInt(deviceDialog.newDeviceCount);
     if (isNaN(newCount) || newCount < 1 || newCount > 10) {
-      toast.error('设备数量必须是 1-10 之间的整数');
+      showToast.error('设备数量必须是 1-10 之间的整数');
       return;
     }
 

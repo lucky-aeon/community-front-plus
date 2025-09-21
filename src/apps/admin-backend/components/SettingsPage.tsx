@@ -7,7 +7,7 @@ import { SystemConfigService } from '@shared/services/api/system-config.service'
 import { SubscriptionPlanCoursesService } from '@shared/services/api/subscription-plan-courses.service';
 import type { SimpleSubscriptionPlanDTO, SystemConfigDTO, UserSessionLimitConfigData } from '@shared/types';
 import { RefreshCw, Save } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { showToast } from '@shared/utils/toast';
 import { Input } from '@/components/ui/input';
 
 export const SettingsPage: React.FC = () => {
@@ -93,12 +93,12 @@ export const SettingsPage: React.FC = () => {
   }, []);
 
   const handleSave = async () => {
-    if (!selectedPlanId) return toast.error('请选择一个默认套餐');
+    if (!selectedPlanId) return showToast.error('请选择一个默认套餐');
     try {
       setSaving(true);
       await SystemConfigService.updateDefaultSubscriptionConfig(selectedPlanId);
       setInitialPlanId(selectedPlanId);
-      toast.success('默认套餐已更新');
+      showToast.success('默认套餐已更新');
     } catch (e) {
       // 错误由拦截器提示
     } finally {

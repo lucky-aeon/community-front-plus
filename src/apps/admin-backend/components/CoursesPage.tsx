@@ -264,6 +264,9 @@ export const CoursesPage: React.FC = () => {
     }
   };
 
+  // 章节删除二次确认
+  const [chapterDeleteConfirm, setChapterDeleteConfirm] = useState<{ open: boolean; index?: number }>({ open: false });
+
   const SortableChapterRow: React.FC<{ item: ChapterDTO; index: number }> = ({ item, index }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
     const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), transition };
@@ -278,7 +281,14 @@ export const CoursesPage: React.FC = () => {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={() => openChapterEdit(index)}>编辑</Button>
-          <Button variant="outline" size="sm" className="text-red-600" onClick={() => deleteChapter(index)}>删除</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-red-600"
+            onClick={() => setChapterDeleteConfirm({ open: true, index })}
+          >
+            删除
+          </Button>
         </div>
       </div>
     );
@@ -557,6 +567,28 @@ export const CoursesPage: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* 章节删除确认 */}
+      <AlertDialog open={chapterDeleteConfirm.open} onOpenChange={(open) => setChapterDeleteConfirm(prev => ({ ...prev, open }))}>
+        <AlertDialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+          <AlertDialogHeader>
+            <AlertDialogTitle>确认删除章节</AlertDialogTitle>
+            <AlertDialogDescription>该操作为软删除，仍不可撤销，确认继续？</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setChapterDeleteConfirm({ open: false })}>取消</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={async () => {
+                if (chapterDeleteConfirm.index !== undefined) await deleteChapter(chapterDeleteConfirm.index);
+                setChapterDeleteConfirm({ open: false });
+              }}
+            >
+              删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

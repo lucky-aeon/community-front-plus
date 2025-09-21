@@ -1,5 +1,5 @@
 import axios from 'axios';
-import toast from 'react-hot-toast';
+import { showToast } from '@shared/utils/toast';
 
 // API 基础配置 - 使用相对路径让Vite代理处理
 export const API_BASE_URL = '/api';
@@ -33,8 +33,22 @@ apiClient.interceptors.response.use(
   (response) => {
     // 如果响应包含 message 且不为空字符串，显示成功提示
     if (response.data?.message && response.data.message.trim() !== '') {
-      toast.success(response.data.message);
+      showToast.success(response.data.message);
+      return response;
     }
+
+    // 针对部分成功但无 message 的接口做兜底提示
+    try {
+      const url = response.config?.url || '';
+      // 关注/取消关注切换：/app/follows/toggle
+      if (url.includes('/app/follows/toggle') && response.status >= 200 && response.status < 300) {
+        const data: any = response.data?.data;
+        if (data && typeof data.isFollowing !== 'undefined') {
+          showToast.success(data.isFollowing ? '关注成功' : '取消关注');
+        }
+      }
+    } catch {}
+
     return response;
   },
   (error) => {
@@ -47,22 +61,22 @@ apiClient.interceptors.response.use(
           // 未授权，清除本地存储的认证信息
           localStorage.removeItem('auth_token');
           localStorage.removeItem('user');
-          toast.error('登录已过期，请重新登录');
+          showToast.error('登录已过期，请重新登录');
           break;
         case 403:
-          toast.error('权限不足');
+          showToast.error('权限不足');
           break;
         case 404:
-          toast.error('请求的资源未找到');
+          showToast.error('请求的资源未找到');
           break;
         case 500:
-          toast.error('服务器错误，请稍后再试');
+          showToast.error('服务器错误，请稍后再试');
           break;
         case 400: {
           // 客户端请求错误，显示后端返回的具体错误信息
           const badRequestMessage = data?.message || '请求参数有误';
           if (badRequestMessage.trim() !== '') {
-            toast.error(badRequestMessage);
+            showToast.error(badRequestMessage);
           }
           break;
         }
@@ -70,17 +84,17 @@ apiClient.interceptors.response.use(
           // 显示后端返回的错误信息，如果没有则显示默认信息
           const errorMessage = data?.message || '请求失败，请稍后再试';
           if (errorMessage.trim() !== '') {
-            toast.error(errorMessage);
+            showToast.error(errorMessage);
           }
           break;
         }
       }
     } else if (error.request) {
       // 网络错误
-      toast.error('网络连接失败，请检查网络设置');
+      showToast.error('网络连接失败，请检查网络设置');
     } else {
       // 其他错误
-      toast.error('请求发生错误');
+      showToast.error('请求发生错误');
     }
     
     return Promise.reject(error);

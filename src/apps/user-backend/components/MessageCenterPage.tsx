@@ -3,6 +3,7 @@ import { Bell, MessageCircle, Heart, User, CheckCircle, Clock, Trash2 } from 'lu
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 
 export const MessageCenterPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('all');
@@ -90,6 +91,7 @@ export const MessageCenterPage: React.FC = () => {
     console.log('Mark as read:', messageId);
   };
 
+  const [deleteConfirm, setDeleteConfirm] = useState<{ open: boolean; id?: string }>({ open: false });
   const deleteMessage = (messageId: string) => {
     // 删除消息的逻辑
     console.log('Delete message:', messageId);
@@ -240,7 +242,7 @@ export const MessageCenterPage: React.FC = () => {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => deleteMessage(message.id)}
+                      onClick={() => setDeleteConfirm({ open: true, id: message.id })}
                       className="text-xs h-6 px-2 text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="h-3 w-3 mr-1" />
@@ -258,6 +260,21 @@ export const MessageCenterPage: React.FC = () => {
       <div className="text-center">
         <Button variant="outline">加载更多消息</Button>
       </div>
+
+      {/* 删除确认 */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.open}
+        title="确认删除"
+        message="删除后不可恢复，确定要删除该消息吗？"
+        confirmText="删除"
+        cancelText="取消"
+        variant="danger"
+        onConfirm={() => {
+          if (deleteConfirm.id) deleteMessage(deleteConfirm.id);
+          setDeleteConfirm({ open: false, id: undefined });
+        }}
+        onCancel={() => setDeleteConfirm({ open: false, id: undefined })}
+      />
     </div>
   );
 };

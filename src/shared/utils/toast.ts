@@ -3,41 +3,37 @@ import { toast } from '@/hooks/use-toast';
 export const showToast = {
   success: (message: string) => {
     toast({
-      title: "成功",
       description: message,
-      variant: "default",
+      variant: "success",
+      duration: 2200,
     });
   },
 
   error: (message: string) => {
     toast({
-      title: "错误",
       description: message,
       variant: "destructive",
+      duration: 3000,
     });
   },
 
   loading: (message: string) => {
     return toast({
-      title: "加载中",
       description: message,
-      variant: "default",
+      variant: "info",
+      duration: 60000,
     });
   },
 
   info: (message: string) => {
     toast({
-      title: "提示",
       description: message,
-      variant: "default",
+      variant: "info",
+      duration: 2500,
     });
   },
 
-  dismiss: (toastId?: string) => {
-    // shadcn toast 的 dismiss 方法
-    if (toastId) {
-      // 需要通过 useToast hook 调用，这里简化处理
-      toast({ title: "", description: "", variant: "default" });
-    }
-  },
+  // 注意：shadcn 的编程式 dismiss 需要保存并调用 toast(...) 返回的 dismiss
+  // 这里提供一个空实现以保持 API 兼容，推荐使用 loading(...) 的返回对象来 dismiss
+  dismiss: (_toastId?: string) => {},
 };
