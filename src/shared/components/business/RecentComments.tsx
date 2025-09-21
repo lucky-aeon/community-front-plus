@@ -132,16 +132,31 @@ export const RecentComments: React.FC<RecentCommentsProps> = ({
                   onClick={() => handleCommentClick(comment)}
                 >
                   <div className="space-y-3">
-                    {/* Comment Header */}
-                    <div className="flex items-center space-x-2">
-                      <img
-                        src={comment.commentUserAvatar || '/api/placeholder/24/24'}
-                        alt={comment.commentUserName}
-                        className="h-6 w-6 rounded-full object-cover"
-                      />
-                      <span className="text-sm font-medium text-gray-900">
-                        {comment.commentUserName}
-                      </span>
+                    {/* Comment Header with Business Type Badge */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <img
+                          src={comment.commentUserAvatar || '/api/placeholder/24/24'}
+                          alt={comment.commentUserName}
+                          className="h-6 w-6 rounded-full object-cover"
+                        />
+                        <span className="text-sm font-medium text-gray-900">
+                          {comment.commentUserName}
+                        </span>
+                      </div>
+
+                      {/* Business Type Badge - moved to top right */}
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          "text-xs px-2 py-0.5",
+                          comment.businessType === 'POST'
+                            ? 'bg-green-50 text-green-700 border-green-200'
+                            : 'bg-blue-50 text-blue-700 border-blue-200'
+                        )}
+                      >
+                        {comment.businessType === 'POST' ? '文章' : '课程'}
+                      </Badge>
                     </div>
 
                     {/* Reply Indicator */}
@@ -158,22 +173,7 @@ export const RecentComments: React.FC<RecentCommentsProps> = ({
                     </p>
 
                     {/* Comment Meta */}
-                    <div className="flex items-center justify-between text-xs pl-8">
-                      <div className="flex items-center space-x-2">
-                        {/* Business Type Badge */}
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-xs px-2 py-0.5",
-                            comment.businessType === 'POST'
-                              ? 'bg-green-50 text-green-700 border-green-200'
-                              : 'bg-blue-50 text-blue-700 border-blue-200'
-                          )}
-                        >
-                          {comment.businessType === 'POST' ? '文章' : '课程'}
-                        </Badge>
-                      </div>
-
+                    <div className="flex items-center justify-end text-xs pl-8">
                       {/* Time */}
                       <div className="flex items-center space-x-1 text-warm-gray-500">
                         <Clock className="h-3 w-3" />

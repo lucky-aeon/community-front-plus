@@ -134,20 +134,6 @@ export const UpdateLogs: React.FC<UpdateLogsProps> = ({
                     </p>
                   )}
 
-                  {/* Status indicator */}
-                  <div className="flex items-center justify-end text-xs">
-                    {log.status === 'PUBLISHED' ? (
-                      <div className="flex items-center space-x-1 text-green-600">
-                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        <span>已发布</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center space-x-1 text-gray-500">
-                        <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                        <span>草稿</span>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
             ))
