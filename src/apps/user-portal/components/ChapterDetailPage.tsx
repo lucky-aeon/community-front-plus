@@ -1,50 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { BookOpen, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CoursesService, ChaptersService } from '@shared/services/api';
-import { FrontCourseDetailDTO, FrontChapterDetailDTO } from '@shared/types';
+import { FrontCourseDetailDTO, FrontChapterDetailDTO, FrontChapterDTO } from '@shared/types';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import Comments from '@/components/ui/comments';
 
 export const ChapterDetailPage: React.FC = () => {
+  const navigate = useNavigate();
   const { courseId, chapterId } = useParams<{ courseId: string; chapterId: string }>();
 
-  // 状态管理
   const [course, setCourse] = useState<FrontCourseDetailDTO | null>(null);
   const [chapterDetail, setChapterDetail] = useState<FrontChapterDetailDTO | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isChapterLoading, setIsChapterLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isCourseLoading, setIsCourseLoading] = useState(true);
+  const [isChapterLoading, setIsChapterLoading] = useState(true);
+  const [courseError, setCourseError] = useState<string | null>(null);
   const [chapterError, setChapterError] = useState<string | null>(null);
 
-  // 获取课程信息
+  // 载入课程信息
   useEffect(() => {
     const fetchCourseDetail = async () => {
       if (!courseId) return;
-
       try {
-        setIsLoading(true);
-        setError(null);
-        const courseData = await CoursesService.getFrontCourseDetail(courseId);
-        setCourse(courseData);
+        setIsCourseLoading(true);
+        setCourseError(null);
+        const data = await CoursesService.getFrontCourseDetail(courseId);
+        setCourse(data);
       } catch (err) {
         console.error('获取课程详情失败:', err);
-        setError('课程加载失败');
+        setCourseError('课程加载失败');
       } finally {
-        setIsLoading(false);
+        setIsCourseLoading(false);
       }
     };
-
     fetchCourseDetail();
   }, [courseId]);
 
-  // 获取章节详情
+  // 载入章节信息
   useEffect(() => {
     const fetchChapterDetail = async () => {
       if (!chapterId) return;
-
       try {
         setIsChapterLoading(true);
         setChapterError(null);
-        const chapterData = await ChaptersService.getFrontChapterDetail(chapterId);
-        setChapterDetail(chapterData);
+        const data = await ChaptersService.getFrontChapterDetail(chapterId);
+        setChapterDetail(data);
       } catch (err) {
         console.error('获取章节详情失败:', err);
         setChapterError('章节加载失败');
@@ -52,59 +57,212 @@ export const ChapterDetailPage: React.FC = () => {
         setIsChapterLoading(false);
       }
     };
-
     fetchChapterDetail();
   }, [chapterId]);
 
-  // 错误状态处理
+  // 派生：章节序列与前后章节
+  const sortedChapters = useMemo<FrontChapterDTO[]>(() => {
+    if (!course?.chapters) return [];
+    return [...course.chapters].sort((a, b) => a.sortOrder - b.sortOrder);
+  }, [course]);
+
+  const currentIndex = useMemo(() => {
+    if (!sortedChapters.length || !chapterId) return -1;
+    return sortedChapters.findIndex((c) => c.id === chapterId);
+  }, [sortedChapters, chapterId]);
+
+  const prevChapter = currentIndex > 0 ? sortedChapters[currentIndex - 1] : undefined;
+  const nextChapter = currentIndex >= 0 && currentIndex < sortedChapters.length - 1 ? sortedChapters[currentIndex + 1] : undefined;
+
+  const formatDate = (iso?: string) =>
+    iso ? new Date(iso).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '-';
+
+  // 处理基本校验
   if (!courseId || !chapterId) {
     return (
-      <div>
-        <h2>参数缺失</h2>
-        <p>课程ID: {courseId || '缺失'}</p>
-        <p>章节ID: {chapterId || '缺失'}</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <Alert variant="destructive">
+          <AlertTitle>参数缺失</AlertTitle>
+          <AlertDescription>缺少课程ID或章节ID</AlertDescription>
+        </Alert>
       </div>
     );
   }
 
-  if (isLoading) {
+  // 加载骨架
+  if (isCourseLoading || isChapterLoading) {
     return (
-      <div>
-        <p>正在加载课程信息...</p>
+      <div className="animate-pulse">
+        <div className="bg-gradient-to-br from-honey-50 via-white to-honey-50/60 border-b border-honey-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <Skeleton className="h-6 w-40" />
+            <Skeleton className="h-8 w-2/3 mt-3" />
+            <div className="mt-3 flex items-center gap-3">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="p-6 lg:col-span-2 space-y-4">
+            <Skeleton className="h-6 w-28" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-2/3" />
+          </Card>
+          <Card className="p-6 space-y-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <Skeleton key={i} className="h-5 w-full" />
+            ))}
+          </Card>
+        </div>
       </div>
     );
   }
 
-  if (error || !course) {
+  // 错误态
+  if (courseError || !course) {
     return (
-      <div>
-        <h2>{error || '课程未找到'}</h2>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <Alert variant="destructive">
+          <AlertTitle>加载失败</AlertTitle>
+          <AlertDescription>{courseError || '课程未找到'}</AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (chapterError || !chapterDetail) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <Alert variant="destructive">
+          <AlertTitle>加载失败</AlertTitle>
+          <AlertDescription>{chapterError || '章节未找到'}</AlertDescription>
+        </Alert>
       </div>
     );
   }
 
   return (
-    <div>
-      {/* 这里可以重新设计章节详情页面内容 */}
-      <h1>章节详情页 - 待重新设计</h1>
-      <p>课程ID: {courseId}</p>
-      <p>章节ID: {chapterId}</p>
-      <p>课程标题: {course.title}</p>
-      <p>章节加载状态: {isChapterLoading ? '加载中...' : '已加载'}</p>
-
-      {chapterError && <p style={{ color: 'red' }}>章节错误: {chapterError}</p>}
-
-      {chapterDetail && (
-        <div>
-          <p>章节标题: {chapterDetail.title}</p>
-          <p>章节内容长度: {chapterDetail.content.length} 字符</p>
-          <p>预计阅读时间: {chapterDetail.readingTime} 分钟</p>
-          <p>更新时间: {chapterDetail.updateTime}</p>
+    <div className="relative">
+      {/* 顶部：面包屑与标题 */}
+      <div className="bg-gradient-to-br from-honey-50 via-white to-honey-50/60 border-b border-honey-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-2">
+          <div className="text-sm text-warm-gray-500">
+            <button className="hover:text-honey-600" onClick={() => navigate(`/dashboard/courses/${course.id}`)}>
+              {course.title}
+            </button>
+            <span className="mx-2">/</span>
+            <span className="text-warm-gray-700 font-medium">{chapterDetail.title}</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{chapterDetail.title}</h1>
+          <div className="flex items-center gap-3 text-sm text-warm-gray-600">
+            <div className="flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              <span>预计 {chapterDetail.readingTime} 分钟</span>
+            </div>
+            <div className="w-1 h-1 rounded-full bg-warm-gray-300" />
+            <div className="flex items-center gap-1">
+              <BookOpen className="h-4 w-4" />
+              <span>发布于 {formatDate(chapterDetail.createTime)}</span>
+            </div>
+          </div>
+          {/* 上/下一章按钮 */}
+          <div className="mt-3 flex items-center gap-2">
+            <Button
+              variant="secondary"
+              disabled={!prevChapter}
+              onClick={() => prevChapter && navigate(`/dashboard/courses/${course.id}/chapters/${prevChapter.id}`)}
+            >
+              <ChevronLeft className="h-4 w-4 mr-1" /> 上一章
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={!nextChapter}
+              onClick={() => nextChapter && navigate(`/dashboard/courses/${course.id}/chapters/${nextChapter.id}`)}
+            >
+              下一章 <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
         </div>
-      )}
+      </div>
 
-      <p>课程总章节数: {course.chapters.length}</p>
-      <p>当前章节索引: {course.chapters.findIndex(c => c.id === chapterId) + 1}</p>
+      {/* 主体 */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 内容区 */}
+        <div className="space-y-6 lg:col-span-2">
+          <Card className="p-6">
+            <div className="prose-content">
+              <MarkdownEditor
+                value={chapterDetail.content || ''}
+                onChange={() => {}}
+                previewOnly
+                height="auto"
+                toolbar={false}
+                enableFullscreen={false}
+                enableToc
+                className="!border-none !shadow-none !bg-transparent"
+              />
+            </div>
+          </Card>
+
+          {/* 评论区 */}
+          <div>
+            <h2 className="text-lg font-bold mb-3">评论</h2>
+            <Comments businessId={chapterDetail.id} businessType={'CHAPTER'} authorId={course.authorId} />
+          </div>
+        </div>
+
+        {/* 右侧：章节目录 */}
+        <div>
+          <Card className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold">课程目录</h2>
+              <Badge variant="secondary">共 {sortedChapters.length} 章</Badge>
+            </div>
+            <div className="space-y-1">
+              {sortedChapters.map((ch) => {
+                const active = ch.id === chapterDetail.id;
+                return (
+                  <button
+                    key={ch.id}
+                    onClick={() => navigate(`/dashboard/courses/${course.id}/chapters/${ch.id}`)}
+                    className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                      active ? 'bg-honey-50 border-honey-200' : 'hover:bg-honey-50/60'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-warm-gray-500 w-10">#{ch.sortOrder}</span>
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium text-gray-900 truncate">{ch.title}</div>
+                        <div className="text-xs text-warm-gray-500">预计 {ch.readingTime} 分钟</div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 下方上一章/下一章 */}
+            <div className="pt-2 flex items-center justify-between gap-2">
+              <Button
+                variant="outline"
+                disabled={!prevChapter}
+                onClick={() => prevChapter && navigate(`/dashboard/courses/${course.id}/chapters/${prevChapter.id}`)}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" /> 上一章
+              </Button>
+              <Button
+                variant="outline"
+                disabled={!nextChapter}
+                onClick={() => nextChapter && navigate(`/dashboard/courses/${course.id}/chapters/${nextChapter.id}`)}
+              >
+                下一章 <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };

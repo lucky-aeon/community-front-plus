@@ -10,9 +10,10 @@ import { cn } from '@/lib/utils';
 interface CourseCardProps {
   course: FrontCourseDTO;
   onClick?: (courseId: string) => void;
+  showAuthor?: boolean; // 是否显示作者，默认显示
 }
 
-export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
+export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAuthor = true }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDING': return 'bg-amber-100 text-amber-800 border-amber-200';
@@ -106,7 +107,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
 
       {/* Content Section */}
       <div className="p-6 space-y-4">
-        {/* Rating and Author */}
+        {/* Rating 和（可选）作者 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-1.5">
             <div className="flex items-center space-x-1">
@@ -116,7 +117,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
             <div className="w-1 h-1 bg-warm-gray-300 rounded-full" />
             <Award className="h-4 w-4 text-honey-500" />
           </div>
-          <span className="text-sm font-medium text-warm-gray-600">{course.authorName}</span>
+          {showAuthor && course.authorName && (
+            <span className="text-sm font-medium text-warm-gray-600">{course.authorName}</span>
+          )}
         </div>
 
         {/* Title and Description */}
@@ -174,13 +177,13 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
             <div className="flex items-center justify-between">
               <div className="flex items-baseline space-x-2">
                 <span className="text-2xl font-bold text-gray-900">¥{course.price}</span>
-                {course.originalPrice && (
+                {course.originalPrice !== undefined && course.price !== undefined && course.originalPrice > course.price && (
                   <span className="text-sm text-warm-gray-500 line-through">
                     ¥{course.originalPrice}
                   </span>
                 )}
               </div>
-              {course.originalPrice && course.originalPrice > course.price && (
+              {course.originalPrice !== undefined && course.price !== undefined && course.originalPrice > course.price && (
                 <Badge className="bg-red-50 text-red-700 border-red-200 text-xs font-semibold">
                   限时优惠
                 </Badge>

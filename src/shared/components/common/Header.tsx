@@ -84,7 +84,10 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
                 </Button>
               </div>
             ) : (
-              <Button onClick={onAuthClick} variant="primary" useCustomTheme={true} className="hidden sm:flex">
+              <Button
+                onClick={onAuthClick}
+                className="hidden sm:flex bg-gradient-to-r from-honey-500 to-honey-600 hover:from-honey-600 hover:to-honey-700 text-white shadow-md"
+              >
                 <User className="h-4 w-4 mr-2" />
                 登录 / 注册
               </Button>
@@ -120,9 +123,7 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
                     onAuthClick();
                     setIsMenuOpen(false);
                   }}
-                  variant="primary"
-                  useCustomTheme={true}
-                  className="mt-4"
+                  className="mt-4 bg-gradient-to-r from-honey-500 to-honey-600 hover:from-honey-600 hover:to-honey-700 text-white shadow-md"
                 >
                   <User className="h-4 w-4 mr-2" />
                   登录 / 注册

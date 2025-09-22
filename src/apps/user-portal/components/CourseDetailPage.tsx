@@ -1,9 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { BookOpen, Clock, ExternalLink, Tags, Star } from 'lucide-react';
 import { CoursesService } from '@shared/services/api';
-import { FrontCourseDetailDTO } from '@shared/types';
+import { FrontCourseDetailDTO, FrontChapterDTO } from '@shared/types';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import Comments from '@/components/ui/comments';
 
 export const CourseDetailPage: React.FC = () => {
+  const navigate = useNavigate();
   const { courseId } = useParams<{ courseId: string }>();
   const [course, setCourse] = useState<FrontCourseDetailDTO | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -20,7 +29,7 @@ export const CourseDetailPage: React.FC = () => {
         setCourse(courseData);
       } catch (err) {
         console.error('获取课程详情失败:', err);
-        setError('课程加载失败');
+        setError('课程加载失败，请稍后重试');
       } finally {
         setIsLoading(false);
       }
@@ -29,41 +38,277 @@ export const CourseDetailPage: React.FC = () => {
     fetchCourseDetail();
   }, [courseId]);
 
+  const statusBadge = (status?: string) => {
+    const map: Record<string, string> = {
+      PENDING: 'bg-amber-100 text-amber-800 border-amber-200',
+      IN_PROGRESS: 'bg-honey-100 text-honey-800 border-honey-200',
+      COMPLETED: 'bg-sage-100 text-sage-800 border-sage-200'
+    };
+    const textMap: Record<string, string> = { PENDING: '待更新', IN_PROGRESS: '更新中', COMPLETED: '已完成' };
+    return (
+      <Badge className={`border ${map[status || ''] || 'bg-warm-gray-100 text-warm-gray-800 border-warm-gray-200'}`}>
+        {textMap[status || ''] || '未知状态'}
+      </Badge>
+    );
+  };
+
+  const formatDate = (iso?: string) =>
+    iso ? new Date(iso).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '-';
+
+  const firstChapter = useMemo<FrontChapterDTO | undefined>(() => {
+    if (!course?.chapters?.length) return undefined;
+    return [...course.chapters].sort((a, b) => a.sortOrder - b.sortOrder)[0];
+  }, [course]);
+
+  const startLearning = () => {
+    if (course && firstChapter) {
+      navigate(`/dashboard/courses/${course.id}/chapters/${firstChapter.id}`);
+    }
+  };
+
+  const openUrl = (url?: string | null) => {
+    if (!url) return;
+    window.open(url, '_blank');
+  };
+
   if (!courseId) {
     return (
-      <div>
-        <h2>课程ID缺失</h2>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <Alert variant="destructive">
+          <AlertTitle>参数缺失</AlertTitle>
+          <AlertDescription>课程 ID 缺失</AlertDescription>
+        </Alert>
       </div>
     );
   }
 
   if (isLoading) {
     return (
-      <div>
-        <p>正在加载课程详情...</p>
+      <div className="animate-pulse">
+        <div className="bg-gradient-to-br from-honey-50 via-white to-honey-50/60 border-b border-honey-100">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <Skeleton className="h-7 w-48" />
+            <div className="mt-4 flex items-center gap-2">
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+          </div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="p-6 lg:col-span-2 space-y-4">
+            <Skeleton className="h-5 w-1/3" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-6 w-32" />
+          </Card>
+          <Card className="p-6 space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+            ))}
+          </Card>
+        </div>
       </div>
     );
   }
 
   if (error || !course) {
     return (
-      <div>
-        <h2>{error || '课程未找到'}</h2>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <Alert variant="destructive">
+          <AlertTitle>加载失败</AlertTitle>
+          <AlertDescription>{error || '课程未找到'}</AlertDescription>
+        </Alert>
       </div>
     );
   }
 
   return (
-    <div>
-      {/* 这里可以重新设计课程详情页面内容 */}
-      <h1>课程详情页 - 待重新设计</h1>
-      <p>课程ID: {courseId}</p>
-      <p>课程标题: {course.title}</p>
-      <p>课程描述: {course.description}</p>
-      <p>作者: {course.authorName}</p>
-      <p>章节数: {course.chapters.length}</p>
-      <p>评分: {course.rating}</p>
-      <p>状态: {course.status}</p>
+    <div className="relative">
+      {/* 顶部 Hero */}
+      <div className="bg-gradient-to-br from-honey-50 via-white to-honey-50/60 border-b border-honey-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              {statusBadge(course.status)}
+              <span className="text-warm-gray-400 text-sm">创建于 {formatDate(course.createTime)}</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{course.title}</h1>
+            <div className="flex items-center gap-3 text-sm text-warm-gray-600">
+              <div className="flex items-center gap-1">
+                <Star className="h-4 w-4 text-yellow-500" />
+                <span className="font-semibold">{course.rating?.toFixed(1) ?? '0.0'}</span>
+              </div>
+              <div className="w-1 h-1 rounded-full bg-warm-gray-300" />
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span>{CoursesService.formatReadingTime(course.totalReadingTime)}</span>
+              </div>
+              <div className="w-1 h-1 rounded-full bg-warm-gray-300" />
+              <div className="flex items-center gap-1">
+                <BookOpen className="h-4 w-4" />
+                <span>{course.chapters.length} 章节</span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              {course.price !== undefined && (
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-gray-900">¥{course.price}</span>
+                  {course.originalPrice !== undefined && course.originalPrice > course.price! && (
+                    <span className="text-sm text-warm-gray-500 line-through">¥{course.originalPrice}</span>
+                  )}
+                </div>
+              )}
+
+              <div className="flex-1" />
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={startLearning}
+                  disabled={!firstChapter}
+                  className="bg-gradient-to-r from-premium-500 via-honey-600 to-amber-600 text-white"
+                >
+                  开始学习
+                </Button>
+                {course.projectUrl && (
+                  <Button variant="secondary" onClick={() => openUrl(course.projectUrl)}>
+                    <ExternalLink className="h-4 w-4 mr-1" /> 项目地址
+                  </Button>
+                )}
+                {course.demoUrl && (
+                  <Button variant="secondary" onClick={() => openUrl(course.demoUrl!)}>
+                    <ExternalLink className="h-4 w-4 mr-1" /> 在线演示
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 主体内容 */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* 左侧：课程概览 */}
+        <div className="space-y-6 lg:col-span-2">
+          <Card className="p-6 space-y-4">
+            <h2 className="text-lg font-bold">课程介绍</h2>
+            <div className="prose-content">
+              <MarkdownEditor
+                value={course.description || ''}
+                onChange={() => {}}
+                previewOnly
+                height="auto"
+                toolbar={false}
+                enableFullscreen={false}
+                enableToc={false}
+                className="!border-none !shadow-none !bg-transparent"
+              />
+            </div>
+
+            {/* 技术栈与标签 */}
+            <div className="pt-2 space-y-3">
+              {(course.techStack?.length ?? 0) > 0 && (
+                <div className="flex items-center gap-2">
+                  <Tags className="h-4 w-4 text-honey-600" />
+                  <div className="flex flex-wrap gap-2">
+                    {course.techStack.map((t) => (
+                      <Badge key={t} className="bg-honey-50 text-honey-700 border-honey-200">{t}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(course.tags?.length ?? 0) > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-warm-gray-500">分类标签</span>
+                  <div className="flex flex-wrap gap-2">
+                    {course.tags.map((t) => (
+                      <Badge key={t} className="bg-sage-50 text-sage-700 border-sage-200">{t}</Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* 资源区 */}
+          {(course.resources?.length ?? 0) > 0 && (
+            <Card className="p-6">
+              <h2 className="text-lg font-bold mb-4">课程资源</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {course.resources!.map((r, idx) => (
+                  <div key={`${r.title}-${idx}`} className="flex items-start gap-3 p-3 rounded-lg border hover:bg-honey-50/40 transition-colors">
+                    <div className="mt-0.5">
+                      {/* 简单的图标映射 */}
+                      {r.icon === 'Github' && (
+                        <svg viewBox="0 0 24 24" className="h-5 w-5 text-gray-800" aria-hidden>
+                          <path fill="currentColor" d="M12 .5A12 12 0 0 0 0 12.7c0 5.4 3.4 10 8.2 11.6.6.1.8-.3.8-.6v-2.1c-3.3.7-4-1.6-4-1.6-.6-1.4-1.3-1.8-1.3-1.8-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 .1.7 2 .7 2 1 .1 2-.5 2-.5-.6-.4-1-.9-1.2-1.5-.2-.6 0-1.3.4-1.8-2.6-.3-5.4-1.3-5.4-5.9 0-1.3.5-2.5 1.3-3.3-.1-.3-.6-1.6.1-3.3 0 0 1-.3 3.4 1.3a11.7 11.7 0 0 1 6.2 0C17 5.2 18 5.5 18 5.5c.7 1.7.2 3 .2 3 .8.8 1.3 2 1.3 3.3 0 4.7-2.8 5.6-5.4 5.9.4.3.7 1 .7 2.1v3c0 .3.2.7.8.6 4.8-1.6 8.2-6.2 8.2-11.6A12 12 0 0 0 12 .5Z"/>
+                        </svg>
+                      )}
+                      {r.icon === 'Code' && (
+                        <svg viewBox="0 0 24 24" className="h-5 w-5 text-honey-700" aria-hidden>
+                          <path fill="currentColor" d="M9.4 16.6 5.8 13l3.6-3.6L8 8l-5 5 5 5 1.4-1.4Zm5.2 0 3.6-3.6-3.6-3.6L16 8l5 5-5 5-1.4-1.4ZM14.9 4l-3.8 16H9.1L12.9 4h2Z"/>
+                        </svg>
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900 leading-tight">{r.title}</div>
+                      <div className="text-sm text-warm-gray-600 leading-relaxed">{r.description}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* 评论区 */}
+          <div>
+            <h2 className="text-lg font-bold mb-3">评论</h2>
+            <Comments businessId={course.id} businessType={'COURSE'} authorId={course.authorId} />
+          </div>
+        </div>
+
+        {/* 右侧：章节列表 */}
+        <div>
+          <Card className="p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-bold">课程章节</h2>
+              <Badge variant="secondary">共 {course.chapters.length} 章</Badge>
+            </div>
+
+            {course.chapters.length === 0 ? (
+              <div className="text-sm text-warm-gray-600">暂无章节</div>
+            ) : (
+              <div className="space-y-2">
+                {[...course.chapters]
+                  .sort((a, b) => a.sortOrder - b.sortOrder)
+                  .map((ch) => (
+                    <button
+                      key={ch.id}
+                      onClick={() => navigate(`/dashboard/courses/${course.id}/chapters/${ch.id}`)}
+                      className="w-full text-left p-3 rounded-lg border hover:bg-honey-50/60 transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-warm-gray-500 w-10">#{ch.sortOrder}</span>
+                          <div>
+                            <div className="text-sm font-medium text-gray-900 line-clamp-1">{ch.title}</div>
+                            <div className="text-xs text-warm-gray-500 flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" /> 预计 {ch.readingTime} 分钟 · {formatDate(ch.createTime)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+              </div>
+            )}
+          </Card>
+
+          {/* 移除右侧评分卡，评分仅在顶部展示 */}
+        </div>
+      </div>
     </div>
   );
 };

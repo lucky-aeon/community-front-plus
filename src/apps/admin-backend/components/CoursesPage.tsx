@@ -53,8 +53,9 @@ export const CoursesPage: React.FC = () => {
       originalPrice?: string;
       rating?: number;
       tags: string[];
+      techStack: string[];
     };
-  }>({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [] } });
+  }>({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } });
 
   // 删除
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; item?: CourseDTO }>({ open: false });
@@ -97,7 +98,7 @@ export const CoursesPage: React.FC = () => {
   const handleQuery = () => { setFilters(prev => ({ ...prev, pageNum: 1 })); loadCourses(1, pagination.size); };
 
   // 打开创建/编辑
-  const openCreate = () => setEditDialog({ open: true, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: '', tags: '' } });
+  const openCreate = () => setEditDialog({ open: true, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } });
   const openEdit = (item: CourseDTO) => setEditDialog({
     open: true,
     mode: 'edit',
@@ -110,7 +111,8 @@ export const CoursesPage: React.FC = () => {
       price: item.price != null ? String(item.price) : '',
       originalPrice: item.originalPrice != null ? String(item.originalPrice) : '',
       rating: item.rating != null ? item.rating : 0,
-      tags: (item.tags || [])
+      tags: (item.tags || []),
+      techStack: (item.techStack || [])
     }
   });
 
@@ -126,7 +128,8 @@ export const CoursesPage: React.FC = () => {
       ...(form.price ? { price: Number(form.price) } : {}),
       ...(form.originalPrice ? { originalPrice: Number(form.originalPrice) } : {}),
       ...(form.rating ? { rating: Number(form.rating) } : {}),
-      ...(form.tags && form.tags.length ? { tags: form.tags } : {})
+      ...(form.tags && form.tags.length ? { tags: form.tags } : {}),
+      ...(form.techStack && form.techStack.length ? { techStack: form.techStack } : {})
     };
     try {
       setEditDialog(prev => ({ ...prev, submitting: true }));
@@ -135,7 +138,7 @@ export const CoursesPage: React.FC = () => {
       } else if (id) {
         await CoursesService.updateCourse(id, payloadBase as UpdateCourseRequest);
       }
-      setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [] } });
+      setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } });
       await loadCourses();
     } catch (e) {
       console.error('保存课程失败', e);
@@ -427,7 +430,7 @@ export const CoursesPage: React.FC = () => {
       <Dialog open={editDialog.open} onOpenChange={(open) => {
         if (!editDialog.submitting) {
           setEditDialog(prev => ({ ...prev, open }));
-          if (!open) setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: '', tags: '' } });
+          if (!open) setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } });
         }
       }}>
         <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-3xl">
@@ -468,12 +471,16 @@ export const CoursesPage: React.FC = () => {
               <Rating value={editDialog.form.rating || 0} onChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, rating: v } }))} />
             </div>
             <div className="md:col-span-2 space-y-2">
+              <Label>技术栈</Label>
+              <TagsInput value={editDialog.form.techStack} onChange={(techStack) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, techStack } }))} placeholder="输入技术栈，回车或逗号添加" />
+            </div>
+            <div className="md:col-span-2 space-y-2">
               <Label>标签</Label>
               <TagsInput value={editDialog.form.tags} onChange={(tags) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, tags } }))} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: '', tags: '' } })} disabled={editDialog.submitting}>取消</Button>
+            <Button variant="outline" onClick={() => setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } })} disabled={editDialog.submitting}>取消</Button>
             <Button onClick={submitEdit} disabled={editDialog.submitting}>{editDialog.submitting ? '保存中...' : '保存'}</Button>
           </DialogFooter>
         </DialogContent>
