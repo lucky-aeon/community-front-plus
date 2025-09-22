@@ -22,6 +22,7 @@ export { apiClient, type ApiResponse } from './config';
 export type {
   LoginRequest,
   RegisterRequest,
+  RegisterWithCodeRequest,
   BackendUser,
   LoginResponse,
 } from './auth.service';

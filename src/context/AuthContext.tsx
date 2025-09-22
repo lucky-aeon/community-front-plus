@@ -101,6 +101,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const sendRegisterCode = async (email: string) => {
+    setIsLoading(true);
+    try {
+      await AuthService.sendRegisterCode(email);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const registerWithCode = async (email: string, code: string, password: string) => {
+    setIsLoading(true);
+    try {
+      const user = await AuthService.registerWithCode({ email, code, password });
+      setUser(user);
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = () => {
     setUser(null);
     AuthService.logout();
@@ -110,6 +133,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     login,
     register,
+    sendRegisterCode,
+    registerWithCode,
     logout,
     isLoading
   };

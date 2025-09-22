@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Mail, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { showToast } from '@shared/utils/toast';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -14,15 +15,19 @@ interface AuthModalProps {
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
     email: '',
-    password: ''
+    password: '',
+    confirmPassword: '',
+    code: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const emailInputRef = useRef<HTMLInputElement>(null);
+  const [codeRequested, setCodeRequested] = useState(false);
+  const [cooldown, setCooldown] = useState(0); // seconds left
 
-  const { login, register, isLoading } = useAuth();
+  const { login, registerWithCode, isLoading } = useAuth();
 
   useEffect(() => {
     if (isOpen && emailInputRef.current) {
@@ -40,10 +45,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       if (isLogin) {
         await login(formData.email, formData.password);
       } else {
-        await register(formData.name, formData.email, formData.password);
+        if (!formData.code) {
+          showToast.error('请输入邮箱验证码');
+          return;
+        }
+        if (!formData.password) {
+          showToast.error('请设置登录密码');
+          return;
+        }
+        if (formData.password.length < 6 || formData.password.length > 20) {
+          showToast.error('密码长度需为 6-20 位');
+          return;
+        }
+        if (formData.password !== formData.confirmPassword) {
+          showToast.error('两次输入的密码不一致');
+          return;
+        }
+        await registerWithCode(formData.email, formData.code, formData.password);
       }
       onClose();
-      setFormData({ name: '', email: '', password: '' });
+      setFormData({ email: '', password: '', confirmPassword: '', code: '' });
+      setCodeRequested(false);
+      setCooldown(0);
     } catch (error) {
       // 错误消息已经通过 axios 拦截器和 toast 显示了，不需要在组件中重复显示
       console.error('Authentication error:', error);
@@ -57,6 +80,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }));
   };
 
+  // 发送验证码 & 启动 5 分钟冷却
+  const handleSendCode = async () => {
+    if (!formData.email) {
+      showToast.error('请先填写邮箱');
+      return;
+    }
+    if (cooldown > 0) return;
+    // 预览模式：此处先不调用后端，直接模拟成功，避免未接入接口时报错
+    setCodeRequested(true);
+    setCooldown(300); // 5 分钟
+    showToast.success('验证码已发送至邮箱（预览）');
+  };
+
+  // 倒计时效果
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown(prev => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent className="max-w-md">
@@ -68,26 +113,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-          {!isLogin && (
-            <div className="space-y-2 relative">
-              <Label htmlFor="auth-name">姓名</Label>
-              <div className="relative">
-                <Input
-                  id="auth-name"
-                  type="text"
-                  name="name"
-                  placeholder="姓名"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="pl-12"
-                />
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-2 relative">
+          {/* 邮箱 */}
+          <div className="space-y-2">
             <Label htmlFor="auth-email">邮箱</Label>
             <div className="relative">
               <Input
@@ -99,40 +126,133 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="pl-12"
+                className="pl-12 pr-28"
               />
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              {/* 发送验证码按钮（仅注册态 + 合法邮箱时显示） */}
+              {(() => { const emailValid = /\S+@\S+\.\S+/.test(formData.email); return (!isLogin && emailValid) ? (
+                <button
+                  type="button"
+                  onClick={handleSendCode}
+                  disabled={isLoading || cooldown > 0}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-honey-700 hover:text-honey-800 focus:underline disabled:text-warm-gray-400 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {cooldown > 0 ? `重新发送(${cooldown}s)` : '发送验证码'}
+                </button>
+              ) : null })()}
             </div>
           </div>
 
-          <div className="space-y-2 relative">
-            <Label htmlFor="auth-password">密码</Label>
-            <div className="relative">
+          {/* 密码（登录态） */}
+          {isLogin && (
+            <div className="space-y-2 relative">
+              <Label htmlFor="auth-password">密码</Label>
+              <div className="relative">
+                <Input
+                  id="auth-password"
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  placeholder="密码"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  className="pl-12 pr-12"
+                />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2"
+                  aria-label={showPassword ? '隐藏密码' : '显示密码'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400" />
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 验证码输入（注册态） */}
+          {!isLogin && (
+            <div className="space-y-2">
+              <Label htmlFor="auth-code">邮箱验证码</Label>
               <Input
-                id="auth-password"
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                placeholder="密码"
-                value={formData.password}
+                id="auth-code"
+                type="text"
+                name="code"
+                placeholder="请输入收到的验证码"
+                value={formData.code}
                 onChange={handleChange}
                 required
-                className="pl-12 pr-12"
               />
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-1/2 -translate-y-1/2"
-                aria-label={showPassword ? '隐藏密码' : '显示密码'}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-5 w-5 text-gray-400" />
-                ) : (
-                  <Eye className="h-5 w-5 text-gray-400" />
-                )}
-              </button>
             </div>
-          </div>
+          )}
+
+          {/* 设置密码（注册态） */}
+          {!isLogin && (
+            <>
+              <div className="space-y-2 relative">
+                <Label htmlFor="auth-set-password">设置密码</Label>
+                <div className="relative">
+                  <Input
+                    id="auth-set-password"
+                    type={showPassword ? 'text' : 'password'}
+                    name="password"
+                    placeholder="设置登录密码（6-20位）"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className="pl-12 pr-12"
+                  />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2"
+                    aria-label={showPassword ? '隐藏密码' : '显示密码'}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2 relative">
+                <Label htmlFor="auth-confirm-password">确认密码</Label>
+                <div className="relative">
+                  <Input
+                    id="auth-confirm-password"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    name="confirmPassword"
+                    placeholder="再次输入登录密码"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    required
+                    className="pl-12 pr-12"
+                  />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2"
+                    aria-label={showConfirmPassword ? '隐藏密码' : '显示密码'}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
 
           <Button
             type="submit"

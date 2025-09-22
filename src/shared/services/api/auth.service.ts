@@ -34,6 +34,13 @@ export interface RegisterRequest {
   password: string;
 }
 
+// 使用邮箱验证码注册请求参数
+export interface RegisterWithCodeRequest {
+  email: string;
+  code: string;
+  password: string;
+}
+
 // 认证服务类
 export class AuthService {
   
@@ -74,6 +81,27 @@ export class AuthService {
     // 存储用户信息
     localStorage.setItem('user', JSON.stringify(user));
     
+    return user;
+  }
+
+  /**
+   * 发送注册验证码到邮箱
+   */
+  static async sendRegisterCode(email: string): Promise<void> {
+    await apiClient.post<ApiResponse<void>>('/auth/register/send-code', { email });
+  }
+
+  /**
+   * 使用邮箱验证码注册
+   */
+  static async registerWithCode(params: RegisterWithCodeRequest): Promise<User> {
+    const response = await apiClient.post<ApiResponse<LoginResponse>>('/auth/register/with-code', params);
+
+    const { token, user: backendUser } = response.data.data;
+
+    localStorage.setItem('auth_token', token);
+    const user: User = this.mapBackendUserToFrontendUser(backendUser);
+    localStorage.setItem('user', JSON.stringify(user));
     return user;
   }
 

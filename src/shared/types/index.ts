@@ -50,7 +50,11 @@ export interface MembershipPlan {
 export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
+  // 旧注册接口（保留兼容）
   register: (name: string, email: string, password: string) => Promise<void>;
+  // 新注册接口：邮箱验证码注册
+  sendRegisterCode: (email: string) => Promise<void>;
+  registerWithCode: (email: string, code: string, password: string) => Promise<void>;
   logout: () => void;
   isLoading: boolean;
 }
