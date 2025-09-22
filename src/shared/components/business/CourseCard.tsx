@@ -1,10 +1,11 @@
 import React from 'react';
-import { Clock, Star, BookOpen, ExternalLink } from 'lucide-react';
+import { Clock, Star, BookOpen, ExternalLink, Award } from 'lucide-react';
 import { FrontCourseDTO } from '../../types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CoursesService } from '../../services/api';
+import { cn } from '@/lib/utils';
 
 interface CourseCardProps {
   course: FrontCourseDTO;
@@ -14,10 +15,10 @@ interface CourseCardProps {
 export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING': return 'warning';
-      case 'IN_PROGRESS': return 'primary';
-      case 'COMPLETED': return 'success';
-      default: return 'secondary';
+      case 'PENDING': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'IN_PROGRESS': return 'bg-honey-100 text-honey-800 border-honey-200';
+      case 'COMPLETED': return 'bg-sage-100 text-sage-800 border-sage-200';
+      default: return 'bg-warm-gray-100 text-warm-gray-800 border-warm-gray-200';
     }
   };
 
@@ -44,23 +45,58 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
   };
 
   return (
-    <Card hover className="overflow-hidden cursor-pointer" onClick={handleCardClick}>
-      <div className="relative bg-gradient-to-br from-blue-500 to-purple-600 h-48 flex items-center justify-center">
-        <div className="text-center text-white">
-          <BookOpen className="h-16 w-16 mx-auto mb-4 opacity-80" />
-          <h4 className="text-lg font-semibold">{course.title}</h4>
+    <Card
+      className={cn(
+        "group overflow-hidden cursor-pointer",
+        "transform transition-all duration-300 ease-out",
+        "hover:scale-[1.02] hover:shadow-xl hover:shadow-honey-200/30",
+        "bg-white border border-honey-100 rounded-2xl"
+      )}
+      onClick={handleCardClick}
+    >
+      {/* Hero Section with Honey Theme Gradient */}
+      <div className="relative h-48 bg-gradient-to-br from-honey-400/90 via-honey-500 to-premium-600 overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+
+        {/* Floating Decoration */}
+        <div className="absolute top-4 right-4 w-16 h-16 bg-white/10 rounded-full blur-2xl animate-float" />
+        <div className="absolute bottom-8 left-8 w-12 h-12 bg-white/5 rounded-full blur-xl animate-float animation-delay-2000" />
+
+        {/* Content */}
+        <div className="relative h-full flex flex-col items-center justify-center text-white p-6">
+          <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 mb-3 transform group-hover:scale-110 transition-transform duration-300">
+            <BookOpen className="h-12 w-12 text-white drop-shadow-sm" />
+          </div>
+          <h4 className="text-lg font-bold text-center leading-tight drop-shadow-sm line-clamp-2">
+            {course.title}
+          </h4>
         </div>
-        <Badge
-          variant={getStatusColor(course.status)}
-          className="absolute top-3 left-3"
-        >
-          {getStatusText(course.status)}
-        </Badge>
+
+        {/* Status Badge */}
+        <div className="absolute top-4 left-4">
+          <Badge
+            className={cn(
+              "border text-xs font-semibold shadow-sm",
+              "bg-white/90 backdrop-blur-sm",
+              getStatusColor(course.status)
+            )}
+          >
+            {getStatusText(course.status)}
+          </Badge>
+        </div>
+
+        {/* Project URL Button */}
         {course.projectUrl && (
           <Button
             size="sm"
             variant="secondary"
-            className="absolute top-3 right-3 bg-white/20 hover:bg-white/30 text-white border-white/30"
+            className={cn(
+              "absolute top-4 right-4 h-8 w-8 p-0",
+              "bg-white/20 hover:bg-white/30 text-white border-white/30",
+              "backdrop-blur-sm transition-all duration-200",
+              "hover:scale-110 shadow-lg"
+            )}
             onClick={handleProjectUrlClick}
           >
             <ExternalLink className="h-4 w-4" />
@@ -68,75 +104,109 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick }) => {
         )}
       </div>
 
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-1 text-yellow-500">
-            <Star className="h-4 w-4 fill-current" />
-            <span className="text-sm font-medium text-gray-700">{course.rating.toFixed(1)}</span>
+      {/* Content Section */}
+      <div className="p-6 space-y-4">
+        {/* Rating and Author */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-1.5">
+            <div className="flex items-center space-x-1">
+              <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+              <span className="text-sm font-semibold text-gray-900">{course.rating.toFixed(1)}</span>
+            </div>
+            <div className="w-1 h-1 bg-warm-gray-300 rounded-full" />
+            <Award className="h-4 w-4 text-honey-500" />
           </div>
-          <span className="text-sm text-gray-500">{course.authorName}</span>
+          <span className="text-sm font-medium text-warm-gray-600">{course.authorName}</span>
         </div>
 
-        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2">
-          {course.title}
-        </h3>
+        {/* Title and Description */}
+        <div className="space-y-2">
+          <h3 className="text-lg font-bold text-gray-900 leading-tight line-clamp-2 group-hover:text-honey-700 transition-colors">
+            {course.title}
+          </h3>
+          <p className="text-warm-gray-600 text-sm leading-relaxed line-clamp-2">
+            {course.description}
+          </p>
+        </div>
 
-        <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-          {course.description}
-        </p>
-
-        <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-1">
+        {/* Course Stats */}
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center space-x-4 text-warm-gray-500">
+            <div className="flex items-center space-x-1.5">
               <Clock className="h-4 w-4" />
-              <span>{CoursesService.formatReadingTime(course.totalReadingTime)}</span>
+              <span className="font-medium">{CoursesService.formatReadingTime(course.totalReadingTime)}</span>
             </div>
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-1.5">
               <BookOpen className="h-4 w-4" />
-              <span>{course.chapterCount}章节</span>
+              <span className="font-medium">{course.chapterCount}章节</span>
             </div>
           </div>
         </div>
 
-        {/* 技术栈标签 */}
-        <div className="flex flex-wrap gap-2 mb-4">
+        {/* Technology Stack Tags */}
+        <div className="flex flex-wrap gap-2">
           {course.techStack?.slice(0, 2).map((tech) => (
-            <Badge key={tech} variant="primary" size="sm">
+            <Badge
+              key={tech}
+              className="bg-honey-50 text-honey-700 border-honey-200 hover:bg-honey-100 transition-colors text-xs font-medium"
+            >
               {tech}
             </Badge>
           ))}
           {course.tags?.slice(0, 1).map((tag) => (
-            <Badge key={tag} variant="secondary" size="sm">
+            <Badge
+              key={tag}
+              className="bg-sage-50 text-sage-700 border-sage-200 hover:bg-sage-100 transition-colors text-xs font-medium"
+            >
               {tag}
             </Badge>
           ))}
           {((course.techStack?.length || 0) > 2 || (course.tags?.length || 0) > 1) && (
-            <Badge variant="secondary" size="sm">
+            <Badge className="bg-warm-gray-50 text-warm-gray-600 border-warm-gray-200 text-xs font-medium">
               +{(course.techStack?.length || 0) + (course.tags?.length || 0) - 3}
             </Badge>
           )}
         </div>
 
-        {/* 价格信息 */}
-        {course.price !== undefined && (
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <span className="text-xl font-bold text-gray-900">¥{course.price}</span>
-              {course.originalPrice && (
-                <span className="text-sm text-gray-500 line-through ml-2">
-                  ¥{course.originalPrice}
-                </span>
+        {/* Price and Action */}
+        <div className="space-y-3 pt-2 border-t border-warm-gray-100">
+          {course.price !== undefined && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-baseline space-x-2">
+                <span className="text-2xl font-bold text-gray-900">¥{course.price}</span>
+                {course.originalPrice && (
+                  <span className="text-sm text-warm-gray-500 line-through">
+                    ¥{course.originalPrice}
+                  </span>
+                )}
+              </div>
+              {course.originalPrice && course.originalPrice > course.price && (
+                <Badge className="bg-red-50 text-red-700 border-red-200 text-xs font-semibold">
+                  限时优惠
+                </Badge>
               )}
             </div>
-          </div>
-        )}
+          )}
 
-        <Button
-          className="w-full"
-          onClick={handleCardClick}
-        >
-          开始学习
-        </Button>
+          <Button
+            className={cn(
+              "w-full h-11 font-semibold text-sm relative overflow-hidden group",
+              "bg-gradient-to-r from-premium-500 via-honey-600 to-amber-600",
+              "hover:from-premium-600 hover:via-honey-700 hover:to-amber-700",
+              "text-white shadow-lg hover:shadow-xl",
+              "transform hover:scale-[1.02] transition-all duration-300",
+              "focus:ring-2 focus:ring-premium-500/30",
+              "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent",
+              "before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-700"
+            )}
+            onClick={handleCardClick}
+          >
+            <span className="relative z-10 flex items-center justify-center space-x-2">
+              <span>开始学习</span>
+              <div className="w-1.5 h-1.5 bg-white/80 rounded-full animate-pulse" />
+            </span>
+          </Button>
+        </div>
       </div>
     </Card>
   );
