@@ -1,11 +1,10 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FileText, Calendar, ChevronRight, AlertCircle, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { FileText, Calendar, AlertCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UpdateLogDTO } from '@shared/types';
+import { UpdateLogModal } from './UpdateLogModal';
 import { cn } from '@/lib/utils';
 
 interface UpdateLogsProps {
@@ -19,14 +18,17 @@ export const UpdateLogs: React.FC<UpdateLogsProps> = ({
   isLoading = false,
   className
 }) => {
-  const navigate = useNavigate();
+  const [selectedLog, setSelectedLog] = useState<UpdateLogDTO | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleLogClick = (logId: string) => {
-    navigate(`/dashboard/changelog/${logId}`);
+  const handleLogClick = (log: UpdateLogDTO) => {
+    setSelectedLog(log);
+    setIsModalOpen(true);
   };
 
-  const handleViewMore = () => {
-    navigate('/dashboard/changelog');
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedLog(null);
   };
 
   const formatDate = (dateStr: string) => {
@@ -70,14 +72,7 @@ export const UpdateLogs: React.FC<UpdateLogsProps> = ({
             <FileText className="h-5 w-5 text-orange-600" />
             <h3 className="text-lg font-bold text-gray-900">更新日志</h3>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleViewMore}
-            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50 p-1 h-auto"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
+          <span className="text-xs text-warm-gray-400">点击查看详情</span>
         </div>
 
         {/* Logs List */}
@@ -87,7 +82,7 @@ export const UpdateLogs: React.FC<UpdateLogsProps> = ({
               <div
                 key={log.id}
                 className="group p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-orange-100"
-                onClick={() => handleLogClick(log.id)}
+                onClick={() => handleLogClick(log)}
               >
                 <div className="space-y-2">
                   {/* Log Header */}
@@ -146,19 +141,22 @@ export const UpdateLogs: React.FC<UpdateLogsProps> = ({
           )}
         </div>
 
-        {/* View More Button */}
+        {/* View More Hint */}
         {logs.length > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleViewMore}
-            className="w-full text-orange-600 hover:text-orange-700 hover:bg-orange-50 text-sm"
-          >
-            查看更多更新
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
+          <div className="text-center">
+            <p className="text-xs text-warm-gray-400">
+              点击任意更新查看详情
+            </p>
+          </div>
         )}
       </div>
+
+      {/* 更新详情模态框 */}
+      <UpdateLogModal
+        updateLog={selectedLog}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </Card>
   );
 };

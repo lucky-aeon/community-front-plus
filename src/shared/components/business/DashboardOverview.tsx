@@ -86,12 +86,9 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className 
   useEffect(() => {
     const fetchUpdateLogs = async () => {
       try {
-        const response = await UpdateLogService.getUpdateLogs({
-          pageNum: 1,
-          pageSize: 3,
-          status: 'PUBLISHED'
-        });
-        setUpdateLogs(response.records);
+        const updateLogs = await UpdateLogService.getPublicUpdateLogs();
+        // 只取前3个
+        setUpdateLogs(updateLogs.slice(0, 3));
       } catch (error) {
         console.error('获取更新日志失败:', error);
       } finally {

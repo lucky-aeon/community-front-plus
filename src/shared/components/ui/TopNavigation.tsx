@@ -10,12 +10,12 @@ import {
   Settings,
   LogOut,
   User,
-  FileText,
-  History
+  FileText
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { MembershipBadge } from './MembershipBadge';
+import { SearchBar } from './SearchBar';
 import { cn } from '@/lib/utils';
 
 interface TopNavigationProps {
@@ -51,13 +51,6 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
       path: '/dashboard/discussions',
       icon: MessageSquare,
       description: '技术讨论和问答'
-    },
-    {
-      id: 'changelog',
-      name: '更新',
-      path: '/dashboard/changelog',
-      icon: History,
-      description: '产品更新日志'
     }
   ];
 

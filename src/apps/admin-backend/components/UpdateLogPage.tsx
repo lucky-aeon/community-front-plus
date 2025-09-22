@@ -14,6 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { RefreshCw, Plus, Pencil, Trash2, ArrowUpToLine, ArrowDownToLine, Search, XCircle } from 'lucide-react';
 import AdminPagination from '@shared/components/AdminPagination';
+import { showToast } from '@shared/utils/toast';
 
 import { UpdateLogService } from '@shared/services/api/update-log.service';
 import type {
@@ -78,7 +79,23 @@ export const UpdateLogPage: React.FC = () => {
   };
 
   const openCreate = () => setEditDialog({ open: true, mode: 'create', submitting: false, form: { version: '', title: '', description: '', isImportant: false, changeDetails: [] } });
-  const openEdit = (item: UpdateLogDTO) => setEditDialog({ open: true, mode: 'edit', id: item.id, submitting: false, form: { version: item.version, title: item.title, description: item.description, isImportant: item.isImportant, changeDetails: item.changeDetails || [] } });
+  const openEdit = (item: UpdateLogDTO) => {
+    // 优先使用 changes 字段，兼容 changeDetails
+    const changeDetails = item.changes || item.changeDetails || [];
+    setEditDialog({
+      open: true,
+      mode: 'edit',
+      id: item.id,
+      submitting: false,
+      form: {
+        version: item.version,
+        title: item.title,
+        description: item.description,
+        isImportant: item.isImportant || false,
+        changeDetails
+      }
+    });
+  };
 
   const addChange = () => setEditDialog(prev => ({ ...prev, form: { ...prev.form, changeDetails: [...prev.form.changeDetails, { type: 'FEATURE' as ChangeType, title: '', description: '' }] } }));
   const updateChange = (index: number, patch: Partial<ChangeDetailDTO>) => setEditDialog(prev => {
@@ -90,28 +107,64 @@ export const UpdateLogPage: React.FC = () => {
 
   const submitEdit = async () => {
     const { mode, id, form } = editDialog;
+
     // 基础校验
-    if (!form.version.trim() || !form.title.trim() || !form.description.trim()) return;
-    if (!form.changeDetails || form.changeDetails.length === 0) return;
-    if (form.changeDetails.some(cd => !cd.title?.trim() || !cd.description?.trim())) return;
+    if (!form.version.trim()) {
+      showToast.error('请输入版本号');
+      return;
+    }
+    if (!form.title.trim()) {
+      showToast.error('请输入更新标题');
+      return;
+    }
+    if (!form.description.trim()) {
+      showToast.error('请输入更新描述');
+      return;
+    }
+    if (!form.changeDetails || form.changeDetails.length === 0) {
+      showToast.error('请至少添加一项变更明细');
+      return;
+    }
+
+    // 检查变更明细的完整性
+    const invalidChanges = form.changeDetails.filter(cd => !cd.title?.trim() || !cd.description?.trim());
+    if (invalidChanges.length > 0) {
+      showToast.error('变更明细的标题和描述不能为空');
+      return;
+    }
+
     const payload: CreateUpdateLogRequest | UpdateUpdateLogRequest = {
       version: form.version.trim(),
       title: form.title.trim(),
       description: form.description.trim(),
       isImportant: form.isImportant,
-      changeDetails: form.changeDetails.map(cd => ({ type: cd.type, title: cd.title.trim(), description: cd.description.trim() })),
+      changeDetails: form.changeDetails.map(cd => ({
+        type: cd.type,
+        title: cd.title.trim(),
+        description: cd.description.trim()
+      })),
     };
+
     try {
       setEditDialog(prev => ({ ...prev, submitting: true }));
+
       if (mode === 'create') {
         await UpdateLogService.createUpdateLog(payload as CreateUpdateLogRequest);
+        showToast.success('更新日志创建成功');
       } else if (id) {
         await UpdateLogService.updateUpdateLog(id, payload as UpdateUpdateLogRequest);
+        showToast.success('更新日志修改成功');
       }
-      setEditDialog({ open: false, mode: 'create', submitting: false, form: { version: '', title: '', description: '', isImportant: false, changeDetails: [] } });
+
+      setEditDialog({
+        open: false,
+        mode: 'create',
+        submitting: false,
+        form: { version: '', title: '', description: '', isImportant: false, changeDetails: [] }
+      });
       await loadLogs();
-    } catch (e) {
-      console.error('保存更新日志失败', e);
+    } catch (error) {
+      console.error('保存更新日志失败', error);
       setEditDialog(prev => ({ ...prev, submitting: false }));
     }
   };
@@ -119,9 +172,11 @@ export const UpdateLogPage: React.FC = () => {
   const toggleStatus = async (item: UpdateLogDTO) => {
     try {
       await UpdateLogService.toggleUpdateLogStatus(item.id);
+      const action = item.status === 'PUBLISHED' ? '撤回' : '发布';
+      showToast.success(`${action}成功`);
       await loadLogs();
-    } catch (e) {
-      console.error('切换状态失败', e);
+    } catch (error) {
+      console.error('切换状态失败', error);
     }
   };
 
@@ -131,9 +186,10 @@ export const UpdateLogPage: React.FC = () => {
     try {
       await UpdateLogService.deleteUpdateLog(deleteDialog.item.id);
       setDeleteDialog({ open: false });
+      showToast.success('更新日志删除成功');
       await loadLogs();
-    } catch (e) {
-      console.error('删除更新日志失败', e);
+    } catch (error) {
+      console.error('删除更新日志失败', error);
     }
   };
 
@@ -280,82 +336,120 @@ export const UpdateLogPage: React.FC = () => {
 
       {/* 创建/编辑对话框 */}
       <Dialog open={editDialog.open} onOpenChange={(open) => {
-        if (!editDialog.submitting) {
+        if (!editDialog.submitting && !open) {
           setEditDialog(prev => ({ ...prev, open }));
           if (!open) setEditDialog({ open: false, mode: 'create', submitting: false, form: { version: '', title: '', description: '', isImportant: false, changeDetails: [] } });
         }
       }}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-3xl">
-          <DialogHeader>
+        <DialogContent
+          className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-4xl max-h-[90vh] flex flex-col"
+          onEscapeKeyDown={(e) => e.preventDefault()}
+          onPointerDownOutside={(e) => e.preventDefault()}
+        >
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>{editDialog.mode === 'create' ? '新建更新' : '编辑更新'}</DialogTitle>
             <DialogDescription>填写版本、标题、描述与变更明细</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>版本</Label>
-              <Input value={editDialog.form.version} onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, version: e.target.value } }))} placeholder="如 1.2.3" />
-            </div>
-            <div className="space-y-2">
-              <Label>重要更新</Label>
-              <div className="h-10 flex items-center gap-3 px-2 border rounded-md">
-                <Switch checked={editDialog.form.isImportant} onCheckedChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, isImportant: !!v } }))} />
-                <span className="text-sm text-muted-foreground">标记为重要</span>
+
+          {/* 可滚动内容区域 */}
+          <div className="flex-1 overflow-y-auto pr-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>版本</Label>
+                <Input value={editDialog.form.version} onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, version: e.target.value } }))} placeholder="如 1.2.3" />
               </div>
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <Label>标题</Label>
-              <Input value={editDialog.form.title} onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, title: e.target.value } }))} placeholder="更新标题" />
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <Label>描述（Markdown）</Label>
-              <MarkdownEditor
-                value={editDialog.form.description}
-                onChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, description: v } }))}
-                height={260}
-              />
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>变更明细</Label>
-                <Button variant="secondary" size="sm" onClick={addChange}><Plus className="w-4 h-4 mr-2" /> 添加一项</Button>
-              </div>
-              {editDialog.form.changeDetails.length === 0 ? (
-                <div className="text-sm text-muted-foreground">暂无变更项，请添加</div>
-              ) : (
-                <div className="space-y-3">
-                  {editDialog.form.changeDetails.map((cd, idx) => (
-                    <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-2 items-start border rounded-md p-3">
-                      <div className="md:col-span-3 space-y-1">
-                        <Label className="text-xs">类型</Label>
-                        <Select value={cd.type} onValueChange={(v) => updateChange(idx, { type: v as ChangeType })}>
-                          <SelectTrigger><SelectValue placeholder="选择类型" /></SelectTrigger>
-                          <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
-                            <SelectItem value="FEATURE">功能</SelectItem>
-                            <SelectItem value="IMPROVEMENT">改进</SelectItem>
-                            <SelectItem value="BUGFIX">修复</SelectItem>
-                            <SelectItem value="BREAKING">兼容性变更</SelectItem>
-                            <SelectItem value="SECURITY">安全</SelectItem>
-                            <SelectItem value="OTHER">其他</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="md:col-span-4 space-y-1">
-                        <Label className="text-xs">标题</Label>
-                        <Input value={cd.title} onChange={(e) => updateChange(idx, { title: e.target.value })} placeholder="变更标题" />
-                      </div>
-                      <div className="md:col-span-5 space-y-1">
-                        <Label className="text-xs">描述</Label>
-                        <Input value={cd.description} onChange={(e) => updateChange(idx, { description: e.target.value })} placeholder="简要描述" />
-                      </div>
-                      <div className="md:col-span-12 flex justify-end">
-                        <Button variant="outline" size="sm" className="text-red-600" onClick={() => removeChange(idx)}>
-                          <Trash2 className="w-4 h-4 mr-2" /> 删除
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+              <div className="space-y-2">
+                <Label>重要更新</Label>
+                <div className="h-10 flex items-center gap-3 px-2 border rounded-md">
+                  <Switch checked={editDialog.form.isImportant} onCheckedChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, isImportant: !!v } }))} />
+                  <span className="text-sm text-muted-foreground">标记为重要</span>
                 </div>
-              )}
+              </div>
+              <div className="md:col-span-2 space-y-2">
+                <Label>标题</Label>
+                <Input value={editDialog.form.title} onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, title: e.target.value } }))} placeholder="更新标题" />
+              </div>
+              <div className="md:col-span-2 space-y-2">
+                <Label>描述（Markdown）</Label>
+                <MarkdownEditor
+                  value={editDialog.form.description}
+                  onChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, description: v } }))}
+                  height={200}
+                />
+              </div>
+              <div className="md:col-span-2 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>变更明细</Label>
+                  <Button variant="secondary" size="sm" onClick={addChange}>
+                    <Plus className="w-4 h-4 mr-2" /> 添加一项
+                  </Button>
+                </div>
+
+                {editDialog.form.changeDetails.length === 0 ? (
+                  <div className="text-center py-8 text-sm text-muted-foreground bg-gray-50 rounded-lg border-2 border-dashed">
+                    暂无变更项，请点击上方按钮添加
+                  </div>
+                ) : (
+                  <div className="border rounded-lg overflow-hidden">
+                    {/* 表格头 */}
+                    <div className="bg-gray-50 border-b grid grid-cols-12 gap-2 p-3 text-sm font-medium text-gray-700">
+                      <div className="col-span-2">类型</div>
+                      <div className="col-span-4">标题</div>
+                      <div className="col-span-5">描述</div>
+                      <div className="col-span-1 text-center">操作</div>
+                    </div>
+
+                    {/* 变更列表 */}
+                    <div className="max-h-60 overflow-y-auto">
+                      {editDialog.form.changeDetails.map((cd, idx) => (
+                        <div key={idx} className="grid grid-cols-12 gap-2 p-3 border-b last:border-b-0 hover:bg-gray-50 transition-colors">
+                          <div className="col-span-2">
+                            <Select value={cd.type} onValueChange={(v) => updateChange(idx, { type: v as ChangeType })}>
+                              <SelectTrigger className="h-8 text-xs">
+                                <SelectValue placeholder="类型" />
+                              </SelectTrigger>
+                              <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+                                <SelectItem value="FEATURE">功能</SelectItem>
+                                <SelectItem value="IMPROVEMENT">改进</SelectItem>
+                                <SelectItem value="BUGFIX">修复</SelectItem>
+                                <SelectItem value="BREAKING">兼容性变更</SelectItem>
+                                <SelectItem value="SECURITY">安全</SelectItem>
+                                <SelectItem value="OTHER">其他</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="col-span-4">
+                            <Input
+                              value={cd.title}
+                              onChange={(e) => updateChange(idx, { title: e.target.value })}
+                              placeholder="变更标题"
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                          <div className="col-span-5">
+                            <Input
+                              value={cd.description}
+                              onChange={(e) => updateChange(idx, { description: e.target.value })}
+                              placeholder="简要描述"
+                              className="h-8 text-sm"
+                            />
+                          </div>
+                          <div className="col-span-1 flex justify-center">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => removeChange(idx)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <DialogFooter>

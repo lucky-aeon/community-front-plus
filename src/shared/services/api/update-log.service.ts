@@ -14,6 +14,15 @@ import type {
 export class UpdateLogService {
 
   /**
+   * 获取公开发布的更新日志列表（用户端）
+   * @returns 更新日志列表
+   */
+  static async getPublicUpdateLogs(): Promise<UpdateLogDTO[]> {
+    const response = await apiClient.get<ApiResponse<UpdateLogDTO[]>>('/app/update-logs');
+    return response.data.data;
+  }
+
+  /**
    * 创建更新日志
    * @param request 创建请求参数
    * @returns 创建成功的更新日志信息
@@ -47,7 +56,14 @@ export class UpdateLogService {
    */
   static async getUpdateLog(id: string): Promise<UpdateLogDTO> {
     const response = await apiClient.get<ApiResponse<UpdateLogDTO>>(`/admin/update-logs/${id}`);
-    return response.data.data;
+    const data = response.data.data;
+
+    // 确保字段兼容性：如果 changes 存在但 changeDetails 不存在，则映射字段
+    if (data.changes && !data.changeDetails) {
+      data.changeDetails = data.changes;
+    }
+
+    return data;
   }
 
   /**
@@ -68,7 +84,19 @@ export class UpdateLogService {
     const response = await apiClient.get<ApiResponse<PageResponse<UpdateLogDTO>>>('/admin/update-logs', {
       params: request
     });
-    return response.data.data;
+    const data = response.data.data;
+
+    // 确保字段兼容性：为每个记录映射 changes 到 changeDetails
+    if (data.records) {
+      data.records = data.records.map(item => {
+        if (item.changes && !item.changeDetails) {
+          item.changeDetails = item.changes;
+        }
+        return item;
+      });
+    }
+
+    return data;
   }
 
   /**

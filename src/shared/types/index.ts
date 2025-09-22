@@ -1055,12 +1055,14 @@ export interface UpdateLogDTO {
   title: string;                       // 更新标题
   description: string;                 // 更新描述
   status: UpdateLogStatus;             // 状态
-  isImportant: boolean;                // 是否重要更新
+  isImportant?: boolean;               // 是否重要更新
   publishTime?: string;                // 发布时间（已发布时才有值）
   createTime: string;                  // 创建时间
   updateTime: string;                  // 更新时间
   authorId: string;                    // 创建者ID
-  changeDetails: ChangeDetailDTO[];    // 变更详情列表
+  authorName?: string;                 // 创建者名称
+  changeDetails?: ChangeDetailDTO[];   // 变更详情列表（前端兼容字段）
+  changes?: ChangeDetailDTO[];         // 变更详情列表（后端实际字段）
 }
 
 // 创建更新日志请求参数
