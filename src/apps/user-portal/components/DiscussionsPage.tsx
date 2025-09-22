@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Search, Filter, CheckCircle, Heart } from 'lucide-react';
+import { MessageSquare, Search, Filter } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { LoadingPage as LoadingSpinner } from '@shared/components/common/LoadingPage';
-import { PostCard } from '@shared/components/business/PostCard';
-import { routeUtils } from '@shared/routes/routes';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { RecentContent } from '@shared/components/business/RecentContent';
 import { PostsService } from '@shared/services/api/posts.service';
 import { FrontPostDTO, PageResponse } from '@shared/types';
 
 export const DiscussionsPage: React.FC = () => {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'all' | 'articles' | 'questions'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [posts, setPosts] = useState<FrontPostDTO[]>([]);
@@ -52,10 +50,6 @@ export const DiscussionsPage: React.FC = () => {
     fetchPosts(page, categoryType);
   };
 
-  const handlePostClick = (postId: string) => {
-    navigate(routeUtils.getPostDetailRoute(postId));
-  };
-
   // 本地搜索过滤（在已加载的数据中搜索）
   const filteredPosts = posts.filter(post => {
     if (!searchTerm.trim()) return true;
@@ -63,13 +57,16 @@ export const DiscussionsPage: React.FC = () => {
            (post.summary && post.summary.toLowerCase().includes(searchTerm.toLowerCase()));
   });
 
-
-
   const tabs = [
     { id: 'all', name: '全部讨论', count: pageData?.total || 0 },
     { id: 'articles', name: '文章', count: 0 }, // 这里可以单独调用接口获取数量，暂时设为0
     { id: 'questions', name: '问答', count: 0 } // 这里可以单独调用接口获取数量，暂时设为0
   ];
+
+  // 处理标签页切换
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as 'all' | 'articles' | 'questions');
+  };
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
@@ -99,101 +96,60 @@ export const DiscussionsPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-1 mb-6 bg-gray-100 p-1 rounded-xl">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as 'all' | 'articles' | 'questions')}
-            className={`
-              flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all duration-200
-              ${activeTab === tab.id
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-              }
-            `}
-          >
-            <span>{tab.name}</span>
-            <Badge variant="secondary" size="sm">
-              {tab.count}
-            </Badge>
-          </button>
-        ))}
-      </div>
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
+        <TabsList className="grid w-full grid-cols-3">
+          {tabs.map((tab) => (
+            <TabsTrigger key={tab.id} value={tab.id} className="flex items-center space-x-2">
+              <span>{tab.name}</span>
+              <Badge variant="secondary" size="sm">
+                {tab.count}
+              </Badge>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       {/* Posts List */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <LoadingSpinner size="lg" />
-        </div>
-      ) : (
-        <>
-          <div className="space-y-6">
-            {filteredPosts.map((post) => (
-              <div key={post.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer" onClick={() => handlePostClick(post.id)}>
-                <div className="flex items-start space-x-4">
-                  {post.coverImage && (
-                    <img
-                      src={post.coverImage}
-                      alt={post.title}
-                      className="w-24 h-24 rounded-lg object-cover flex-shrink-0"
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
-                      {post.title}
-                    </h3>
-                    {post.summary && (
-                      <p className="text-gray-600 mb-3 line-clamp-2">
-                        {post.summary}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between text-sm text-gray-500">
-                      <div className="flex items-center space-x-4">
-                        <span>{post.authorName}</span>
-                        <span>{post.categoryName}</span>
-                        <span>{new Date(post.publishTime).toLocaleDateString('zh-CN')}</span>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <span className="flex items-center space-x-1">
-                          <Heart className="h-4 w-4" />
-                          <span>{post.likeCount}</span>
-                        </span>
-                        <span className="flex items-center space-x-1">
-                          <MessageSquare className="h-4 w-4" />
-                          <span>{post.commentCount}</span>
-                        </span>
-                        <span>浏览 {post.viewCount}</span>
-                      </div>
+        <div className="space-y-6">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="flex items-start space-x-4">
+                <Skeleton className="w-24 h-24 rounded-lg" />
+                <div className="flex-1 space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Skeleton className="h-4 w-16" />
+                    <Skeleton className="h-4 w-20" />
+                  </div>
+                  <Skeleton className="h-6 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-2/3" />
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center space-x-4">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <Skeleton className="h-4 w-8" />
+                      <Skeleton className="h-4 w-8" />
+                      <Skeleton className="h-4 w-12" />
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {pageData && pageData.pages > 1 && (
-            <div className="flex items-center justify-center space-x-2 mt-8">
-              <Button
-                variant="outline"
-                disabled={currentPage === 1}
-                onClick={() => handlePageChange(currentPage - 1)}
-              >
-                上一页
-              </Button>
-              <span className="px-4 py-2 text-sm text-gray-600">
-                第 {currentPage} 页，共 {pageData.pages} 页
-              </span>
-              <Button
-                variant="outline"
-                disabled={currentPage === pageData.pages}
-                onClick={() => handlePageChange(currentPage + 1)}
-              >
-                下一页
-              </Button>
             </div>
-          )}
-        </>
+          ))}
+        </div>
+      ) : (
+        <RecentContent
+          posts={filteredPosts}
+          pageData={pageData}
+          currentPage={currentPage}
+          onPageChange={handlePageChange}
+          showHeader={false}
+          showPagination={true}
+        />
       )}
 
       {!isLoading && filteredPosts.length === 0 && (

@@ -15,6 +15,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { FrontPostDTO, PageResponse } from '@shared/types';
 
 interface ContentItem {
   id: string;
@@ -41,17 +42,53 @@ interface ContentItem {
 interface RecentContentProps {
   className?: string;
   items?: ContentItem[];
+  posts?: FrontPostDTO[];
+  pageData?: PageResponse<FrontPostDTO> | null;
+  currentPage?: number;
+  onPageChange?: (page: number) => void;
   showHeader?: boolean;
   compact?: boolean;
+  showPagination?: boolean;
 }
 
 export const RecentContent: React.FC<RecentContentProps> = ({
   className,
   showHeader = true,
-  compact = false,
-  items = []
+  items = [],
+  posts = [],
+  pageData = null,
+  currentPage = 1,
+  onPageChange,
+  showPagination = false
 }) => {
   const navigate = useNavigate();
+
+  // 转换 FrontPostDTO 为 ContentItem 格式
+  const transformPostsToContentItems = (posts: FrontPostDTO[]): ContentItem[] => {
+    return posts.map(post => ({
+      id: post.id,
+      type: 'post' as const,
+      title: post.title,
+      excerpt: post.summary,
+      author: {
+        name: post.authorName,
+        avatar: post.authorAvatar || '/api/placeholder/40/40',
+        membershipTier: 'basic' as const
+      },
+      stats: {
+        likes: post.likeCount,
+        comments: post.commentCount,
+        views: post.viewCount
+      },
+      publishTime: post.publishTime,
+      category: post.categoryName,
+      coverImage: post.coverImage,
+      isHot: post.isTop
+    }));
+  };
+
+  // 确定使用的数据源
+  const contentItems = posts.length > 0 ? transformPostsToContentItems(posts) : items;
 
   const getTypeConfig = (type: ContentItem['type']) => {
     switch (type) {
@@ -119,8 +156,8 @@ export const RecentContent: React.FC<RecentContentProps> = ({
 
       {/* Content List */}
       <div className="space-y-4">
-        {items.length > 0 ? (
-          items.map((item, index) => {
+        {contentItems.length > 0 ? (
+          contentItems.map((item) => {
             const typeConfig = getTypeConfig(item.type);
             const TypeIcon = typeConfig.icon;
 
@@ -246,6 +283,29 @@ export const RecentContent: React.FC<RecentContentProps> = ({
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {showPagination && pageData && pageData.pages > 1 && onPageChange && (
+        <div className="flex items-center justify-center space-x-2 mt-8">
+          <Button
+            variant="outline"
+            disabled={currentPage === 1}
+            onClick={() => onPageChange(currentPage - 1)}
+          >
+            上一页
+          </Button>
+          <span className="px-4 py-2 text-sm text-gray-600">
+            第 {currentPage} 页，共 {pageData.pages} 页
+          </span>
+          <Button
+            variant="outline"
+            disabled={currentPage === pageData.pages}
+            onClick={() => onPageChange(currentPage + 1)}
+          >
+            下一页
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
