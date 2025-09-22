@@ -278,7 +278,7 @@ export const ChapterDetailPage: React.FC = () => {
           {/* Comments Section (shadcn) */}
           {chapterDetail && course && !chapterError && (
             <div className="mt-6">
-              <Comments businessId={chapterId!} businessType="COURSE" authorId={course.authorId} />
+              <Comments businessId={chapterId!} businessType="CHAPTER" authorId={course.authorId} />
             </div>
           )}
         </div>

@@ -1,6 +1,7 @@
 import { apiClient, ApiResponse } from './config';
 import {
   CommentDTO,
+  LatestCommentDTO,
   CreateCommentRequest,
   ReplyCommentRequest,
   QueryCommentsRequest,
@@ -53,9 +54,18 @@ export class CommentsService {
    */
   static async getUserRelatedComments(params: QueryUserCommentsRequest = {}): Promise<PageResponse<CommentDTO>> {
     const response = await apiClient.get<ApiResponse<PageResponse<CommentDTO>>>(
-      '/user/comments/related', 
+      '/user/comments/related',
       { params }
     );
+    return response.data.data;
+  }
+
+  /**
+   * 获取最新评论列表
+   * GET /api/user/comments/latest
+   */
+  static async getLatestComments(): Promise<LatestCommentDTO[]> {
+    const response = await apiClient.get<ApiResponse<LatestCommentDTO[]>>('/user/comments/latest');
     return response.data.data;
   }
 

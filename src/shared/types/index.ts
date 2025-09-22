@@ -324,7 +324,7 @@ export interface UserDTO {
 // ================ 评论相关接口定义 ================
 
 // 业务类型枚举
-export type BusinessType = 'POST' | 'COURSE';
+export type BusinessType = 'POST' | 'COURSE' | 'CHAPTER';
 
 // 评论DTO（API返回的评论数据）
 export interface CommentDTO {
@@ -1006,6 +1006,30 @@ export interface UserSessionLimitFixedParams {
   historyWindowDays: number;            // 历史滑窗: 30天
   banThresholdIps: number;              // 封禁阈值: 10个IP
   heartbeatIntervalSeconds: number;     // 续活间隔: 60秒
+}
+
+// 最新章节DTO（首页展示用）
+export interface LatestChapterDTO {
+  id: string;                    // 章节ID
+  title: string;                 // 章节标题
+  courseId: string;              // 所属课程ID
+  courseName: string;            // 所属课程名称
+  sortOrder: number;             // 章节排序
+  readingTime: number;           // 章节阅读时长（分钟）
+  createTime: string;            // 章节创建时间
+}
+
+// 最新评论DTO（首页展示用）
+export interface LatestCommentDTO {
+  id: string;                    // 评论ID
+  content: string;               // 评论内容
+  businessId: string;            // 业务ID
+  businessType: BusinessType;    // 业务类型
+  businessName: string;          // 业务名称（文章标题或课程名称）
+  commentUserId: string;         // 评论用户ID
+  commentUserName: string;       // 评论用户名称
+  commentUserAvatar?: string;    // 评论用户头像
+  createTime: string;            // 评论创建时间
 }
 
 // ================ 更新日志管理相关接口定义 ================

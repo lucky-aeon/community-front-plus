@@ -4,17 +4,19 @@ import { BookOpen, Clock, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FrontCourseDTO } from '@shared/types';
+import { FrontCourseDTO, LatestChapterDTO } from '@shared/types';
 import { cn } from '@/lib/utils';
 
 interface RecentCourseChaptersProps {
   courses?: FrontCourseDTO[];
+  chapters?: LatestChapterDTO[];
   isLoading?: boolean;
   className?: string;
 }
 
 export const RecentCourseChapters: React.FC<RecentCourseChaptersProps> = ({
   courses = [],
+  chapters = [],
   isLoading = false,
   className
 }) => {
@@ -24,9 +26,17 @@ export const RecentCourseChapters: React.FC<RecentCourseChaptersProps> = ({
     navigate(`/dashboard/courses/${courseId}`);
   };
 
+  const handleChapterClick = (chapterId: string) => {
+    navigate(`/dashboard/chapters/${chapterId}`);
+  };
+
   const handleViewMore = () => {
     navigate('/dashboard/courses');
   };
+
+  // 决定显示的数据：优先显示章节，如果没有章节则显示课程
+  const displayItems = chapters.length > 0 ? chapters : courses;
+  const isChapterMode = chapters.length > 0;
 
   if (isLoading) {
     return (
@@ -59,7 +69,9 @@ export const RecentCourseChapters: React.FC<RecentCourseChaptersProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <BookOpen className="h-5 w-5 text-blue-600" />
-            <h3 className="text-lg font-bold text-gray-900">最新课程</h3>
+            <h3 className="text-lg font-bold text-gray-900">
+              {isChapterMode ? '最新章节' : '最新课程'}
+            </h3>
           </div>
           <Button
             variant="ghost"
@@ -71,56 +83,69 @@ export const RecentCourseChapters: React.FC<RecentCourseChaptersProps> = ({
           </Button>
         </div>
 
-        {/* Course List */}
+        {/* Course/Chapter List */}
         <div className="space-y-3">
-          {courses.length > 0 ? (
-            courses.map((course, index) => (
+          {displayItems.length > 0 ? (
+            displayItems.map((item) => (
               <div
-                key={course.id}
+                key={item.id}
                 className="group p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-blue-100"
-                onClick={() => handleCourseClick(course.id)}
+                onClick={() => isChapterMode
+                  ? handleChapterClick(item.id)
+                  : handleCourseClick(item.id)
+                }
               >
                 <div className="space-y-2">
-                  {/* Course Title */}
+                  {/* Title */}
                   <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors leading-snug">
-                    {course.title}
+                    {item.title}
                   </h4>
 
-                  {/* Course Meta：仅保留时间 */}
-                  <div className="flex items-center justify-end text-xs">
+                  {/* Meta info */}
+                  <div className="flex items-center justify-between text-xs">
+                    {/* Course name for chapters */}
+                    {isChapterMode && 'courseName' in item && (
+                      <div className="text-warm-gray-600 truncate">
+                        {item.courseName}
+                      </div>
+                    )}
+
                     {/* Create Time */}
                     <div className="flex items-center space-x-1 text-warm-gray-500">
                       <Clock className="h-3 w-3" />
                       <span>
-                        {new Date(course.createTime).toLocaleDateString('zh-CN', {
+                        {new Date(item.createTime).toLocaleDateString('zh-CN', {
                           month: 'short',
                           day: 'numeric'
                         })}
                       </span>
                     </div>
                   </div>
-
                 </div>
               </div>
             ))
           ) : (
             <div className="text-center py-8">
               <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-sm text-gray-500">暂无课程</p>
-              <p className="text-xs text-gray-400 mt-1">期待精彩课程上线</p>
+              <p className="text-sm text-gray-500">
+                {isChapterMode ? '暂无章节' : '暂无课程'}
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                {isChapterMode ? '期待精彩章节上线' : '期待精彩课程上线'}
+              </p>
             </div>
           )}
         </div>
 
         {/* View More Button */}
-        {courses.length > 0 && (
+        {displayItems.length > 0 && (
           <Button
             variant="ghost"
             size="sm"
             onClick={handleViewMore}
             className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-sm"
           >
-            查看更多课程
+            {isChapterMode ? '查看更多课程' : '查看更多课程'}
             <ChevronRight className="h-4 w-4 ml-1" />
           </Button>
         )}

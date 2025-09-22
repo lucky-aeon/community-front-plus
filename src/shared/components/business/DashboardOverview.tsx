@@ -4,11 +4,15 @@ import { RecentCourseChapters } from './RecentCourseChapters';
 import { RecentComments } from './RecentComments';
 import { UpdateLogs } from './UpdateLogs';
 import { PostsService } from '@shared/services/api/posts.service';
-import { CoursesService } from '@shared/services/api/courses.service';
 import { ChaptersService } from '@shared/services/api/chapters.service';
 import { CommentsService } from '@shared/services/api/comments.service';
 import { UpdateLogService } from '@shared/services/api/update-log.service';
-import { FrontPostDTO, FrontCourseDTO, FrontChapterDetailDTO, CommentDTO, UpdateLogDTO } from '@shared/types';
+import {
+  FrontPostDTO,
+  LatestChapterDTO,
+  LatestCommentDTO,
+  UpdateLogDTO
+} from '@shared/types';
 import { cn } from '@/lib/utils';
 
 interface DashboardOverviewProps {
@@ -17,13 +21,11 @@ interface DashboardOverviewProps {
 
 export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className }) => {
   const [recentPosts, setRecentPosts] = useState<FrontPostDTO[]>([]);
-  const [recentCourses, setRecentCourses] = useState<FrontCourseDTO[]>([]);
-  const [recentChapters, setRecentChapters] = useState<FrontChapterDetailDTO[]>([]);
-  const [recentComments, setRecentComments] = useState<CommentDTO[]>([]);
+  const [recentChapters, setRecentChapters] = useState<LatestChapterDTO[]>([]);
+  const [recentComments, setRecentComments] = useState<LatestCommentDTO[]>([]);
   const [updateLogs, setUpdateLogs] = useState<UpdateLogDTO[]>([]);
   const [loadingStates, setLoadingStates] = useState({
     posts: true,
-    courses: true,
     chapters: true,
     comments: true,
     logs: true
@@ -48,34 +50,28 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className 
     fetchRecentPosts();
   }, []);
 
-  // 获取最新课程
+  // 获取最新课程章节
   useEffect(() => {
-    const fetchRecentCourses = async () => {
+    const fetchRecentChapters = async () => {
       try {
-        const response = await CoursesService.getFrontCoursesList({
-          pageNum: 1,
-          pageSize: 4
-        });
-        setRecentCourses(response.records);
+        const chapters = await ChaptersService.getLatestChapters();
+        setRecentChapters(chapters);
       } catch (error) {
-        console.error('获取最新课程失败:', error);
+        console.error('获取最新章节失败:', error);
       } finally {
-        setLoadingStates(prev => ({ ...prev, courses: false }));
+        setLoadingStates(prev => ({ ...prev, chapters: false }));
       }
     };
 
-    fetchRecentCourses();
+    fetchRecentChapters();
   }, []);
 
   // 获取最新评论
   useEffect(() => {
     const fetchRecentComments = async () => {
       try {
-        const response = await CommentsService.getUserRelatedComments({
-          pageNum: 1,
-          pageSize: 6
-        });
-        setRecentComments(response.records);
+        const comments = await CommentsService.getLatestComments();
+        setRecentComments(comments);
       } catch (error) {
         console.error('获取最新评论失败:', error);
       } finally {
@@ -135,8 +131,8 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className 
         <div className="lg:col-span-3 space-y-6">
           {/* 最新课程章节 */}
           <RecentCourseChapters
-            courses={recentCourses}
-            isLoading={loadingStates.courses}
+            chapters={recentChapters}
+            isLoading={loadingStates.chapters}
           />
 
           {/* 更新日志 */}
