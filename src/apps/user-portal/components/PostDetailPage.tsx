@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, MessageSquare, CheckCircle, Bell, Bookmark } from 'lucide-react';
+import { ArrowLeft, Heart, MessageSquare, CheckCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,8 +19,6 @@ export const PostDetailPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [isLiked, setIsLiked] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [isFollowingAuthor, setIsFollowingAuthor] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
   const [post, setPost] = useState<FrontPostDetailDTO | null>(null);
@@ -224,36 +222,9 @@ export const PostDetailPage: React.FC = () => {
                     <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                       作者
                     </span>
-                    <SubscribeButton targetId={post.authorId} targetType="USER" size="sm" showText />
                   </div>
                   <p className="text-sm text-gray-500">{formatDate(post.publishTime)}</p>
                 </div>
-              </div>
-              
-              {/* 右上角图标：订阅作者 + 点赞文章 */}
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <button
-                  title={isFollowingAuthor ? '已关注作者' : '关注作者'}
-                  aria-label="关注作者"
-                  className={`p-2 rounded-full hover:bg-accent ${isFollowingAuthor ? 'text-red-600' : ''}`}
-                  onClick={async () => {
-                    try {
-                      if (!post?.authorId) return;
-                      const resp = await SubscribeService.toggleSubscribe({ targetId: post.authorId, targetType: 'USER' });
-                      setIsFollowingAuthor(!!resp.isFollowing);
-                    } catch {}
-                  }}
-                >
-                  <Bell className={`h-5 w-5 ${isFollowingAuthor ? '' : ''}`} />
-                </button>
-                <button
-                  title={isLiked ? '已点赞' : '点赞'}
-                  aria-label="点赞文章"
-                  className={`p-2 rounded-full hover:bg-accent ${isLiked ? 'text-red-600' : ''}`}
-                  onClick={() => setIsLiked(!isLiked)}
-                >
-                  <Heart className={`h-5 w-5 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
-                </button>
               </div>
             </div>
 
@@ -306,14 +277,9 @@ export const PostDetailPage: React.FC = () => {
             {/* Actions */}
             <div className="flex items-center justify-between py-4 border-t border-gray-200">
               <div className="flex items-center space-x-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsLiked(!isLiked)}
-                  className={`flex items-center space-x-2 ${isLiked ? 'text-red-500' : ''}`}
-                >
-                  <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
-                  <span>{post.likeCount + (isLiked ? 1 : 0)}</span>
+                <Button variant="ghost" size="sm" className="flex items-center space-x-2">
+                  <Heart className="h-4 w-4" />
+                  <span>{post.likeCount}</span>
                 </Button>
                 
                 <Button variant="ghost" size="sm" className="flex items-center space-x-2">
@@ -324,16 +290,6 @@ export const PostDetailPage: React.FC = () => {
                 <div className="flex items-center space-x-2 text-sm text-gray-500">
                   <span>浏览 {post.viewCount}</span>
                 </div>
-                
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsBookmarked(!isBookmarked)}
-                  className={`flex items-center space-x-2 ${isBookmarked ? 'text-blue-500' : ''}`}
-                >
-                  <Bookmark className={`h-4 w-4 ${isBookmarked ? 'fill-current' : ''}`} />
-                  <span>收藏</span>
-                </Button>
               </div>
             </div>
           </Card>
