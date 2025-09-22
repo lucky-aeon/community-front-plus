@@ -125,7 +125,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         </div>
 
         <Dialog open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-          <DialogContent className="p-0 max-w-[320px] left-0 top-0 bottom-0 translate-x-0 translate-y-0 h-screen w-[80vw] sm:w-[360px] rounded-none border-r">
+          <DialogContent hideClose className="p-0 max-w-[320px] left-0 top-0 bottom-0 translate-x-0 translate-y-0 h-screen w-[80vw] sm:w-[360px] rounded-none border-r">
             <Sidebar className="h-full" collapsed={false}>
               <SidebarHeader>
                 <div className="flex items-center justify-between">

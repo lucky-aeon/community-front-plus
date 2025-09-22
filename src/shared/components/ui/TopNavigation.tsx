@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { MembershipBadge } from './MembershipBadge';
 import { SearchBar } from './SearchBar';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 interface TopNavigationProps {
   className?: string;
@@ -241,43 +242,56 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
           </div>
         </div>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="lg:hidden border-t border-honey-border bg-white/95 backdrop-blur">
-            <div className="py-4 space-y-2">
+        {/* Mobile Menu - 使用 Dialog 抽屉，避免遮罩层层级造成的点击失效 */}
+        <Dialog open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+          <DialogContent hideClose className="p-0 max-w-[320px] left-0 top-0 bottom-0 translate-x-0 translate-y-0 h-screen w-[85vw] sm:w-[360px] rounded-none border-r lg:hidden">
+            <div className="h-full flex flex-col bg-white">
+              {/* Header */}
+              <div className="px-4 py-3 border-b border-honey-border flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded" />
+                  <span className="font-bold">敲鸭</span>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
               {/* Mobile Search */}
-              <div className="px-2 pb-4 border-b border-honey-border md:hidden">
+              <div className="px-3 py-3 border-b border-honey-border">
                 <SearchBar />
               </div>
 
               {/* Mobile Navigation */}
-              <nav className="space-y-1">
-                {navigationItems.map((item) => {
-                  const isActive = isActiveRoute(item.path);
-                  return (
-                    <NavLink
-                      key={item.id}
-                      to={item.path}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className={cn(
-                        "flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-colors",
-                        isActive
-                          ? "text-honey-600 bg-honey-100"
-                          : "text-warm-gray-600 hover:text-honey-600 hover:bg-honey-50"
-                      )}
-                    >
-                      <item.icon className="h-5 w-5" />
-                      <div>
-                        <div className="text-sm font-medium">{item.name}</div>
-                        <div className="text-xs text-warm-gray-500">{item.description}</div>
-                      </div>
-                    </NavLink>
-                  );
-                })}
-              </nav>
+              <div className="flex-1 overflow-auto">
+                <nav className="py-2 space-y-1">
+                  {navigationItems.map((item) => {
+                    const isActive = isActiveRoute(item.path);
+                    return (
+                      <NavLink
+                        key={item.id}
+                        to={item.path}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={cn(
+                          "flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-colors",
+                          isActive
+                            ? "text-honey-600 bg-honey-100"
+                            : "text-warm-gray-600 hover:text-honey-600 hover:bg-honey-50"
+                        )}
+                      >
+                        <item.icon className="h-5 w-5" />
+                        <div>
+                          <div className="text-sm font-medium">{item.name}</div>
+                          <div className="text-xs text-warm-gray-500">{item.description}</div>
+                        </div>
+                      </NavLink>
+                    );
+                  })}
+                </nav>
+              </div>
 
               {/* Mobile Create Button */}
-              <div className="pt-4 border-t border-honey-border">
+              <div className="p-4 border-t border-honey-border">
                 <Button
                   onClick={() => {
                     handleCreateContent();
@@ -294,16 +308,15 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                 </Button>
               </div>
             </div>
-          </div>
-        )}
+          </DialogContent>
+        </Dialog>
       </div>
 
-      {/* Click outside handlers */}
-      {(isMobileMenuOpen || isUserMenuOpen) && (
+      {/* Click outside handlers（仅用于用户下拉菜单；移动端菜单改由 Dialog 处理） */}
+      {(!isMobileMenuOpen && isUserMenuOpen) && (
         <div
           className="fixed inset-0 z-30"
           onClick={() => {
-            setIsMobileMenuOpen(false);
             setIsUserMenuOpen(false);
           }}
         />
