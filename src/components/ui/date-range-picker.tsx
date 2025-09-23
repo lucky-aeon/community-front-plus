@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { CalendarIcon } from 'lucide-react';
 import { addDays, format } from 'date-fns';
+import { zhCN } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -33,10 +34,10 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
 
   const displayText = React.useMemo(() => {
     if (range?.from && range?.to) {
-      return `${format(range.from, 'yyyy/MM/dd')} - ${format(range.to, 'yyyy/MM/dd')}`;
+      return `${format(range.from, 'yyyy年MM月dd日', { locale: zhCN })} - ${format(range.to, 'yyyy年MM月dd日', { locale: zhCN })}`;
     }
     if (range?.from) {
-      return `${format(range.from, 'yyyy/MM/dd')} -`;
+      return `${format(range.from, 'yyyy年MM月dd日', { locale: zhCN })} -`;
     }
     return placeholder;
   }, [range, placeholder]);
@@ -68,6 +69,7 @@ export const DateRangePicker: React.FC<DateRangePickerProps> = ({
             onChange?.(r ?? undefined);
           }}
           numberOfMonths={2}
+          locale={zhCN}
         />
       </PopoverContent>
     </Popover>

@@ -1159,3 +1159,52 @@ export interface PublicTestimonialDTO {
   content: string;                     // 评价内容
   rating: number;                      // 评分（1-5分）
 }
+
+// ================ 订单管理相关接口定义 ================
+
+// 订单类型枚举
+export type OrderType = 'PURCHASE' | 'GIFT';
+
+// 订单数据传输对象
+export interface OrderDTO {
+  id: string;                          // 订单ID
+  orderNo: string;                     // 订单号
+  userId: string;                      // 用户ID
+  userName: string;                    // 用户名称
+  cdkCode: string;                     // CDK代码
+  productType: CDKType;                // 产品类型（SUBSCRIPTION_PLAN/COURSE）
+  productId: string;                   // 产品ID
+  productName: string;                 // 产品名称
+  orderType: OrderType;                // 订单类型（PURCHASE/GIFT）
+  amount: number;                      // 订单金额
+  activatedTime?: string;              // 激活时间（可选）
+  remark?: string;                     // 备注（可选）
+  createTime: string;                  // 创建时间
+}
+
+// 订单查询请求参数
+export interface OrderQueryRequest {
+  pageNum?: number;                    // 页码，从1开始，默认为1
+  pageSize?: number;                   // 每页大小，默认为10
+  userId?: string;                     // 用户ID筛选，可选
+  orderType?: OrderType;               // 订单类型筛选，可选
+  productType?: CDKType;               // 产品类型筛选，可选
+  productName?: string;                // 产品名称搜索，可选
+  cdkCode?: string;                    // CDK代码搜索，可选
+  startTime?: string;                  // 开始时间筛选，可选（格式：YYYY-MM-DD HH:mm:ss）
+  endTime?: string;                    // 结束时间筛选，可选（格式：YYYY-MM-DD HH:mm:ss）
+}
+
+// 订单统计查询请求参数
+export interface OrderStatisticsRequest {
+  startTime?: string;                  // 开始时间，可选（格式：YYYY-MM-DD HH:mm:ss）
+  endTime?: string;                    // 结束时间，可选（格式：YYYY-MM-DD HH:mm:ss）
+}
+
+// 订单统计数据传输对象
+export interface OrderStatisticsDTO {
+  totalCount: number;                  // 总订单数
+  purchaseCount: number;               // 购买订单数
+  giftCount: number;                   // 赠送订单数
+  totalAmount: number;                 // 总金额（单位：元）
+}

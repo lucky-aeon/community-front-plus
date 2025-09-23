@@ -13,6 +13,7 @@ import { UpdateLogPage } from './UpdateLogPage';
 import { CDKPage } from './CDKPage';
 import { SettingsPage } from './SettingsPage';
 import { TestimonialsPage } from './TestimonialsPage';
+import { OrdersPage } from './OrdersPage';
 
 // 临时的占位页面组件
 const ComingSoonPage: React.FC<{ title: string }> = ({ title }) => (
@@ -38,6 +39,7 @@ export const AdminBackend: React.FC = () => {
         <Route path="/users" element={<UsersPage />} />
         <Route path="/sessions" element={<SessionsPage />} />
         <Route path="/permissions" element={<ComingSoonPage title="权限管理" />} />
+        <Route path="/orders" element={<OrdersPage />} />
         <Route path="/subscription-plans" element={<SubscriptionPlansPage />} />
         <Route path="/cdk" element={<CDKPage />} />
         
