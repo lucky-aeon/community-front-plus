@@ -18,6 +18,9 @@ export { NotificationsService } from './notifications.service';
 export { CDKService } from './cdk.service';
 export { UpdateLogService } from './update-log.service';
 export { AdminDeviceSessionService } from './admin-device-session.service';
+export { ResourceService } from './resource.service';
+export { AdminResourceService } from './admin-resource.service';
+export { UserFollowsService } from './user-follows.service';
 export { apiClient, type ApiResponse } from './config';
 
 // 导出类型定义
@@ -83,4 +86,10 @@ export type {
   BlacklistedUserDTO,
   SystemConfigType,
   UserSessionLimitConfigData,
+  // 资源管理
+  ResourceDTO,
+  ResourceQueryRequest,
+  ResourceType,
+  GetUploadCredentialsRequest,
+  UploadCredentialsDTO,
 } from '../../types';

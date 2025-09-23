@@ -260,6 +260,65 @@ export interface OrderItem {
   asc: boolean;
 }
 
+// ================ 资源管理相关接口定义 ================
+
+// 资源类型
+export type ResourceType = 'IMAGE' | 'VIDEO' | 'DOCUMENT' | 'AUDIO' | 'OTHER';
+
+// 资源DTO（API返回的资源数据）
+export interface ResourceDTO {
+  id: string;             // 资源ID
+  fileKey: string;        // 存储key
+  size: number;           // 文件大小（字节）
+  format: string;         // 文件格式（扩展名/MIME简写）
+  userId: string;         // 上传用户ID
+  resourceType: ResourceType | string; // 资源类型
+  originalName: string;   // 原始文件名
+  downloadUrl?: string;   // 可用的下载URL（如后端提供）
+  createTime: string;     // 创建时间
+  updateTime: string;     // 更新时间
+}
+
+// 资源分页查询请求参数
+export interface ResourceQueryRequest {
+  pageNum?: number;        // 页码，从1开始
+  pageSize?: number;       // 每页大小
+  resourceType?: ResourceType | string; // 资源类型筛选
+}
+
+// 上传凭证请求
+export interface GetUploadCredentialsRequest {
+  originalName: string;    // 原始文件名
+  contentType: string;     // MIME类型
+}
+
+// 上传凭证DTO（OSS直传参数）
+export interface UploadCredentialsDTO {
+  // STS临时凭证
+  accessKeyId: string;
+  accessKeySecret: string;
+  securityToken: string;
+  expiration: string;
+
+  // OSS信息
+  region: string;
+  bucket: string;
+  endpoint: string;
+
+  // 策略与签名
+  policy: string;
+  signature: string;
+  key: string;
+  callback: string;
+
+  // 兼容字段
+  uploadUrl?: string;
+  fileKey?: string;
+  expirationTime?: string;
+  maxFileSize?: number;
+}
+
+
 // 公开文章查询请求参数
 export interface PublicPostQueryRequest {
   pageNum?: number;                    // 页码，从1开始，默认为1
@@ -870,6 +929,34 @@ export interface SubscribeToggleResponse {
 
 // 兼容性：保留旧的接口名称作为类型别名
 export type FollowToggleResponse = SubscribeToggleResponse;
+
+// ================ 用户关注管理列表 DTO ================
+
+// 关注的用户条目
+export interface UserFollowDTO {
+  targetUserId: string;           // 被关注的用户ID
+  targetUserName: string;         // 被关注的用户名称
+  targetUserAvatar?: string;      // 被关注的用户头像
+  targetUserDescription?: string; // 简介（可选）
+  createTime: string;             // 关注时间
+}
+
+// 订阅的课程条目
+export interface CourseFollowDTO {
+  courseId: string;               // 课程ID
+  courseTitle: string;            // 课程标题
+  courseCover?: string;           // 课程封面
+  authorId?: string;              // 课程作者ID（可选）
+  authorName?: string;            // 课程作者名（可选）
+  createTime: string;             // 订阅时间
+}
+
+// 关注查询请求参数
+export interface FollowQueryRequest {
+  pageNum?: number;               // 页码，从1开始
+  pageSize?: number;              // 每页数量
+  keyword?: string;               // 关键字（按名称过滤，可选）
+}
 
 // ================ 套餐管理相关接口定义 ================
 
