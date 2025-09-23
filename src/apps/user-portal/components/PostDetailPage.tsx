@@ -6,11 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { Comments } from '@shared/components/ui/Comments';
 import { SubscribeButton } from '@/components/ui/subscribe-button';
-import { SubscribeService } from '@shared/services/api/subscribe.service';
-import type { SubscribeStatusResponse } from '@shared/types';
-import { Comments } from '@/components/ui/comments';
-import { useAuth } from '../../../context/AuthContext';
+// 评论组件
 import { routeUtils } from '@shared/routes/routes';
 import { PostsService } from '@shared/services/api/posts.service';
 import { FrontPostDetailDTO, FrontPostDTO } from '@shared/types';
@@ -18,9 +16,8 @@ import { FrontPostDetailDTO, FrontPostDTO } from '@shared/types';
 export const PostDetailPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [isFollowingAuthor, setIsFollowingAuthor] = useState(false);
-  const [commentCount, setCommentCount] = useState(0);
+  
+  // 评论计数由后端返回，评论模块已移除
   const [post, setPost] = useState<FrontPostDetailDTO | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<FrontPostDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,17 +63,7 @@ export const PostDetailPage: React.FC = () => {
     fetchPostDetail();
   }, [postId]);
 
-  // 初始化关注状态
-  useEffect(() => {
-    (async () => {
-      try {
-        if (post?.authorId && user) {
-          const s: SubscribeStatusResponse = await SubscribeService.checkSubscribeStatus({ targetId: post.authorId, targetType: 'USER' });
-          setIsFollowingAuthor(!!s.isFollowing);
-        }
-      } catch {}
-    })();
-  }, [post?.authorId, user]);
+  // 取消作者关注状态逻辑（页面不再展示作者卡片/关注按钮）
 
   if (isLoading) {
     return (
@@ -120,9 +107,7 @@ export const PostDetailPage: React.FC = () => {
     });
   };
 
-  const handleCommentCountChange = (count: number) => {
-    setCommentCount(count);
-  };
+  
 
   return (
     <div className="py-6 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -163,9 +148,7 @@ export const PostDetailPage: React.FC = () => {
               />
               <div>
                 <h4 className="font-medium text-gray-900">{post.authorName}</h4>
-                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                  作者
-                </span>
+                {/* 作者 tag 已移除 */}
               </div>
             </div>
             <SubscribeButton
@@ -175,7 +158,6 @@ export const PostDetailPage: React.FC = () => {
               className="w-full mt-4"
             />
           </Card>
-
           {/* Related Posts */}
           <Card className="p-4">
             <h3 className="font-semibold text-gray-900 mb-3">相关内容</h3>
@@ -219,9 +201,7 @@ export const PostDetailPage: React.FC = () => {
                 <div>
                   <div className="flex items-center space-x-2">
                     <h3 className="font-semibold text-gray-900">{post.authorName}</h3>
-                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                      作者
-                    </span>
+                    {/* 作者 tag 已移除 */}
                   </div>
                   <p className="text-sm text-gray-500">{formatDate(post.publishTime)}</p>
                 </div>
@@ -284,7 +264,7 @@ export const PostDetailPage: React.FC = () => {
                 
                 <Button variant="ghost" size="sm" className="flex items-center space-x-2">
                   <MessageSquare className="h-4 w-4" />
-                  <span>{commentCount > 0 ? commentCount : post.commentCount}</span>
+                  <span>{post.commentCount}</span>
                 </Button>
                 
                 <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -294,10 +274,7 @@ export const PostDetailPage: React.FC = () => {
             </div>
           </Card>
 
-          {/* Comments Section */}
-          <div className="mt-6">
-            <Comments businessId={post.id} businessType="POST" authorId={post.authorId} onCountChange={handleCommentCountChange} />
-          </div>
+          <Comments businessId={post.id} businessType="POST" authorId={post.authorId} />
         </div>
       </div>
     </div>

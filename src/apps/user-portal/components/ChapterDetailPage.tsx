@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
-import Comments from '@/components/ui/comments';
+import { Comments } from '@shared/components/ui/Comments';
 
 export const ChapterDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -206,11 +206,7 @@ export const ChapterDetailPage: React.FC = () => {
             </div>
           </Card>
 
-          {/* 评论区 */}
-          <div>
-            <h2 className="text-lg font-bold mb-3">评论</h2>
-            <Comments businessId={chapterDetail.id} businessType={'CHAPTER'} authorId={course.authorId} />
-          </div>
+          <Comments businessId={chapterDetail.id} businessType={'CHAPTER'} authorId={course.authorId} />
         </div>
 
         {/* 右侧：章节目录 */}

@@ -9,6 +9,7 @@ import { CommentDTO, LatestCommentDTO } from '@shared/types';
 import { CommentsService } from '@shared/services/api/comments.service';
 import { ChaptersService } from '@shared/services/api';
 import { cn } from '@/lib/utils';
+import { Comments } from '@shared/components/ui/Comments';
 
 interface RecentCommentsProps {
   comments?: LatestCommentDTO[];
@@ -159,144 +160,8 @@ export const RecentComments: React.FC<RecentCommentsProps> = ({
         </div>
       </Card>
 
-      {/* Comments List */}
-      <Card className="p-6">
-        <div className="space-y-4">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <MessageSquare className="h-5 w-5 text-purple-600" />
-              <h3 className="text-lg font-bold text-gray-900">最新评论</h3>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleViewMore}
-              className="text-purple-600 hover:text-purple-700 hover:bg-purple-50 p-1 h-auto"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Comments List */}
-          <div className="space-y-4">
-            {comments.length > 0 ? (
-              comments.map((comment) => {
-                const businessInfo = getBusinessTypeInfo(comment.businessType);
-                const BusinessIcon = businessInfo.icon;
-
-                return (
-                  <div
-                    key={comment.id}
-                    className="group p-4 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-purple-100"
-                    onClick={() => handleCommentClick(comment)}
-                  >
-                    <div className="space-y-2.5">
-                      {/* Comment Header */}
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-2 flex-1">
-                          <img
-                            src={comment.commentUserAvatar || '/api/placeholder/24/24'}
-                            alt={comment.commentUserName}
-                            className="h-6 w-6 rounded-full object-cover flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0 space-y-0.5">
-                            {/* 用户名 */}
-                            <div className="flex items-center">
-                              <span className="text-sm font-medium text-gray-900 truncate">
-                                {comment.commentUserName}
-                              </span>
-                            </div>
-                            {/* 时间 - 独立行显示 */}
-                            <div className="flex items-center space-x-1 text-xs text-warm-gray-500">
-                              <Clock className="h-3 w-3 flex-shrink-0" />
-                              <span className="flex-shrink-0">{formatTime(comment.createTime)}</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Business Type Badge */}
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-xs px-2 py-0.5 flex-shrink-0 mt-0.5",
-                            businessInfo.bgColor,
-                            businessInfo.textColor,
-                            businessInfo.borderColor
-                          )}
-                        >
-                          {businessInfo.label}
-                        </Badge>
-                      </div>
-
-                      {/* Business Name - 显示评论的内容来源 */}
-                      {comment.businessName && (
-                        <div className="flex items-center space-x-2 pl-8">
-                          <div className="flex items-center space-x-1 text-xs">
-                            <BusinessIcon className={cn("h-3 w-3", businessInfo.iconColor)} />
-                            <span className="text-warm-gray-600">
-                              {businessInfo.actionText}:
-                            </span>
-                            <span className="text-gray-900 font-medium line-clamp-1">
-                              {truncateContent(comment.businessName, 30)}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Reply Indicator - 显示回复关系 */}
-                      {comment.replyUserId && comment.replyUserName && (
-                        <div className="flex items-center space-x-2 pl-8">
-                          <div className="flex items-center space-x-1 text-xs">
-                            <AtSign className="h-3 w-3 text-amber-600" />
-                            <span className="text-warm-gray-600">回复</span>
-                            <span
-                              className="text-amber-600 font-medium hover:text-amber-700 cursor-pointer transition-colors"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                // TODO: 导航到用户资料页面
-                                console.log('Navigate to user profile:', comment.replyUserId);
-                              }}
-                            >
-                              {comment.replyUserName}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Comment Content */}
-                      <div className="pl-8">
-                        <p className="text-sm text-gray-700 leading-relaxed group-hover:text-gray-900 transition-colors">
-                          {truncateContent(comment.content, 50)}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            ) : (
-              <div className="text-center py-8">
-                <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">暂无评论</p>
-                <p className="text-xs text-gray-400 mt-1">期待精彩讨论</p>
-              </div>
-            )}
-          </div>
-
-          {/* View More Button */}
-          {comments.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleViewMore}
-              className="w-full text-purple-600 hover:text-purple-700 hover:bg-purple-50 text-sm"
-            >
-              查看更多评论
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          )}
-        </div>
-      </Card>
+      {/* Comments List（统一复用 Comments 组件 latest 模式） */}
+      <Comments mode="latest" businessId="" businessType={"POST" as const} />
     </div>
   );
 };
