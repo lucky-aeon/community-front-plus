@@ -19,6 +19,15 @@ export const ROUTES = {
   USER_BACKEND_ARTICLES_EDIT: '/dashboard/user-backend/articles/edit/:id',
   USER_BACKEND_MESSAGES: '/dashboard/user-backend/messages',
   USER_BACKEND_PROFILE: '/dashboard/user-backend/profile',
+  USER_BACKEND_SECURITY: '/dashboard/user-backend/security',
+  USER_BACKEND_FAVORITES: '/dashboard/user-backend/favorites',
+
+  // 管理员后台
+  ADMIN_DASHBOARD: '/dashboard/admin',
+
+  // 会员与兑换
+  MEMBERSHIP: '/dashboard/membership',
+  REDEEM_CDK: '/dashboard/redeem',
 } as const;
 
 // 路由工具函数

@@ -312,6 +312,8 @@ export interface ChangePasswordRequest {
 }
 
 // 用户DTO（API返回的完整用户数据）
+export type UserRole = 'ADMIN' | 'USER';
+
 export interface UserDTO {
   id: string;
   name: string;
@@ -321,6 +323,7 @@ export interface UserDTO {
   status: 'ACTIVE' | 'INACTIVE' | 'BANNED';
   emailNotificationEnabled: boolean;
   maxConcurrentDevices: number;
+  role?: UserRole;             // 后端将新增的角色字段：ADMIN/USER
   createTime: string;
   updateTime: string;
 }
@@ -880,12 +883,42 @@ export interface SubscriptionPlanDTO {
   level: number;                       // 套餐级别
   validityMonths: number;              // 有效期月数
   price: number;                       // 套餐价格
-  originalPrice?: number;              // 套餐原价（可选，非负）
+  originalPrice?: number;              // 原价（可选）
   recommended?: boolean;               // 是否推荐（可选）
   status: SubscriptionPlanStatus;      // 套餐状态
   benefits: string[];                  // 套餐权益列表
   createTime: string;                  // 创建时间
   updateTime: string;                  // 更新时间
+}
+
+// ================ 用户消息通知相关接口定义 ================
+
+// 通知类型
+export type NotificationType = 'COMMENT' | 'REPLY' | 'LIKE' | 'FOLLOW' | 'SYSTEM';
+
+// 用户通知DTO
+export interface UserNotificationDTO {
+  id: string;                 // 通知ID
+  type: NotificationType;     // 通知类型
+  title: string;              // 标题
+  content: string;            // 内容
+  senderName?: string;        // 发送者名称（系统通知可为空）
+  senderAvatar?: string;      // 发送者头像
+  read: boolean;              // 是否已读
+  createTime: string;         // 创建时间
+}
+
+// 通知查询请求
+export interface NotificationQueryRequest {
+  pageNum?: number;           // 页码，从1开始
+  pageSize?: number;          // 每页大小
+  type?: NotificationType;    // 类型过滤
+  read?: boolean;             // 是否已读过滤（true/false）
+}
+
+// 未读数量响应
+export interface UnreadCountResponse {
+  unreadCount: number;
 }
 
 // 创建套餐请求参数

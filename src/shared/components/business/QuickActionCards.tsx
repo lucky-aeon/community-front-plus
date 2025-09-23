@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ROUTES } from '@shared/routes/routes';
 import { cn } from '@/lib/utils';
 
 interface QuickAction {
@@ -39,7 +40,7 @@ export const QuickActionCards: React.FC<QuickActionCardsProps> = ({ className })
       title: '发布文章',
       description: '分享你的技术见解和经验',
       icon: Plus,
-      action: () => navigate('/dashboard/create-post'),
+      action: () => navigate(ROUTES.USER_BACKEND_ARTICLES_CREATE),
       color: 'from-honey-500 to-honey-600 hover:from-honey-600 hover:to-honey-700',
       badge: '创作'
     },

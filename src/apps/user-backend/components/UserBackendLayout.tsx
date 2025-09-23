@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -19,6 +19,8 @@ import {
   Star
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
+import { UserService } from '@shared/services/api';
+import type { UserDTO } from '@shared/types';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 
 interface UserBackendLayoutProps {
@@ -33,6 +35,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleBackToFrontend = () => {
     navigate('/dashboard');
@@ -49,6 +52,23 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
   const confirmLogout = () => {
     logout();
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchRole = async () => {
+      if (!user) return;
+      try {
+        const info: UserDTO = await UserService.getCurrentUser();
+        if (!cancelled) {
+          setIsAdmin((info as any)?.role === 'ADMIN');
+        }
+      } catch (e) {
+        // 静默失败
+      }
+    };
+    fetchRole();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   const navigationSections = [
     {
@@ -191,13 +211,15 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
           <div className="pb-6">
             <div className="border-t border-gray-200 pt-4 space-y-2">
               {/* 管理员后台入口 */}
-              <button
-                onClick={handleGoToAdmin}
-                className="w-full flex items-center px-3 py-2 text-sm font-medium text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors duration-200"
-              >
-                <Shield className="h-5 w-5 mr-3" />
-                <span>管理员后台</span>
-              </button>
+              {isAdmin && (
+                <button
+                  onClick={handleGoToAdmin}
+                  className="w-full flex items-center px-3 py-2 text-sm font-medium text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors duration-200"
+                >
+                  <Shield className="h-5 w-5 mr-3" />
+                  <span>管理员后台</span>
+                </button>
+              )}
               
               <button
                 onClick={handleLogout}

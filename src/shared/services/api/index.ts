@@ -13,6 +13,8 @@ export { TestimonialService } from './testimonial.service';
 export { SubscribeService, FollowService } from './subscribe.service';
 export { SubscriptionPlansService } from './subscription-plans.service';
 export { SubscriptionPlanCoursesService } from './subscription-plan-courses.service';
+export { AppSubscriptionPlansService } from './app-subscription-plans.service';
+export { NotificationsService } from './notifications.service';
 export { CDKService } from './cdk.service';
 export { UpdateLogService } from './update-log.service';
 export { AdminDeviceSessionService } from './admin-device-session.service';

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { TrendingUp, BookOpen, Users, ArrowRight, Edit3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ROUTES } from '@shared/routes/routes';
 
 interface CommunityStats {
   totalPosts?: number;
@@ -48,7 +49,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
             <div className="flex flex-wrap gap-4 mb-8">
               <Button
                 variant="primary"
-                onClick={() => navigate('/create-post')}
+                onClick={() => navigate(ROUTES.USER_BACKEND_ARTICLES_CREATE)}
                 className="flex items-center space-x-2"
                 useCustomTheme
               >
@@ -59,7 +60,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
 
               <Button
                 variant="secondary"
-                onClick={() => navigate('/courses')}
+                onClick={() => navigate(ROUTES.DASHBOARD_COURSES)}
               >
                 浏览课程
               </Button>

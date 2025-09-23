@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Home,
@@ -7,10 +7,11 @@ import {
   Plus,
   Menu,
   X,
-  Settings,
+  Crown,
   LogOut,
   User,
-  FileText
+  Shield,
+  Key
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,18 @@ import { MembershipBadge } from './MembershipBadge';
 import { SearchBar } from './SearchBar';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
+import { ROUTES } from '@shared/routes/routes';
+import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
+import { UserService } from '@shared/services/api';
+import type { UserDTO } from '@shared/types';
 
 interface TopNavigationProps {
   className?: string;
@@ -55,33 +68,26 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
     }
   ];
 
-  const userMenuItems = [
-    {
-      id: 'profile',
-      name: '个人资料',
-      icon: User,
-      action: () => navigate('/dashboard/user-backend/profile')
-    },
-    {
-      id: 'my-content',
-      name: '我的内容',
-      icon: FileText,
-      action: () => navigate('/dashboard/user-backend')
-    },
-    {
-      id: 'settings',
-      name: '设置',
-      icon: Settings,
-      action: () => navigate('/dashboard/user-backend/settings')
-    },
-    {
-      id: 'logout',
-      name: '退出登录',
-      icon: LogOut,
-      action: logout,
-      className: 'text-red-600 hover:text-red-700 hover:bg-red-50'
-    }
-  ];
+  // 临时未读数（后续可接入通知中心/接口）
+  const [isRedeemOpen, setIsRedeemOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchRole = async () => {
+      if (!user) return;
+      try {
+        const info: UserDTO = await UserService.getCurrentUser();
+        if (!cancelled) {
+          setIsAdmin((info as any)?.role === 'ADMIN');
+        }
+      } catch (e) {
+        // 静默失败，不影响其他功能
+      }
+    };
+    fetchRole();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   const isActiveRoute = (path: string) => {
     if (path === '/dashboard/home') {
@@ -91,7 +97,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
   };
 
   const handleCreateContent = () => {
-    navigate('/dashboard/create-post');
+    navigate(ROUTES.USER_BACKEND_ARTICLES_CREATE);
   };
 
   const handleLogoClick = () => {
@@ -99,6 +105,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
   };
 
   return (
+    <>
     <header
       className={cn(
         // 置顶在页面顶部，确保在内容之上
@@ -179,54 +186,83 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
             {/* User Menu */}
             {user && (
               <div className="relative">
-                <button
-                  onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                  className={cn(
-                    "flex items-center space-x-3 p-2 rounded-xl transition-all duration-200",
-                    "hover:bg-honey-50 focus:outline-none focus:ring-2 focus:ring-honey-500/20",
-                    isUserMenuOpen && "bg-honey-50"
-                  )}
-                >
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="h-8 w-8 rounded-full object-cover ring-2 ring-white shadow-sm"
-                  />
-                  {/* Membership Badge next to avatar */}
-                  <div className="hidden sm:block">
-                    <MembershipBadge
-                      tier={user.membershipTier as any}
-                      size="sm"
-                    />
-                  </div>
-                  <div className="hidden sm:block text-left">
-                    <p className="text-sm font-medium text-gray-900 leading-tight">{user.name}</p>
-                    <p className="text-xs text-warm-gray-500 leading-tight">{user.email}</p>
-                  </div>
-                </button>
+                <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      className={cn(
+                        "flex items-center space-x-3 p-2 rounded-xl transition-all duration-200",
+                        "hover:bg-honey-50 focus:outline-none focus:ring-2 focus:ring-honey-500/20",
+                        isUserMenuOpen && "bg-honey-50"
+                      )}
+                    >
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="h-8 w-8 rounded-full object-cover ring-2 ring-white shadow-sm"
+                      />
+                      {/* 顶部导航不再展示会员徽章，避免与下拉菜单重复 */}
+                      <div className="hidden sm:block text-left">
+                        <p className="text-sm font-medium text-gray-900 leading-tight">{user.name}</p>
+                        <p className="text-xs text-warm-gray-500 leading-tight">{user.email}</p>
+                      </div>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-72 rounded-2xl shadow-xl border border-honey-border p-0 overflow-hidden">
+                    {/* 用户卡片（信息展示） */}
+                    <div className="px-4 py-3 bg-white">
+                      <div className="flex items-center gap-3">
+                        <img src={user.avatar} alt={user.name} className="h-10 w-10 rounded-full object-cover" />
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">{user.name}</div>
+                          <div className="text-xs text-warm-gray-500 truncate">{user.email}</div>
+                          <div className="mt-1"><MembershipBadge tier={user.membershipTier as any} size="sm" /></div>
+                        </div>
+                      </div>
+                    </div>
 
-                {/* User Dropdown Menu */}
-                {isUserMenuOpen && (
-                  <div className="absolute top-full right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-honey-border z-50 py-2 animate-fade-in">
-                    {userMenuItems.map((item) => (
-                      <button
-                        key={item.id}
+                    <DropdownMenuSeparator />
+                    <div className="py-1">
+                      <DropdownMenuItem onClick={() => navigate(ROUTES.USER_BACKEND)} className="cursor-pointer">
+                        <User className="h-4 w-4" />
+                        <span>内容管理</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate(ROUTES.MEMBERSHIP)} className="cursor-pointer">
+                        <Crown className="h-4 w-4" />
+                        <span>套餐升级</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setIsRedeemOpen(true)} className="cursor-pointer">
+                        <Key className="h-4 w-4" />
+                        <span>CDK 激活</span>
+                      </DropdownMenuItem>
+                    </div>
+
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <div className="py-1">
+                          <DropdownMenuItem onClick={() => navigate(ROUTES.ADMIN_DASHBOARD)} className="cursor-pointer text-yellow-700 hover:text-yellow-800">
+                            <Shield className="h-4 w-4" />
+                            <span>管理员后台</span>
+                          </DropdownMenuItem>
+                        </div>
+                      </>
+                    )}
+
+                    <DropdownMenuSeparator />
+                    <div className="py-1">
+                      <DropdownMenuItem
                         onClick={() => {
-                          item.action();
-                          setIsUserMenuOpen(false);
+                          const ok = window.confirm('确定要退出登录吗？');
+                          if (ok) logout();
                         }}
-                        className={cn(
-                          "w-full flex items-center space-x-3 px-4 py-3 text-left transition-colors",
-                          "hover:bg-honey-50 text-warm-gray-700 hover:text-warm-gray-900",
-                          item.className
-                        )}
+                        className="cursor-pointer text-red-600 focus:text-red-700"
                       >
-                        <item.icon className="h-4 w-4" />
-                        <span className="text-sm font-medium">{item.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                        <LogOut className="h-4 w-4" />
+                        <span>退出登录</span>
+                      </DropdownMenuItem>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
 
@@ -288,6 +324,76 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                     );
                   })}
                 </nav>
+
+                {/* Mobile Account Shortcuts */}
+                <div className="pt-2 mt-2 border-t border-honey-border">
+                  <div className="px-4 py-2 text-xs font-semibold text-warm-gray-500">我的入口</div>
+                  <div className="space-y-1 pb-2">
+                    <button
+                      className="w-full flex items-center gap-3 px-4 py-3 text-warm-gray-600 hover:text-honey-600 hover:bg-honey-50 rounded-xl transition-colors"
+                      onClick={() => {
+                        navigate(ROUTES.USER_BACKEND);
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <User className="h-5 w-5" />
+                      <span className="text-sm font-medium">内容管理</span>
+                    </button>
+
+                    <button
+                      className="w-full flex items-center gap-3 px-4 py-3 text-warm-gray-600 hover:text-honey-600 hover:bg-honey-50 rounded-xl transition-colors"
+                      onClick={() => {
+                        navigate(ROUTES.MEMBERSHIP);
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      <Crown className="h-5 w-5" />
+                      <span className="text-sm font-medium">套餐升级</span>
+                    </button>
+
+                    <button
+                      className="w-full flex items-center gap-3 px-4 py-3 text-warm-gray-600 hover:text-honey-600 hover:bg-honey-50 rounded-xl transition-colors"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        setTimeout(() => setIsRedeemOpen(true), 50);
+                      }}
+                    >
+                      <Key className="h-5 w-5" />
+                      <span className="text-sm font-medium">CDK 激活</span>
+                    </button>
+
+                    {isAdmin && (
+                      <button
+                        className="w-full flex items-center gap-3 px-4 py-3 text-yellow-700 hover:bg-yellow-50 rounded-xl transition-colors"
+                        onClick={() => {
+                          navigate(ROUTES.ADMIN_DASHBOARD);
+                          setIsMobileMenuOpen(false);
+                        }}
+                      >
+                        <Shield className="h-5 w-5" />
+                        <span className="text-sm font-medium">管理员后台</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile Logout Section */}
+              <div className="px-4 py-3 border-t border-honey-border">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-red-600 hover:bg-red-50"
+                  onClick={() => {
+                    const ok = window.confirm('确定要退出登录吗？');
+                    if (ok) {
+                      setIsMobileMenuOpen(false);
+                      logout();
+                    }
+                  }}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  退出登录
+                </Button>
               </div>
 
               {/* Mobile Create Button */}
@@ -312,15 +418,10 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
         </Dialog>
       </div>
 
-      {/* Click outside handlers（仅用于用户下拉菜单；移动端菜单改由 Dialog 处理） */}
-      {(!isMobileMenuOpen && isUserMenuOpen) && (
-        <div
-          className="fixed inset-0 z-30"
-          onClick={() => {
-            setIsUserMenuOpen(false);
-          }}
-        />
-      )}
+      {/* 用户菜单由 DropdownMenu 管理焦点与关闭逻辑 */}
     </header>
+    {/* 全局 Redeem CDK 对话框 */}
+    <RedeemCDKDialog open={isRedeemOpen} onOpenChange={setIsRedeemOpen} />
+    </>
   );
 };
