@@ -19,6 +19,12 @@ export interface BackendUser {
   maxConcurrentDevices: number;
   createTime: string;
   updateTime: string;
+  // ===== 后端用户信息中包含的当前套餐回显字段（扁平） =====
+  currentSubscriptionPlanId?: string | null;
+  currentSubscriptionPlanName?: string | null;
+  currentSubscriptionStartTime?: string | null;
+  currentSubscriptionEndTime?: string | null;
+  currentSubscriptionPlanLevel?: number | null;
 }
 
 // 登录响应接口
@@ -56,7 +62,9 @@ export class AuthService {
     localStorage.setItem('auth_token', token);
     
     // 将后端用户数据映射为前端用户数据
-    const user: User = this.mapBackendUserToFrontendUser(backendUser);
+    let user: User = this.mapBackendUserToFrontendUser(backendUser);
+    // 绑定 level（若后端未提供）
+    user = await this.enrichPlanLevel(user);
     
     // 存储用户信息
     localStorage.setItem('user', JSON.stringify(user));
@@ -76,7 +84,8 @@ export class AuthService {
     localStorage.setItem('auth_token', token);
     
     // 将后端用户数据映射为前端用户数据
-    const user: User = this.mapBackendUserToFrontendUser(backendUser);
+    let user: User = this.mapBackendUserToFrontendUser(backendUser);
+    user = await this.enrichPlanLevel(user);
     
     // 存储用户信息
     localStorage.setItem('user', JSON.stringify(user));
@@ -100,7 +109,8 @@ export class AuthService {
     const { token, user: backendUser } = response.data.data;
 
     localStorage.setItem('auth_token', token);
-    const user: User = this.mapBackendUserToFrontendUser(backendUser);
+    let user: User = this.mapBackendUserToFrontendUser(backendUser);
+    user = await this.enrichPlanLevel(user);
     localStorage.setItem('user', JSON.stringify(user));
     return user;
   }
@@ -178,7 +188,8 @@ export class AuthService {
       const backendUser = response.data.data;
       
       // 映射为前端用户格式
-      const user = this.mapBackendUserToFrontendUser(backendUser);
+      let user = this.mapBackendUserToFrontendUser(backendUser);
+      user = await this.enrichPlanLevel(user);
       
       // 更新本地存储
       localStorage.setItem('user', JSON.stringify(user));
@@ -202,15 +213,45 @@ export class AuthService {
    * 将后端用户数据映射为前端用户数据
    */
   private static mapBackendUserToFrontendUser(backendUser: BackendUser): User {
+    const end = backendUser.currentSubscriptionEndTime || undefined;
+    const start = backendUser.currentSubscriptionStartTime || undefined;
+    const planName = backendUser.currentSubscriptionPlanName || '';
+
     return {
       id: backendUser.id,
       name: backendUser.name,
       email: backendUser.email,
       avatar: backendUser.avatar || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`,
-      // 后端暂时没有会员等级字段，默认设置为 basic
+      maxConcurrentDevices: backendUser.maxConcurrentDevices,
+      // 不在前端推断套餐等级
       membershipTier: 'basic',
-      // 默认设置会员到期时间为30天后
-      membershipExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      membershipExpiry: end ? new Date(end) : undefined,
+      currentSubscriptionPlanId: backendUser.currentSubscriptionPlanId || undefined,
+      currentSubscriptionPlanName: planName || undefined,
+      currentSubscriptionStartTime: start || undefined,
+      currentSubscriptionEndTime: end || undefined,
+      currentSubscriptionPlanLevel: backendUser.currentSubscriptionPlanLevel || undefined,
     };
+  }
+
+  /**
+   * 若用户对象缺少 currentSubscriptionPlanLevel，则查询可用套餐列表填充 level
+   */
+  private static async enrichPlanLevel(user: User): Promise<User> {
+    try {
+      if (user.currentSubscriptionPlanLevel || !user.currentSubscriptionPlanId) return user;
+      const resp = await apiClient.get('/app/subscription-plans');
+      const plans = resp?.data?.data as Array<{ id: string; level?: number }> | undefined;
+      const matched = plans?.find(p => p.id === user.currentSubscriptionPlanId);
+      if (matched && typeof matched.level === 'number') {
+        const updated = { ...user, currentSubscriptionPlanLevel: matched.level };
+        // 立即更新本地存储以便 UI 使用
+        localStorage.setItem('user', JSON.stringify(updated));
+        return updated;
+      }
+    } catch (_) {
+      // 静默失败
+    }
+    return user;
   }
 }

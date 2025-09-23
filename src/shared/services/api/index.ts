@@ -18,6 +18,7 @@ export { NotificationsService } from './notifications.service';
 export { CDKService } from './cdk.service';
 export { UpdateLogService } from './update-log.service';
 export { AdminDeviceSessionService } from './admin-device-session.service';
+export { UserDeviceSessionService, type MySessionOverview } from './user-device-session.service';
 export { ResourceService } from './resource.service';
 export { AdminResourceService } from './admin-resource.service';
 export { UserFollowsService } from './user-follows.service';
@@ -86,6 +87,9 @@ export type {
   BlacklistedUserDTO,
   SystemConfigType,
   UserSessionLimitConfigData,
+  // 用户套餐回显相关类型
+  UserSubscriptionDTO,
+  SubscriptionStatus,
   // 资源管理
   ResourceDTO,
   ResourceQueryRequest,

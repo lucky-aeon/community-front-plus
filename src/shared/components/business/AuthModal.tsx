@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { showToast } from '@shared/utils/toast';
+import { AuthService } from '@shared/services/api/auth.service';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -42,8 +43,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     setErrors({});
 
     try {
+      // 基础邮箱校验（禁用原生校验后由我们负责提示）
+      const email = formData.email.trim();
+      const emailValid = /\S+@\S+\.[\S]+/.test(email);
+      if (!email) {
+        showToast.error('请填写邮箱');
+        return;
+      }
+      if (!emailValid) {
+        showToast.error('请输入有效的邮箱地址');
+        return;
+      }
+
       if (isLogin) {
+        if (!formData.password) {
+          showToast.error('请输入密码');
+          return;
+        }
         await login(formData.email, formData.password);
+        // 仅当确认已登录成功（token 与 user 已写入）时才关闭弹窗
+        if (!AuthService.isLoggedIn()) return;
       } else {
         if (!formData.code) {
           showToast.error('请输入邮箱验证码');
@@ -62,6 +81,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           return;
         }
         await registerWithCode(formData.email, formData.code, formData.password);
+        // 注册成功后也仅在确认写入后再关闭
+        if (!AuthService.isLoggedIn()) return;
       }
       onClose();
       setFormData({ email: '', password: '', confirmPassword: '', code: '' });
@@ -104,7 +125,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-md">
+      <DialogContent
+        className="max-w-md"
+        // 禁止按下 ESC 或点击遮罩层时自动关闭，避免失败场景误关
+        onEscapeKeyDown={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{isLogin ? '欢迎回来' : '创建账户'}</DialogTitle>
           <DialogDescription>
@@ -112,7 +139,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+        <form onSubmit={handleSubmit} noValidate className="space-y-4 mt-2">
           {/* 邮箱 */}
           <div className="space-y-2">
             <Label htmlFor="auth-email">邮箱</Label>
@@ -127,6 +154,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 onChange={handleChange}
                 required
                 className="pl-12 pr-28"
+                autoComplete="email"
               />
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
               {/* 发送验证码按钮（仅注册态 + 合法邮箱时显示） */}

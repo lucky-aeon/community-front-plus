@@ -215,7 +215,14 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                         <div className="min-w-0">
                           <div className="text-sm font-medium text-gray-900 truncate">{user.name}</div>
                           <div className="text-xs text-warm-gray-500 truncate">{user.email}</div>
-                          <div className="mt-1"><MembershipBadge tier={user.membershipTier as any} size="sm" /></div>
+                          <div className="mt-1">
+                            <MembershipBadge
+                              tier={user.membershipTier as any}
+                              size="sm"
+                              text={user.currentSubscriptionPlanName || undefined}
+                              level={user.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>

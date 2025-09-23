@@ -27,6 +27,13 @@ export const FollowsPage: React.FC = () => {
   const [coursePageInfo, setCoursePageInfo] = useState<PageResponse<FollowDTO> | null>(null);
   const navigate = useNavigate();
 
+  const formatFollowTime = (time?: string) => {
+    if (!time) return '-';
+    const normalized = time.includes('T') ? time : time.replace(' ', 'T');
+    const d = new Date(normalized);
+    return isNaN(d.getTime()) ? time : d.toLocaleString('zh-CN');
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -111,7 +118,7 @@ export const FollowsPage: React.FC = () => {
                 {item.targetName || (item as any).targetUserName}
               </div>
               <div className="text-sm text-gray-500 line-clamp-1">{item.description || (item as any).targetUserDescription || '这个人很神秘，什么都没有写。'}</div>
-              <div className="text-xs text-gray-400 mt-1">关注于 {new Date(item.createTime).toLocaleString('zh-CN')}</div>
+              <div className="text-xs text-gray-400 mt-1">关注于 {formatFollowTime(item.followTime || (item as any).createTime)}</div>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -137,7 +144,7 @@ export const FollowsPage: React.FC = () => {
               {item.targetName || (item as any).courseTitle}
             </div>
             <div className="text-sm text-gray-500">{item.authorName ? `作者：${item.authorName}` : '课程'}</div>
-            <div className="text-xs text-gray-400 mt-1">订阅于 {new Date(item.createTime).toLocaleString('zh-CN')}</div>
+            <div className="text-xs text-gray-400 mt-1">订阅于 {formatFollowTime(item.followTime || (item as any).createTime)}</div>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -170,7 +177,7 @@ export const FollowsPage: React.FC = () => {
                   {u.targetName || (u as any).targetUserName}
                 </div>
                 <div className="text-sm text-gray-500 line-clamp-1">{u.description || (u as any).targetUserDescription || '这个人很神秘，什么都没有写。'}</div>
-                <div className="text-xs text-gray-400 mt-1">关注于 {new Date(u.createTime).toLocaleString('zh-CN')}</div>
+                <div className="text-xs text-gray-400 mt-1">关注于 {formatFollowTime(u.followTime || (u as any).createTime)}</div>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -213,7 +220,7 @@ export const FollowsPage: React.FC = () => {
                   {c.targetName || (c as any).courseTitle}
                 </div>
                 <div className="text-sm text-gray-500">{c.authorName ? `作者：${c.authorName}` : '课程'}</div>
-                <div className="text-xs text-gray-400 mt-1">订阅于 {new Date(c.createTime).toLocaleString('zh-CN')}</div>
+                <div className="text-xs text-gray-400 mt-1">订阅于 {formatFollowTime(c.followTime || (c as any).createTime)}</div>
               </div>
             </div>
             <div className="flex items-center space-x-2">

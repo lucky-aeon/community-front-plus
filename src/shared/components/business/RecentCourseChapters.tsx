@@ -26,8 +26,9 @@ export const RecentCourseChapters: React.FC<RecentCourseChaptersProps> = ({
     navigate(`/dashboard/courses/${courseId}`);
   };
 
-  const handleChapterClick = (chapterId: string) => {
-    navigate(`/dashboard/chapters/${chapterId}`);
+  const handleChapterClick = (courseId: string, chapterId: string) => {
+    // 跳转到课程下的章节详情页
+    navigate(`/dashboard/courses/${courseId}/chapters/${chapterId}`);
   };
 
   const handleViewMore = () => {
@@ -89,38 +90,44 @@ export const RecentCourseChapters: React.FC<RecentCourseChaptersProps> = ({
             displayItems.map((item) => (
               <div
                 key={item.id}
-                className="group p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-blue-100"
+                className="group p-3 rounded-lg cursor-pointer border border-gray-100 hover:border-blue-200 hover:bg-blue-50/40 transition-colors"
                 onClick={() => isChapterMode
-                  ? handleChapterClick(item.id)
+                  ? ('courseId' in item ? handleChapterClick(item.courseId, item.id) : undefined)
                   : handleCourseClick(item.id)
                 }
               >
-                <div className="space-y-2">
-                  {/* Title */}
-                  <h4 className="text-sm font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors leading-snug">
-                    {item.title}
-                  </h4>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-1.5">
+                    {/* 标题：章节或课程名称 */}
+                    <h4 className="text-sm font-medium text-gray-900 leading-snug line-clamp-2 group-hover:text-blue-600">
+                      {item.title}
+                    </h4>
 
-                  {/* Meta info */}
-                  <div className="flex items-center justify-between text-xs">
-                    {/* Course name for chapters */}
-                    {isChapterMode && 'courseName' in item && (
-                      <div className="text-warm-gray-600 truncate">
-                        {item.courseName}
-                      </div>
-                    )}
-
-                    {/* Create Time */}
-                    <div className="flex items-center space-x-1 text-warm-gray-500">
-                      <Clock className="h-3 w-3" />
-                      <span>
-                        {new Date(item.createTime).toLocaleDateString('zh-CN', {
-                          month: 'short',
-                          day: 'numeric'
-                        })}
+                    {/* 元信息行：课程名（章节模式显示，作为轻量链接） + 时间 */}
+                    <div className="flex items-center gap-2 text-xs text-warm-gray-500">
+                      {isChapterMode && 'courseName' in item && (
+                        <button
+                          className="inline-flex items-center gap-1 text-warm-gray-700 hover:text-blue-600 truncate"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if ('courseId' in item) handleCourseClick(item.courseId);
+                          }}
+                          title={item.courseName}
+                        >
+                          <BookOpen className="h-3.5 w-3.5" />
+                          <span className="truncate">{item.courseName}</span>
+                        </button>
+                      )}
+                      {isChapterMode && 'courseName' in item && (
+                        <span className="text-warm-gray-300">•</span>
+                      )}
+                      <span className="inline-flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        {new Date(item.createTime).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
                       </span>
                     </div>
                   </div>
+                  <ChevronRight className="h-4 w-4 text-warm-gray-400 opacity-0 group-hover:opacity-100 transition-opacity mt-1 shrink-0" />
                 </div>
               </div>
             ))

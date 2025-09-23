@@ -3,8 +3,16 @@ export interface User {
   email: string;
   name: string;
   avatar?: string;
+  // 并发设备上限（来自后端用户信息）
+  maxConcurrentDevices?: number;
   membershipTier: 'guest' | 'basic' | 'premium' | 'vip';
   membershipExpiry?: Date;
+  // 套餐回显相关（可选）
+  currentSubscriptionPlanId?: string;
+  currentSubscriptionPlanName?: string;
+  currentSubscriptionStartTime?: string | Date;
+  currentSubscriptionEndTime?: string | Date;
+  currentSubscriptionPlanLevel?: number; // 1/2/3 用于样式层级
 }
 
 export interface Course {
@@ -56,7 +64,10 @@ export interface AuthContextType {
   sendRegisterCode: (email: string) => Promise<void>;
   registerWithCode: (email: string, code: string, password: string) => Promise<void>;
   logout: () => void;
+  // 表示登录/注册等认证动作的进行态（用于按钮/表单禁用）
   isLoading: boolean;
+  // 应用启动阶段的初始化态（仅用于路由守卫决定是否渲染页面）
+  isInitializing: boolean;
 }
 
 export interface Post {
@@ -385,6 +396,31 @@ export interface UserDTO {
   role?: UserRole;             // 后端将新增的角色字段：ADMIN/USER
   createTime: string;
   updateTime: string;
+  // ========== 后端新增：用户当前套餐相关字段 ==========
+  // 冗余字段：当前套餐的关键信息（可选）
+  currentSubscriptionPlanId?: string;
+  currentSubscriptionPlanName?: string;
+  currentSubscriptionStartTime?: string; // ISO字符串
+  currentSubscriptionEndTime?: string;   // ISO字符串
+  currentSubscriptionPlanLevel?: number; // 1/2/3（如果后端提供则直传）
+}
+
+// 用户套餐状态（与后端 SubscriptionStatus 对齐）
+export type SubscriptionStatus = 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'CANCELLED';
+
+// 用户套餐DTO（与后端 UserSubscriptionDTO 对齐的前端定义）
+export interface UserSubscriptionDTO {
+  id: string;
+  userId: string;
+  subscriptionPlanId: string;
+  subscriptionPlanName: string;
+  startTime: string;              // ISO字符串
+  endTime: string;                // ISO字符串
+  status: SubscriptionStatus | string;
+  cdkCode?: string;
+  daysRemaining?: number;
+  isActive?: boolean;
+  createTime: string;
 }
 
 // ================ 评论相关接口定义 ================
@@ -942,7 +978,12 @@ export interface FollowDTO {
   authorId?: string;               // 课程作者ID（课程时可选）
   authorName?: string;             // 课程作者名称（课程时可选）
   description?: string;            // 简介（用户/课程通用可选）
-  createTime: string;              // 关注/订阅时间
+  // 时间与状态字段（与后端 FollowDTO 对齐）
+  followTime?: string;             // 关注/订阅时间（后端字段）
+  unfollowTime?: string;           // 取消关注时间（可选）
+  status?: string;                 // 状态，如 ACTIVE/INACTIVE
+  // 兼容旧字段
+  createTime?: string;             // 旧字段：创建时间
 }
 
 // 关注查询请求参数

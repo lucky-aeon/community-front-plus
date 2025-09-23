@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { User, Menu, X, LogOut } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
 import { Button } from '@/components/ui/button';
+import { MembershipBadge } from '@shared/components/ui/MembershipBadge';
 
 interface HeaderProps {
   onAuthClick: () => void;
@@ -19,17 +20,13 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
 
   const getMembershipBadge = () => {
     if (!user || user.membershipTier === 'guest') return null;
-    
-    const colors = {
-      basic: 'bg-blue-100 text-blue-800',
-      premium: 'bg-purple-100 text-purple-800',
-      vip: 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white'
-    };
-    
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${colors[user.membershipTier]}`}>
-        {user.membershipTier.toUpperCase()}
-      </span>
+      <MembershipBadge
+        tier={user.membershipTier as any}
+        size="sm"
+        text={user.currentSubscriptionPlanName || undefined}
+        level={user.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}
+      />
     );
   };
 

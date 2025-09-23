@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CommentDTO, LatestCommentDTO } from '@shared/types';
 import { CommentsService } from '@shared/services/api/comments.service';
+import { ChaptersService } from '@shared/services/api';
 import { cn } from '@/lib/utils';
 
 interface RecentCommentsProps {
@@ -22,14 +23,20 @@ export const RecentComments: React.FC<RecentCommentsProps> = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleCommentClick = (comment: LatestCommentDTO) => {
+  const handleCommentClick = async (comment: LatestCommentDTO) => {
     // 根据业务类型跳转到对应的内容页面
     if (comment.businessType === 'POST') {
       navigate(`/dashboard/discussions/${comment.businessId}#comment-${comment.id}`);
     } else if (comment.businessType === 'COURSE') {
       navigate(`/dashboard/courses/${comment.businessId}#comment-${comment.id}`);
     } else if (comment.businessType === 'CHAPTER') {
-      navigate(`/dashboard/chapters/${comment.businessId}#comment-${comment.id}`);
+      try {
+        const detail = await ChaptersService.getFrontChapterDetail(comment.businessId);
+        navigate(`/dashboard/courses/${detail.courseId}/chapters/${comment.businessId}#comment-${comment.id}`);
+      } catch (e) {
+        // 回退到旧路径以保证可达
+        navigate(`/dashboard/chapters/${comment.businessId}#comment-${comment.id}`);
+      }
     }
   };
 

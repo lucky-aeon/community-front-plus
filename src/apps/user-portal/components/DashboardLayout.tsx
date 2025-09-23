@@ -7,6 +7,7 @@ import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarSection, SidebarSectionTitle } from '@/components/ui/sidebar';
+import { MembershipBadge } from '@shared/components/ui/MembershipBadge';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -69,7 +70,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                 {!isCollapsed && (
                   <div className="min-w-0">
                     <div className="text-sm font-medium truncate">{user?.name}</div>
-                    <div className={`mt-1 inline-flex px-2 py-0.5 rounded-full text-xs font-semibold ${getMembershipColor(user?.membershipTier || 'guest')}`}>{user?.membershipTier?.toUpperCase()}</div>
+                    <MembershipBadge
+                      tier={(user?.membershipTier || 'basic') as any}
+                      size="sm"
+                      text={user?.currentSubscriptionPlanName || undefined}
+                      level={user?.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}
+                    />
                   </div>
                 )}
               </div>

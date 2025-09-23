@@ -8,11 +8,11 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isInitializing } = useAuth();
   const location = useLocation();
 
   // 如果正在加载用户状态，显示加载动画
-  if (isLoading) {
+  if (isInitializing) {
     return <LoadingSpinner text="验证用户身份中..." />;
   }
 
@@ -29,10 +29,10 @@ interface PublicOnlyRouteProps {
 }
 
 export const PublicOnlyRoute: React.FC<PublicOnlyRouteProps> = ({ children }) => {
-  const { user, isLoading } = useAuth();
+  const { user, isInitializing } = useAuth();
 
   // 如果正在加载用户状态，显示加载动画
-  if (isLoading) {
+  if (isInitializing) {
     return <LoadingSpinner text="加载中..." />;
   }
 

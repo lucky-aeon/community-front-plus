@@ -18,7 +18,10 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  // 认证动作加载（登录/注册/发码等）
+  const [isLoading, setIsLoading] = useState(false);
+  // 应用初始化阶段（仅用于路由守卫判断是否渲染页面）
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     // 检查存储的用户会话和 token
@@ -30,14 +33,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // 验证 token 是否仍然有效
         const isTokenValid = await AuthService.validateToken();
         if (isTokenValid) {
+          // 先用本地的兜底，随后静默刷新一次用户信息（带回套餐名称等最新字段）
           setUser(storedUser);
+          try {
+            const refreshed = await AuthService.refreshUserInfo();
+            if (refreshed) setUser(refreshed);
+          } catch (_) {
+            // 静默失败即可
+          }
         } else {
           // Token 无效，清除存储的信息
           AuthService.logout();
         }
       }
-      
-      setIsLoading(false);
+      // 完成初始化
+      setIsInitializing(false);
     };
     
     initializeAuth();
@@ -136,7 +146,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     sendRegisterCode,
     registerWithCode,
     logout,
-    isLoading
+    isLoading,
+    isInitializing,
   };
 
   return (

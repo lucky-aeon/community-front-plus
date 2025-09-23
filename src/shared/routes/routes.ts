@@ -19,7 +19,6 @@ export const ROUTES = {
   USER_BACKEND_ARTICLES_EDIT: '/dashboard/user-backend/articles/edit/:id',
   USER_BACKEND_MESSAGES: '/dashboard/user-backend/messages',
   USER_BACKEND_PROFILE: '/dashboard/user-backend/profile',
-  USER_BACKEND_SECURITY: '/dashboard/user-backend/security',
   USER_BACKEND_FAVORITES: '/dashboard/user-backend/favorites',
 
   // 管理员后台

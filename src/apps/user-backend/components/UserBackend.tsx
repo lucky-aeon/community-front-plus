@@ -7,6 +7,7 @@ import { MyTestimonialPage } from './MyTestimonialPage';
 import { MessageCenterPage } from './MessageCenterPage';
 import { ProfileSettingsPage } from './ProfileSettingsPage';
 import { MyResourcesPage } from './MyResourcesPage';
+import { DeviceManagementPage } from './DeviceManagementPage';
 import { FollowsPage } from './FollowsPage';
 import { CreatePostPage } from '../../user-portal/components/CreatePostPage';
 import { PostsService } from '@shared/services/api/posts.service';
@@ -98,8 +99,7 @@ export const UserBackend: React.FC = () => {
         <Route path="/favorites" element={<ComingSoonPage title="我的收藏" />} />
         <Route path="/follows" element={<FollowsPage />} />
         <Route path="/analytics" element={<ComingSoonPage title="内容数据" />} />
-        <Route path="/security" element={<ComingSoonPage title="安全设置" />} />
-        <Route path="/devices" element={<ComingSoonPage title="设备管理" />} />
+        <Route path="/devices" element={<DeviceManagementPage />} />
         
         {/* 404 处理 */}
         <Route path="*" element={<Navigate to="/dashboard/user-backend/articles" replace />} />

@@ -151,7 +151,7 @@ export const SubscriptionPlansPage: React.FC = () => {
     if (!Number.isInteger(validityMonths) || validityMonths <= 0) return showToast.error('有效期必须为正整数');
     if (!Number.isFinite(price) || price < 0) return showToast.error('价格必须为非负数');
     if (originalPrice !== undefined && (!Number.isFinite(originalPrice) || originalPrice < 0)) return showToast.error('原价不能为负数');
-    if (originalPrice !== undefined && originalPrice <= price) return showToast.error('原价必须大于售价');
+    if (originalPrice !== undefined && originalPrice < price) return showToast.error('原价不能低于售价');
     if (!form.benefits || form.benefits.length === 0) return showToast.error('至少添加1个套餐权益');
 
     const payload: CreateSubscriptionPlanRequest | UpdateSubscriptionPlanRequest = {

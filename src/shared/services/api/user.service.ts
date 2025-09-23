@@ -86,12 +86,21 @@ export class UserService {
         const user = JSON.parse(currentUser);
         
         // 更新用户信息，保持前端特有的字段
+        const membershipExpiry = userDTO.currentSubscriptionEndTime;
+
         const updatedUser = {
           ...user,
           id: userDTO.id,
           name: userDTO.name,
           email: userDTO.email,
           avatar: userDTO.avatar || user.avatar, // 保持现有头像或使用新的
+          // 会员到期时间（仅回显，不推断等级）
+          membershipExpiry: membershipExpiry ? new Date(membershipExpiry) : user.membershipExpiry,
+          currentSubscriptionPlanId: userDTO.currentSubscriptionPlanId || user.currentSubscriptionPlanId,
+          currentSubscriptionPlanName: userDTO.currentSubscriptionPlanName || user.currentSubscriptionPlanName,
+          currentSubscriptionStartTime: userDTO.currentSubscriptionStartTime || user.currentSubscriptionStartTime,
+          currentSubscriptionEndTime: userDTO.currentSubscriptionEndTime || user.currentSubscriptionEndTime,
+          currentSubscriptionPlanLevel: userDTO.currentSubscriptionPlanLevel ?? user.currentSubscriptionPlanLevel,
         };
         
         // 保存到本地存储
@@ -108,15 +117,23 @@ export class UserService {
    * @returns 前端用户数据
    */
   static mapUserDTOToFrontendUser(userDTO: UserDTO) {
+    const end = userDTO.currentSubscriptionEndTime;
+    const start = userDTO.currentSubscriptionStartTime;
+    const planName = userDTO.currentSubscriptionPlanName || '';
+
     return {
       id: userDTO.id,
       name: userDTO.name,
       email: userDTO.email,
       avatar: userDTO.avatar || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`,
-      // 后端暂时没有会员等级字段，默认设置为 basic
+      // 不在前端推断套餐等级
       membershipTier: 'basic' as const,
-      // 默认设置会员到期时间为30天后
-      membershipExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      membershipExpiry: end ? new Date(end) : undefined,
+      currentSubscriptionPlanId: userDTO.currentSubscriptionPlanId,
+      currentSubscriptionPlanName: planName || undefined,
+      currentSubscriptionStartTime: start || undefined,
+      currentSubscriptionEndTime: end || undefined,
+      currentSubscriptionPlanLevel: userDTO.currentSubscriptionPlanLevel,
     };
   }
 }

@@ -10,6 +10,10 @@ interface MembershipBadgeProps {
   size?: 'sm' | 'md' | 'lg';
   showIcon?: boolean;
   animated?: boolean;
+  // 可选：自定义展示文本（用于显示后端套餐名称）
+  text?: string;
+  // 可选：基于套餐 level（1/2/3）定制样式，优先级高于 tier
+  level?: 1 | 2 | 3;
 }
 
 export const MembershipBadge: React.FC<MembershipBadgeProps> = ({
@@ -17,7 +21,9 @@ export const MembershipBadge: React.FC<MembershipBadgeProps> = ({
   className,
   size = 'md',
   showIcon = true,
-  animated = false
+  animated = false,
+  text,
+  level
 }) => {
   if (tier === 'guest') return null;
 
@@ -49,7 +55,34 @@ export const MembershipBadge: React.FC<MembershipBadgeProps> = ({
     }
   };
 
-  const config = getTierConfig(tier);
+  // level 优先映射样式
+  const getLevelConfig = (lvl: 1 | 2 | 3) => {
+    switch (lvl) {
+      case 1:
+        return {
+          label: 'Lv.1',
+          icon: Shield,
+          className: 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-blue-200',
+          glowClass: 'shadow-blue-500/25'
+        };
+      case 2:
+        return {
+          label: 'Lv.2',
+          icon: Star,
+          className: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-200',
+          glowClass: 'shadow-purple-500/25'
+        };
+      case 3:
+        return {
+          label: 'Lv.3',
+          icon: Crown,
+          className: 'bg-gradient-to-r from-premium-500 via-yellow-400 to-orange-500 text-white border-premium-200',
+          glowClass: 'shadow-premium-500/40'
+        };
+    }
+  };
+
+  const config = level ? getLevelConfig(level) : getTierConfig(tier);
   if (!config) return null;
 
   const sizeClasses = {
@@ -72,7 +105,7 @@ export const MembershipBadge: React.FC<MembershipBadgeProps> = ({
       )}
     >
       {showIcon && <IconComponent className="h-3 w-3 mr-1.5" />}
-      <span className="font-bold tracking-wider">{config.label}</span>
+      <span className="font-bold tracking-wider">{text ?? config.label}</span>
       {tier === 'vip' && (
         <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
       )}

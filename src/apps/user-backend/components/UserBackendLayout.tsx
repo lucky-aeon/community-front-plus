@@ -20,6 +20,7 @@ import {
   Star
 } from 'lucide-react';
 import { useAuth } from '../../../context/AuthContext';
+import { MembershipBadge } from '@shared/components/ui/MembershipBadge';
 import { UserService } from '@shared/services/api';
 import type { UserDTO } from '@shared/types';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
@@ -99,7 +100,6 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
       title: '账户设置',
       items: [
         { id: 'profile', name: '个人信息', icon: User, path: '/dashboard/user-backend/profile' },
-        { id: 'security', name: '安全设置', icon: Shield, path: '/dashboard/user-backend/security' },
         { id: 'devices', name: '设备管理', icon: Smartphone, path: '/dashboard/user-backend/devices' }
       ]
     }
@@ -163,9 +163,12 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
               </p>
               <p className="text-xs text-gray-500 truncate">{user?.email}</p>
               <div className="flex items-center mt-1">
-                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getMembershipColor(user?.membershipTier || 'guest')}`}>
-                  {user?.membershipTier?.toUpperCase()}
-                </span>
+                <MembershipBadge
+                  tier={(user?.membershipTier || 'basic') as any}
+                  size="sm"
+                  text={user?.currentSubscriptionPlanName || undefined}
+                  level={user?.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}
+                />
               </div>
             </div>
           </div>

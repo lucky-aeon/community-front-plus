@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { User, Mail, Calendar, Crown, Edit, Save, X, CreditCard, CheckCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { MembershipBadge } from '@shared/components/ui/MembershipBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '../../../context/AuthContext';
@@ -16,6 +17,12 @@ export const ProfilePage: React.FC = () => {
   });
 
   const currentPlan = membershipPlans.find(plan => plan.tier === user?.membershipTier);
+  const displayPlanName = user?.currentSubscriptionPlanName || currentPlan?.name;
+  const isPlanActive = (() => {
+    if (!user?.membershipExpiry) return false;
+    const d = typeof user.membershipExpiry === 'string' ? new Date(user.membershipExpiry) : user.membershipExpiry;
+    return !isNaN(d.getTime()) && d.getTime() > Date.now();
+  })();
 
   const getMembershipColor = (tier: string) => {
     switch (tier) {
@@ -103,8 +110,13 @@ export const ProfilePage: React.FC = () => {
                   alt={user?.name}
                   className="h-20 w-20 rounded-full object-cover"
                 />
-                <div className={`absolute -bottom-1 -right-1 px-2 py-1 rounded-full text-xs font-semibold ${getMembershipColor(user?.membershipTier || 'guest')}`}>
-                  {user?.membershipTier?.toUpperCase()}
+                <div className="absolute -bottom-1 -right-1">
+                  <MembershipBadge
+                    tier={(user?.membershipTier || 'basic') as any}
+                    size="sm"
+                    text={displayPlanName || undefined}
+                    level={user?.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}
+                  />
                 </div>
               </div>
               <div className="flex-1">
@@ -163,9 +175,12 @@ export const ProfilePage: React.FC = () => {
                 <Crown className="h-5 w-5 text-gray-600" />
                 <div>
                   <p className="text-sm text-gray-600">会员等级</p>
-                  <Badge className={getMembershipColor(user?.membershipTier || 'guest')}>
-                    {user?.membershipTier?.toUpperCase()}
-                  </Badge>
+                  <MembershipBadge
+                    tier={(user?.membershipTier || 'basic') as any}
+                    size="sm"
+                    text={displayPlanName || undefined}
+                    level={user?.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}
+                  />
                 </div>
               </div>
             </div>
@@ -182,24 +197,30 @@ export const ProfilePage: React.FC = () => {
               <CreditCard className="h-5 w-5 text-gray-600" />
             </div>
 
-            {currentPlan ? (
+            {displayPlanName ? (
               <div className="space-y-4">
-                <div className={`p-4 rounded-xl border-2 ${getMembershipColor(currentPlan.tier)}`}>
+                <div className={`p-4 rounded-xl border-2 ${getMembershipColor((user?.membershipTier || 'guest'))}`}>
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-lg font-bold">{currentPlan.name}</h3>
-                    {currentPlan.tier === 'vip' && <Crown className="h-5 w-5" />}
+                    <h3 className="text-lg font-bold">{displayPlanName}</h3>
+                    {user?.membershipTier === 'vip' && <Crown className="h-5 w-5" />}
                   </div>
-                  <p className="text-2xl font-bold">¥{currentPlan.price}<span className="text-sm font-normal">/月</span></p>
+                  {currentPlan?.price !== undefined && (
+                    <p className="text-2xl font-bold">¥{currentPlan.price}<span className="text-sm font-normal">/月</span></p>
+                  )}
                 </div>
 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600">套餐状态</span>
-                    <Badge variant="success">活跃</Badge>
+                    {isPlanActive ? (
+                      <Badge variant="success">活跃</Badge>
+                    ) : (
+                      <Badge variant="secondary">已过期</Badge>
+                    )}
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600">生效时间</span>
-                    <span className="font-medium">2024年12月15日</span>
+                    <span className="font-medium">{formatDate(user?.currentSubscriptionStartTime)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-gray-600">到期时间</span>
@@ -214,7 +235,7 @@ export const ProfilePage: React.FC = () => {
                 <div className="pt-4 border-t border-gray-200">
                   <h4 className="font-medium text-gray-900 mb-3">套餐权益</h4>
                   <ul className="space-y-2">
-                    {currentPlan.features.slice(0, 4).map((feature, index) => (
+                    {(currentPlan?.features || []).slice(0, 4).map((feature, index) => (
                       <li key={index} className="flex items-center space-x-2 text-sm">
                         <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
                         <span className="text-gray-600">{feature}</span>
