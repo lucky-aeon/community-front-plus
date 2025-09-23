@@ -11,9 +11,10 @@ interface CourseCardProps {
   course: FrontCourseDTO;
   onClick?: (courseId: string) => void;
   showAuthor?: boolean; // 是否显示作者，默认显示
+  hideContent?: boolean; // 列表页不展示简介/标签
 }
 
-export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAuthor = true }) => {
+export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAuthor = true, hideContent = false }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDING': return 'bg-amber-100 text-amber-800 border-amber-200';
@@ -127,9 +128,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
           <h3 className="text-lg font-bold text-gray-900 leading-tight line-clamp-2 group-hover:text-honey-700 transition-colors">
             {course.title}
           </h3>
-          <p className="text-warm-gray-600 text-sm leading-relaxed line-clamp-2">
-            {course.description}
-          </p>
+          {!hideContent && (
+            <p className="text-warm-gray-600 text-sm leading-relaxed line-clamp-2">
+              {course.description}
+            </p>
+          )}
         </div>
 
         {/* Course Stats */}
@@ -147,29 +150,31 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
         </div>
 
         {/* Technology Stack Tags */}
-        <div className="flex flex-wrap gap-2">
-          {course.techStack?.slice(0, 2).map((tech) => (
-            <Badge
-              key={tech}
-              className="bg-honey-50 text-honey-700 border-honey-200 hover:bg-honey-100 transition-colors text-xs font-medium"
-            >
-              {tech}
-            </Badge>
-          ))}
-          {course.tags?.slice(0, 1).map((tag) => (
-            <Badge
-              key={tag}
-              className="bg-sage-50 text-sage-700 border-sage-200 hover:bg-sage-100 transition-colors text-xs font-medium"
-            >
-              {tag}
-            </Badge>
-          ))}
-          {((course.techStack?.length || 0) > 2 || (course.tags?.length || 0) > 1) && (
-            <Badge className="bg-warm-gray-50 text-warm-gray-600 border-warm-gray-200 text-xs font-medium">
-              +{(course.techStack?.length || 0) + (course.tags?.length || 0) - 3}
-            </Badge>
-          )}
-        </div>
+        {!hideContent && (
+          <div className="flex flex-wrap gap-2">
+            {course.techStack?.slice(0, 2).map((tech) => (
+              <Badge
+                key={tech}
+                className="bg-honey-50 text-honey-700 border-honey-200 hover:bg-honey-100 transition-colors text-xs font-medium"
+              >
+                {tech}
+              </Badge>
+            ))}
+            {course.tags?.slice(0, 1).map((tag) => (
+              <Badge
+                key={tag}
+                className="bg-sage-50 text-sage-700 border-sage-200 hover:bg-sage-100 transition-colors text-xs font-medium"
+              >
+                {tag}
+              </Badge>
+            ))}
+            {((course.techStack?.length || 0) > 2 || (course.tags?.length || 0) > 1) && (
+              <Badge className="bg-warm-gray-50 text-warm-gray-600 border-warm-gray-200 text-xs font-medium">
+                +{(course.techStack?.length || 0) + (course.tags?.length || 0) - 3}
+              </Badge>
+            )}
+          </div>
+        )}
 
         {/* Price and Action */}
         <div className="space-y-3 pt-2 border-t border-warm-gray-100">
@@ -204,10 +209,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
             )}
             onClick={handleCardClick}
           >
-            <span className="relative z-10 flex items-center justify-center space-x-2">
-              <span>开始学习</span>
-              <div className="w-1.5 h-1.5 bg-white/80 rounded-full animate-pulse" />
-            </span>
+            <span className="relative z-10 flex items-center justify-center">开始学习</span>
           </Button>
         </div>
       </div>

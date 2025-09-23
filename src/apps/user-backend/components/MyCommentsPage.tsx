@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Trash2, Search, FileText, GraduationCap, Reply, Send, X } from 'lucide-react';
+import { MessageSquare, Trash2, Search, FileText, GraduationCap, Reply, Send, X, BookOpen } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -153,6 +153,13 @@ export const MyCommentsPage: React.FC = () => {
           <Badge variant="secondary" className="flex items-center space-x-1">
             <GraduationCap className="h-3 w-3" />
             <span>课程</span>
+          </Badge>
+        );
+      case 'CHAPTER':
+        return (
+          <Badge variant="secondary" className="flex items-center space-x-1">
+            <BookOpen className="h-3 w-3" />
+            <span>章节</span>
           </Badge>
         );
       default:

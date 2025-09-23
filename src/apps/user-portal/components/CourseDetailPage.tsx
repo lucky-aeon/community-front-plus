@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BookOpen, Clock, ExternalLink, Tags, Star } from 'lucide-react';
-import { CoursesService } from '@shared/services/api';
+import { CoursesService, SubscribeService } from '@shared/services/api';
 import { FrontCourseDetailDTO, FrontChapterDTO } from '@shared/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,6 +17,8 @@ export const CourseDetailPage: React.FC = () => {
   const [course, setCourse] = useState<FrontCourseDetailDTO | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState<boolean>(false);
+  const [followLoading, setFollowLoading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchCourseDetail = async () => {
@@ -27,6 +29,14 @@ export const CourseDetailPage: React.FC = () => {
         setError(null);
         const courseData = await CoursesService.getFrontCourseDetail(courseId);
         setCourse(courseData);
+
+        // 获取订阅状态
+        try {
+          const status = await SubscribeService.checkSubscribeStatus({ targetId: courseId, targetType: 'COURSE' });
+          setIsFollowing(!!status.isFollowing);
+        } catch (_) {
+          // 忽略订阅状态错误（未登录或接口异常），不影响详情显示
+        }
       } catch (err) {
         console.error('获取课程详情失败:', err);
         setError('课程加载失败，请稍后重试');
@@ -63,6 +73,19 @@ export const CourseDetailPage: React.FC = () => {
   const startLearning = () => {
     if (course && firstChapter) {
       navigate(`/dashboard/courses/${course.id}/chapters/${firstChapter.id}`);
+    }
+  };
+
+  const toggleSubscribe = async () => {
+    if (!course) return;
+    setFollowLoading(true);
+    try {
+      const res = await SubscribeService.toggleSubscribe({ targetId: course.id, targetType: 'COURSE' });
+      setIsFollowing(!!res.isFollowing);
+    } catch (e) {
+      // 错误提示由拦截器处理
+    } finally {
+      setFollowLoading(false);
     }
   };
 
@@ -165,6 +188,13 @@ export const CourseDetailPage: React.FC = () => {
 
               <div className="flex-1" />
               <div className="flex items-center gap-2">
+                <Button
+                  variant={isFollowing ? 'secondary' : 'outline'}
+                  onClick={toggleSubscribe}
+                  disabled={followLoading}
+                >
+                  {isFollowing ? '已订阅' : '订阅课程'}
+                </Button>
                 <Button
                   onClick={startLearning}
                   disabled={!firstChapter}

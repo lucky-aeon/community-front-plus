@@ -932,23 +932,17 @@ export type FollowToggleResponse = SubscribeToggleResponse;
 
 // ================ 用户关注管理列表 DTO ================
 
-// 关注的用户条目
-export interface UserFollowDTO {
-  targetUserId: string;           // 被关注的用户ID
-  targetUserName: string;         // 被关注的用户名称
-  targetUserAvatar?: string;      // 被关注的用户头像
-  targetUserDescription?: string; // 简介（可选）
-  createTime: string;             // 关注时间
-}
-
-// 订阅的课程条目
-export interface CourseFollowDTO {
-  courseId: string;               // 课程ID
-  courseTitle: string;            // 课程标题
-  courseCover?: string;           // 课程封面
-  authorId?: string;              // 课程作者ID（可选）
-  authorName?: string;            // 课程作者名（可选）
-  createTime: string;             // 订阅时间
+// 后端 FollowDTO（对接 UserFollowController 返回）
+export interface FollowDTO {
+  targetId: string;                // 目标ID（用户ID/课程ID）
+  targetType: FollowTargetType;    // 目标类型 USER/COURSE
+  targetName: string;              // 新增：目标名称（用户昵称/课程标题）
+  targetAvatar?: string;           // 头像（当目标为用户时可用）
+  targetCover?: string;            // 封面（当目标为课程时可用）
+  authorId?: string;               // 课程作者ID（课程时可选）
+  authorName?: string;             // 课程作者名称（课程时可选）
+  description?: string;            // 简介（用户/课程通用可选）
+  createTime: string;              // 关注/订阅时间
 }
 
 // 关注查询请求参数
@@ -956,6 +950,7 @@ export interface FollowQueryRequest {
   pageNum?: number;               // 页码，从1开始
   pageSize?: number;              // 每页数量
   keyword?: string;               // 关键字（按名称过滤，可选）
+  targetType?: FollowTargetType;  // 目标类型（后端若要求，可携带）
 }
 
 // ================ 套餐管理相关接口定义 ================
