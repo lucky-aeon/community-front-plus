@@ -5,7 +5,6 @@ import { routeUtils } from '@shared/routes/routes';
 import { FrontCourseDTO, AppCourseQueryRequest } from '@shared/types';
 import { CourseCard } from '@shared/components/business/CourseCard';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
@@ -25,6 +24,8 @@ export const CoursesPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const pageSize = 12;
+
+  // 无搜索/筛选
 
   // 载入课程
   const loadCourses = useCallback(async () => {
@@ -77,17 +78,7 @@ export const CoursesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 简化顶部统计 */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6">
-        <Card className="p-4 sm:p-6 shadow-sm flex items-center justify-between">
-          <div className="text-sm text-warm-gray-600">
-            <Badge variant="secondary">共 {totalCount} 门课程</Badge>
-            <span className="mx-2">·</span>
-            <span>每页 {pageSize} 条</span>
-          </div>
-          <div className="text-xs text-warm-gray-400">自动按后端时间顺序</div>
-        </Card>
-      </div>
+      {/* 已按需求移除统计卡片，直接展示课程列表 */}
 
       {/* 错误提示 */}
       {error && (
