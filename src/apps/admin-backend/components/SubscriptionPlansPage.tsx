@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { RefreshCw, Plus, Pencil, Link2, Trash2, GripVertical, Search, XCircle } from 'lucide-react';
@@ -44,13 +45,15 @@ export const SubscriptionPlansPage: React.FC = () => {
       level: string;
       validityMonths: string;
       price: string;
+      originalPrice: string;
+      recommended: boolean;
       benefits: string[];
     }
   }>({
     open: false,
     mode: 'create',
     submitting: false,
-    form: { name: '', level: '', validityMonths: '', price: '', benefits: [] }
+    form: { name: '', level: '', validityMonths: '', price: '', originalPrice: '', recommended: false, benefits: [] }
   });
 
   // 删除确认
@@ -112,7 +115,7 @@ export const SubscriptionPlansPage: React.FC = () => {
       open: true,
       mode: 'create',
       submitting: false,
-      form: { name: '', level: '', validityMonths: '', price: '', benefits: [] }
+      form: { name: '', level: '', validityMonths: '', price: '', originalPrice: '', recommended: false, benefits: [] }
     });
   };
 
@@ -128,6 +131,8 @@ export const SubscriptionPlansPage: React.FC = () => {
         level: String(plan.level),
         validityMonths: String(plan.validityMonths),
         price: String(plan.price),
+        originalPrice: plan.originalPrice !== undefined && plan.originalPrice !== null ? String(plan.originalPrice) : '',
+        recommended: Boolean(plan.recommended),
         benefits: [...plan.benefits]
       }
     });
@@ -140,10 +145,13 @@ export const SubscriptionPlansPage: React.FC = () => {
     const level = parseInt(form.level, 10);
     const validityMonths = parseInt(form.validityMonths, 10);
     const price = Number(form.price);
+    const originalPrice = form.originalPrice.trim() === '' ? undefined : Number(form.originalPrice);
     if (!form.name || form.name.trim().length < 2) return showToast.error('套餐名称至少2个字符');
     if (!Number.isInteger(level) || level <= 0) return showToast.error('套餐级别必须为正整数');
     if (!Number.isInteger(validityMonths) || validityMonths <= 0) return showToast.error('有效期必须为正整数');
     if (!Number.isFinite(price) || price < 0) return showToast.error('价格必须为非负数');
+    if (originalPrice !== undefined && (!Number.isFinite(originalPrice) || originalPrice < 0)) return showToast.error('原价不能为负数');
+    if (originalPrice !== undefined && originalPrice <= price) return showToast.error('原价必须大于售价');
     if (!form.benefits || form.benefits.length === 0) return showToast.error('至少添加1个套餐权益');
 
     const payload: CreateSubscriptionPlanRequest | UpdateSubscriptionPlanRequest = {
@@ -151,6 +159,8 @@ export const SubscriptionPlansPage: React.FC = () => {
       level,
       validityMonths,
       price,
+      originalPrice,
+      recommended: form.recommended,
       benefits: form.benefits
     };
 
@@ -161,7 +171,7 @@ export const SubscriptionPlansPage: React.FC = () => {
       } else if (planId) {
         await SubscriptionPlansService.updateSubscriptionPlan(planId, payload as UpdateSubscriptionPlanRequest);
       }
-      setEditDialog({ open: false, mode: 'create', submitting: false, form: { name: '', level: '', validityMonths: '', price: '', benefits: [] } });
+      setEditDialog({ open: false, mode: 'create', submitting: false, form: { name: '', level: '', validityMonths: '', price: '', originalPrice: '', recommended: false, benefits: [] } });
       await loadPlans();
     } catch (e) {
       console.error('保存套餐失败', e);
@@ -228,6 +238,8 @@ export const SubscriptionPlansPage: React.FC = () => {
         <TableCell><Skeleton className="h-4 w-40" /></TableCell>
         <TableCell><Skeleton className="h-4 w-12" /></TableCell>
         <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-12" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-12" /></TableCell>
         <TableCell><Skeleton className="h-4 w-12" /></TableCell>
         <TableCell><Skeleton className="h-4 w-24" /></TableCell>
         <TableCell className="text-right"><Skeleton className="h-8 w-28 ml-auto" /></TableCell>
@@ -338,6 +350,8 @@ export const SubscriptionPlansPage: React.FC = () => {
                   <TableHead className="min-w-[80px]">级别</TableHead>
                   <TableHead className="min-w-[100px]">有效期(月)</TableHead>
                   <TableHead className="min-w-[100px]">价格</TableHead>
+                  <TableHead className="min-w-[100px]">原价</TableHead>
+                  <TableHead className="min-w-[80px]">推荐</TableHead>
                   <TableHead className="min-w-[80px]">状态</TableHead>
                   <TableHead className="text-right min-w-[220px]">操作</TableHead>
                 </TableRow>
@@ -347,7 +361,7 @@ export const SubscriptionPlansPage: React.FC = () => {
                   columnsLoadingSkeleton
                 ) : plans.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
                       暂无套餐数据
                     </TableCell>
                   </TableRow>
@@ -361,6 +375,8 @@ export const SubscriptionPlansPage: React.FC = () => {
                       <TableCell>{plan.level}</TableCell>
                       <TableCell>{plan.validityMonths}</TableCell>
                       <TableCell>¥{plan.price.toFixed(2)}</TableCell>
+                      <TableCell>{plan.originalPrice !== undefined ? `¥${plan.originalPrice.toFixed(2)}` : '—'}</TableCell>
+                      <TableCell>{plan.recommended ? <Badge>推荐</Badge> : '否'}</TableCell>
                       <TableCell>{statusBadge(plan.status)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -406,7 +422,7 @@ export const SubscriptionPlansPage: React.FC = () => {
         if (!editDialog.submitting) {
           setEditDialog(prev => ({ ...prev, open }));
           if (!open) {
-            setEditDialog({ open: false, mode: 'create', submitting: false, form: { name: '', level: '', validityMonths: '', price: '', benefits: [] } });
+            setEditDialog({ open: false, mode: 'create', submitting: false, form: { name: '', level: '', validityMonths: '', price: '', originalPrice: '', recommended: false, benefits: [] } });
           }
         }
       }}>
@@ -431,6 +447,14 @@ export const SubscriptionPlansPage: React.FC = () => {
             <div className="space-y-2">
               <Label htmlFor="planPrice">价格(¥)</Label>
               <Input id="planPrice" type="number" min={0} step="0.01" value={editDialog.form.price} onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, price: e.target.value } }))} placeholder="0.00" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="planOriginalPrice">原价(¥)</Label>
+              <Input id="planOriginalPrice" type="number" min={0} step="0.01" value={editDialog.form.originalPrice} onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, originalPrice: e.target.value } }))} placeholder="可选，0.00" />
+            </div>
+            <div className="space-y-2 flex items-center gap-3">
+              <Label htmlFor="planRecommended" className="mb-0">是否推荐</Label>
+              <Switch id="planRecommended" checked={editDialog.form.recommended} onCheckedChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, recommended: v } }))} />
             </div>
             <div className="md:col-span-2 space-y-2">
               <Label>套餐权益</Label>
@@ -463,7 +487,7 @@ export const SubscriptionPlansPage: React.FC = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialog({ open: false, mode: 'create', submitting: false, form: { name: '', level: '', validityMonths: '', price: '', benefits: [] } })} disabled={editDialog.submitting}>取消</Button>
+            <Button variant="outline" onClick={() => setEditDialog({ open: false, mode: 'create', submitting: false, form: { name: '', level: '', validityMonths: '', price: '', originalPrice: '', recommended: false, benefits: [] } })} disabled={editDialog.submitting}>取消</Button>
             <Button onClick={handleSubmitPlan} disabled={editDialog.submitting}>{editDialog.submitting ? '保存中...' : '保存'}</Button>
           </DialogFooter>
         </DialogContent>

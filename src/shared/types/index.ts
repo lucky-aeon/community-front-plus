@@ -880,6 +880,8 @@ export interface SubscriptionPlanDTO {
   level: number;                       // 套餐级别
   validityMonths: number;              // 有效期月数
   price: number;                       // 套餐价格
+  originalPrice?: number;              // 套餐原价（可选，非负）
+  recommended?: boolean;               // 是否推荐（可选）
   status: SubscriptionPlanStatus;      // 套餐状态
   benefits: string[];                  // 套餐权益列表
   createTime: string;                  // 创建时间
@@ -892,6 +894,8 @@ export interface CreateSubscriptionPlanRequest {
   level: number;                       // 套餐级别，必填，必须大于0
   validityMonths: number;              // 有效期月数，必填，必须大于0
   price: number;                       // 套餐价格，必填，不能为负数
+  originalPrice?: number;              // 套餐原价，非负，可选
+  recommended?: boolean;               // 是否推荐，可选
   benefits: string[];                  // 套餐权益列表，必填，1-20个权益
 }
 
@@ -901,6 +905,8 @@ export interface UpdateSubscriptionPlanRequest {
   level: number;                       // 套餐级别，必填，必须大于0
   validityMonths: number;              // 有效期月数，必填，必须大于0
   price: number;                       // 套餐价格，必填，不能为负数
+  originalPrice?: number;              // 套餐原价，非负，可选
+  recommended?: boolean;               // 是否推荐，可选
   benefits: string[];                  // 套餐权益列表，必填，1-20个权益
 }
 
