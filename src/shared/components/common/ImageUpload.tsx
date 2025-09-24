@@ -3,9 +3,9 @@ import { X, AlertCircle, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { cn } from '@shared/utils/cn';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { UploadService, UPLOAD_CONFIG, UploadProgressCallback } from '../../services/api/upload.service';
-import { ResourceAccessService } from '../../services/api/resource-access.service';
-import { showToast } from '../../utils/toast';
+import { UploadService, UPLOAD_CONFIG, UploadProgressCallback } from '@shared/services/api/upload.service';
+import { ResourceAccessService } from '@shared/services/api/resource-access.service';
+import { showToast } from '@shared/utils/toast';
 
 interface ImageUploadProps {
   label?: string;

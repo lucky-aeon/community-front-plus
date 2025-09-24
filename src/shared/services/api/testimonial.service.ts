@@ -5,7 +5,7 @@ import {
   UpdateTestimonialRequest,
   PublicTestimonialDTO,
   TestimonialStatus
-} from '../../types';
+} from '@shared/types';
 
 /**
  * 用户评价服务类

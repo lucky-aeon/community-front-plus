@@ -11,7 +11,7 @@ import {
   Category,
   AdminPostQueryRequest,
   AdminPostDTO
-} from '../../types';
+} from '@shared/types';
 
 // 文章服务类
 export class PostsService {

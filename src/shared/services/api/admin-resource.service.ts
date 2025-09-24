@@ -1,5 +1,5 @@
 import { apiClient, type ApiResponse } from './config';
-import type { ResourceDTO, ResourceQueryRequest, PageResponse } from '../../types';
+import type { ResourceDTO, ResourceQueryRequest, PageResponse } from '@shared/types';
 
 /**
  * 管理员资源管理服务
@@ -32,4 +32,3 @@ export class AdminResourceService {
     };
   }
 }
-

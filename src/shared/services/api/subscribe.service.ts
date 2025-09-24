@@ -4,7 +4,7 @@ import {
   SubscribeStatusRequest,
   SubscribeStatusResponse,
   SubscribeToggleResponse,
-} from '../../types';
+} from '@shared/types';
 
 /**
  * 订阅功能服务类

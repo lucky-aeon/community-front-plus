@@ -4,7 +4,7 @@ import {
   UpdateProfileRequest, 
   ChangePasswordRequest, 
   UserDTO 
-} from '../../types';
+} from '@shared/types';
 
 /**
  * 用户个人信息管理服务类

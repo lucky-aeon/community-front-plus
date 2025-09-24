@@ -7,7 +7,7 @@ import {
   UploadConfig,
   IMAGE_UPLOAD_CONFIG,
   SUPPORTED_IMAGE_TYPES
-} from '../../types/upload.types';
+} from '@shared/types/upload.types';
 
 // 文件上传响应接口（保持向下兼容）
 export interface UploadResponse {

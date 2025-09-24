@@ -5,7 +5,7 @@ import type {
   ResourceDTO,
   ResourceQueryRequest,
   PageResponse,
-} from '../../types';
+} from '@shared/types';
 
 /**
  * 用户资源管理服务

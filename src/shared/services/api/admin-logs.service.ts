@@ -3,7 +3,7 @@ import {
   ActivityLogQueryRequest,
   UserActivityLogDTO,
   PageResponse
-} from '../../types';
+} from '@shared/types';
 
 /**
  * 管理员用户活动日志服务类

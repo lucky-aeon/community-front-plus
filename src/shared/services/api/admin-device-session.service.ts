@@ -1,6 +1,6 @@
 import { apiClient, ApiResponse } from './config';
-import { PageResponse } from '../../types';
-import type { AdminDeviceSessionQueryRequest, UserSessionSummaryDTO, TokenBlacklistStatsDTO, BlacklistQueryRequest, BlacklistedUserDTO } from '../../types';
+import { PageResponse } from '@shared/types';
+import type { AdminDeviceSessionQueryRequest, UserSessionSummaryDTO, TokenBlacklistStatsDTO, BlacklistQueryRequest, BlacklistedUserDTO } from '@shared/types';
 
 /**
  * 管理端设备会话服务

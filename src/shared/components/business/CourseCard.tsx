@@ -1,10 +1,10 @@
 import React from 'react';
 import { Clock, Star, BookOpen, ExternalLink, Award } from 'lucide-react';
-import { FrontCourseDTO } from '../../types';
+import { FrontCourseDTO } from '@shared/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { CoursesService } from '../../services/api';
+import { CoursesService } from '@shared/services/api';
 import { cn } from '@shared/utils/cn';
 
 interface CourseCardProps {
@@ -46,6 +46,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
     }
   };
 
+  const hasCover = Boolean(course.coverImage);
+
   return (
     <Card
       className={cn(
@@ -56,10 +58,28 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
       )}
       onClick={handleCardClick}
     >
-      {/* Hero Section with Honey Theme Gradient */}
-      <div className="relative h-48 bg-gradient-to-br from-honey-400/90 via-honey-500 to-premium-600 overflow-hidden">
-        {/* Background Pattern */}
+      {/* Hero Section: 优先显示封面，没有则使用主题渐变 */}
+      <div className={cn(
+        "relative h-48 overflow-hidden",
+        hasCover ? "bg-black/5" : "bg-gradient-to-br from-honey-400/90 via-honey-500 to-premium-600"
+      )}>
+        {/* 封面图 */}
+        {hasCover && (
+          <img
+            src={course.coverImage}
+            alt={course.title}
+            className="absolute inset-0 w-full h-full object-cover"
+            loading="lazy"
+            onError={(e) => {
+              e.currentTarget.onerror = null;
+              e.currentTarget.src = '/api/placeholder/600/320';
+            }}
+          />
+        )}
+
+        {/* 叠加渐变与纹理 */}
         <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
 
         {/* Floating Decoration */}
         <div className="absolute top-4 right-4 w-16 h-16 bg-white/10 rounded-full blur-2xl animate-float" />
@@ -67,9 +87,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
 
         {/* Content */}
         <div className="relative h-full flex flex-col items-center justify-center text-white p-6">
-          <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 mb-3 transform group-hover:scale-110 transition-transform duration-300">
-            <BookOpen className="h-12 w-12 text-white drop-shadow-sm" />
-          </div>
+          {!hasCover && (
+            <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 mb-3 transform group-hover:scale-110 transition-transform duration-300">
+              <BookOpen className="h-12 w-12 text-white drop-shadow-sm" />
+            </div>
+          )}
           <h4 className="text-lg font-bold text-center leading-tight drop-shadow-sm line-clamp-2">
             {course.title}
           </h4>

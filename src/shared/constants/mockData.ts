@@ -1,4 +1,4 @@
-import { Course, MembershipPlan, Post, Comment, ChangelogEntry } from '../types';
+import { Course, MembershipPlan, Post, Comment, ChangelogEntry } from '@shared/types';
 
 export const courses: Course[] = [
   {

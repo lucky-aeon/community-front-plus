@@ -8,7 +8,7 @@ import {
   QueryCommentsRequest,
   QueryUserCommentsRequest,
   PageResponse,
-} from '../../types';
+} from '@shared/types';
 
 /**
  * 评论服务类

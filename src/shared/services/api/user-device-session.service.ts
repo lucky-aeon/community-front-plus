@@ -1,5 +1,5 @@
 import { apiClient, ApiResponse } from './config';
-import type { ActiveSessionDTO } from '../../types';
+import type { ActiveSessionDTO } from '@shared/types';
 
 export interface MySessionOverview {
   activeIps: ActiveSessionDTO[];

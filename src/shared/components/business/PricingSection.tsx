@@ -1,6 +1,6 @@
 import React from 'react';
 import { PricingCard } from './PricingCard';
-import { membershipPlans } from '../../constants/mockData';
+import { membershipPlans } from '@shared/constants/mockData';
 
 interface PricingSectionProps {
   onPlanSelect: () => void;

@@ -5,7 +5,7 @@ import {
   OrderStatisticsRequest,
   OrderStatisticsDTO,
   PageResponse
-} from '../../types';
+} from '@shared/types';
 
 /**
  * 管理员订单管理服务类

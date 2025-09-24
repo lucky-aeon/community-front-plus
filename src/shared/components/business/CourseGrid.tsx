@@ -1,6 +1,6 @@
 import React from 'react';
 import { CourseCard } from './CourseCard';
-import { courses } from '../../constants/mockData';
+import { courses } from '@shared/constants/mockData';
 
 interface CourseGridProps {
   onAuthRequired: () => void;

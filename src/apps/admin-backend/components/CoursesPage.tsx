@@ -445,61 +445,111 @@ export const CoursesPage: React.FC = () => {
           if (!open) setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } });
         }
       }}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-3xl">
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-5xl">
           <DialogHeader>
             <DialogTitle>{editDialog.mode === 'create' ? '新建课程' : '编辑课程'}</DialogTitle>
             <DialogDescription>填写课程基础信息（更多高级字段后续在详情中维护）</DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>标题</Label>
-              <Input value={editDialog.form.title} onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, title: e.target.value } }))} placeholder="课程标题" />
+          {/* 左右两栏布局：左侧基础信息，右侧封面+描述 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 左侧：基础字段 */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>标题</Label>
+                <Input
+                  value={editDialog.form.title}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, title: e.target.value } }))}
+                  placeholder="课程标题"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>状态</Label>
+                <Select
+                  value={editDialog.form.status}
+                  onValueChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, status: v as CourseStatus } }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="选择状态" /></SelectTrigger>
+                  <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+                    <SelectItem value="PENDING">待更新</SelectItem>
+                    <SelectItem value="IN_PROGRESS">更新中</SelectItem>
+                    <SelectItem value="COMPLETED">已完成</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>价格（¥）</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={editDialog.form.price}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, price: e.target.value } }))}
+                  placeholder="如 99.00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>原价（¥，可选）</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={editDialog.form.originalPrice}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, originalPrice: e.target.value } }))}
+                  placeholder="如 199.00"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>评分</Label>
+                <Rating
+                  value={editDialog.form.rating || 0}
+                  onChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, rating: v } }))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>技术栈</Label>
+                <TagsInput
+                  value={editDialog.form.techStack}
+                  onChange={(techStack) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, techStack } }))}
+                  placeholder="输入技术栈，回车或逗号添加"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>标签</Label>
+                <TagsInput
+                  value={editDialog.form.tags}
+                  onChange={(tags) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, tags } }))}
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>封面图片</Label>
-              <ImageUpload
-                value={editDialog.form.coverUrl || ''}
-                onChange={(url) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, coverUrl: url } }))}
-                onUploadSuccess={(rid) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, coverResourceId: rid } }))}
-                placeholder="上传课程封面（可选）"
-                showPreview
-                previewSize="md"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>状态</Label>
-              <Select value={editDialog.form.status} onValueChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, status: v as CourseStatus } }))}>
-                <SelectTrigger><SelectValue placeholder="选择状态" /></SelectTrigger>
-                <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
-                  <SelectItem value="PENDING">待更新</SelectItem>
-                  <SelectItem value="IN_PROGRESS">更新中</SelectItem>
-                  <SelectItem value="COMPLETED">已完成</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <Label>描述（Markdown）</Label>
-              <MarkdownEditor value={editDialog.form.description} onChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, description: v } }))} height={260} />
-            </div>
-            <div className="space-y-2">
-              <Label>价格（¥）</Label>
-              <Input type="number" min={0} step="0.01" value={editDialog.form.price} onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, price: e.target.value } }))} placeholder="如 99.00" />
-            </div>
-            <div className="space-y-2">
-              <Label>原价（¥，可选）</Label>
-              <Input type="number" min={0} step="0.01" value={editDialog.form.originalPrice} onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, originalPrice: e.target.value } }))} placeholder="如 199.00" />
-            </div>
-            <div className="space-y-2">
-              <Label>评分</Label>
-              <Rating value={editDialog.form.rating || 0} onChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, rating: v } }))} />
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <Label>技术栈</Label>
-              <TagsInput value={editDialog.form.techStack} onChange={(techStack) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, techStack } }))} placeholder="输入技术栈，回车或逗号添加" />
-            </div>
-            <div className="md:col-span-2 space-y-2">
-              <Label>标签</Label>
-              <TagsInput value={editDialog.form.tags} onChange={(tags) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, tags } }))} />
+
+            {/* 右侧：封面 + 描述 */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>封面图片</Label>
+                <ImageUpload
+                  value={editDialog.form.coverUrl || ''}
+                  onChange={(url) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, coverUrl: url } }))}
+                  onUploadSuccess={(rid) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, coverResourceId: rid } }))}
+                  placeholder="上传课程封面（可选）"
+                  showPreview
+                  previewSize="md"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>描述（Markdown）</Label>
+                <MarkdownEditor
+                  value={editDialog.form.description}
+                  onChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, description: v } }))}
+                  height={300}
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>

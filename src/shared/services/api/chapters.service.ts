@@ -7,7 +7,7 @@ import {
   FrontChapterDetailDTO,
   LatestChapterDTO,
   PageResponse
-} from '../../types';
+} from '@shared/types';
 
 // 课程章节管理服务类
 export class ChaptersService {

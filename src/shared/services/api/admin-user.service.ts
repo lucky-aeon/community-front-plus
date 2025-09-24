@@ -4,7 +4,7 @@ import {
   AdminUserDTO,
   PageResponse,
   UpdateUserDeviceCountRequest
-} from '../../types';
+} from '@shared/types';
 
 /**
  * 管理员用户管理服务类

@@ -1,6 +1,6 @@
 import { apiClient, ApiResponse } from './config';
 import { ResourceAccessService } from './resource-access.service';
-import { User } from '../../types';
+import { User } from '@shared/types';
 
 // 登录请求参数接口
 export interface LoginRequest {

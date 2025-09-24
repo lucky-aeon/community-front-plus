@@ -1,7 +1,7 @@
 import { apiClient, ApiResponse } from './config';
 import { ResourceAccessService } from './resource-access.service';
-import { PageResponse } from '../../types';
-import { FollowDTO, FollowQueryRequest } from '../../types';
+import { PageResponse } from '@shared/types';
+import { FollowDTO, FollowQueryRequest } from '@shared/types';
 
 /**
  * 用户关注管理相关服务

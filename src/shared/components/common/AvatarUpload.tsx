@@ -3,9 +3,9 @@ import { Camera, Loader2, User } from 'lucide-react';
 import { cn } from '@shared/utils/cn';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { UploadService } from '../../services/api/upload.service';
-import { showToast } from '../../utils/toast';
-import { ResourceAccessService } from '../../services/api/resource-access.service';
+import { UploadService } from '@shared/services/api/upload.service';
+import { showToast } from '@shared/utils/toast';
+import { ResourceAccessService } from '@shared/services/api/resource-access.service';
 
 interface AvatarUploadProps {
   /** 当前头像URL或资源ID */

@@ -5,7 +5,7 @@ import {
   CategoryQueryRequest,
   CategoryDTO,
   PageResponse
-} from '../../types';
+} from '@shared/types';
 
 // 分类管理服务类
 export class CategoriesService {

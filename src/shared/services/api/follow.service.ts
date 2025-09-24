@@ -4,7 +4,7 @@ import {
   FollowStatusRequest,
   FollowStatusResponse,
   FollowToggleResponse,
-} from '../../types';
+} from '@shared/types';
 
 /**
  * 关注功能服务类

@@ -9,7 +9,7 @@ import {
   AppCourseQueryRequest,
   FrontCourseDTO,
   FrontCourseDetailDTO
-} from '../../types';
+} from '@shared/types';
 
 // 课程管理服务类
 export class CoursesService {

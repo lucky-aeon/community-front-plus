@@ -3,7 +3,7 @@ import {
   ResourceInfo,
   PagedResourceResponse,
   ResourceQueryRequest
-} from '../../types/upload.types';
+} from '@shared/types/upload.types';
 
 /**
  * 资源访问服务
