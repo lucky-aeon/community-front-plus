@@ -12,7 +12,7 @@ import {
   Settings,
   FileCheck,
   Menu,
-  X,
+  
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
@@ -25,10 +25,12 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+// Separator is not used currently
+// import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarSection, SidebarSectionTitle } from '@/components/ui/sidebar';
-import { ScrollArea } from '@/components/ui/scroll-area';
+// ScrollArea is not used currently
+// import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@shared/utils/cn';
 
 interface AdminLayoutProps {

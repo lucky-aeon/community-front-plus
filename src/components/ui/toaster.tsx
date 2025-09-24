@@ -1,5 +1,6 @@
 import { useToast } from "@/hooks/use-toast"
 import { CheckCircle2, Info, AlertTriangle, XCircle } from 'lucide-react'
+import type { ToastProps } from "@/components/ui/toast"
 import {
   Toast,
   ToastClose,
@@ -15,7 +16,7 @@ export function Toaster() {
   return (
     <ToastProvider>
       {toasts.map(function ({ id, title, description, action, ...props }) {
-        const variant = (props as any).variant as
+        const variant = (props as ToastProps).variant as
           | 'default'
           | 'success'
           | 'info'

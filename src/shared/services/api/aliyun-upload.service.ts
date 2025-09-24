@@ -4,7 +4,6 @@ import {
   UploadCredentialsRequest,
   AliyunUploadResponse,
   UploadOptions,
-  UploadProgressCallback,
   FileValidationResult,
   UploadConfig,
   IMAGE_UPLOAD_CONFIG
@@ -77,8 +76,10 @@ export class AliyunUploadService {
       // 文件必须最后添加
       formData.append('file', file);
 
-      // 创建XMLHttpRequest以支持上传进度
+      // 创建XMLHttpRequest以支持上传进度/取消
       const xhr = new XMLHttpRequest();
+      // 暴露给上层用于取消
+      try { options.onCreateXhr?.(xhr); } catch {}
 
       return new Promise<AliyunUploadResponse>((resolve, reject) => {
         // 上传进度监听
@@ -96,18 +97,20 @@ export class AliyunUploadService {
           if (xhr.status >= 200 && xhr.status < 300) {
             try {
               // OSS回调会返回资源信息
-              const response = JSON.parse(xhr.responseText);
+              const response = JSON.parse(xhr.responseText) as unknown;
 
               // 兼容多种回调结构，优先提取资源ID
               const resourceId = ((): string => {
                 // 常见：{ resourceId: '...', ... } 或 { id: '...' }
-                if (typeof response?.resourceId === 'string') return response.resourceId;
-                if (typeof response?.id === 'string') return response.id;
+                const respObj = response as Record<string, unknown>;
+                if (typeof respObj?.resourceId === 'string') return respObj.resourceId as string;
+                if (typeof respObj?.id === 'string') return respObj.id as string;
                 // 你的后端：{ Status: 'OK', resource: { id: '...' , ... } }
                 if (response && typeof response === 'object') {
-                  const r = (response as any).resource || (response as any).data;
-                  if (r && typeof r.id === 'string') return r.id;
-                  if (r && typeof r.resourceId === 'string') return r.resourceId;
+                  const rr = response as Record<string, unknown>;
+                  const r = (rr.resource ?? rr.data) as Record<string, unknown> | undefined;
+                  if (r && typeof r.id === 'string') return r.id as string;
+                  if (r && typeof r.resourceId === 'string') return r.resourceId as string;
                 }
                 return '';
               })();
@@ -117,12 +120,13 @@ export class AliyunUploadService {
                 ? credentials.endpoint
                 : `https://${credentials.bucket}.${credentials.endpoint}`;
 
+              const respObj = response as Record<string, unknown>;
               resolve({
                 resourceId,
-                url: response.url || `${ossBaseUrl}/${credentials.key}`,
-                filename: response.filename || file.name,
-                size: response.size || file.size,
-                type: response.type || file.type,
+                url: (respObj.url as string) || `${ossBaseUrl}/${credentials.key}`,
+                filename: (respObj.filename as string) || file.name,
+                size: (respObj.size as number) || file.size,
+                type: (respObj.type as string) || file.type,
                 key: credentials.key
               });
             } catch (parseError) {
@@ -144,6 +148,11 @@ export class AliyunUploadService {
           } else {
             reject(new Error(`上传失败: HTTP ${xhr.status}`));
           }
+        });
+
+        // 上传取消
+        xhr.addEventListener('abort', () => {
+          reject(new Error('上传已取消'));
         });
 
         // 上传错误
@@ -243,11 +252,12 @@ export class AliyunUploadService {
    */
   static async uploadFile(
     file: File,
-    options: UploadOptions = {}
+    options: UploadOptions = {},
+    config: UploadConfig = IMAGE_UPLOAD_CONFIG
   ): Promise<AliyunUploadResponse> {
     try {
       // 1. 验证文件
-      const validation = this.validateFile(file, IMAGE_UPLOAD_CONFIG);
+      const validation = this.validateFile(file, config);
       if (!validation.valid) {
         throw new Error(validation.error);
       }

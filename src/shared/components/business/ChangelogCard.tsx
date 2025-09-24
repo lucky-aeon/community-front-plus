@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { VersionBadge } from './VersionBadge';
 import { ChangeTypeIcon, getChangeTypeLabel } from './ChangeTypeIcon';
-import { ChangelogEntry } from '@shared/types';
+import { ChangelogEntry, type ChangeType } from '@shared/types';
 import { cn } from '@shared/utils/cn';
 
 interface ChangelogCardProps {
@@ -85,7 +85,7 @@ export const ChangelogCard: React.FC<ChangelogCardProps> = ({
           <div className="space-y-2">
             {Object.entries(changesByType).slice(0, 2).map(([type, changes]) => (
               <div key={type} className="flex items-center space-x-2">
-                <ChangeTypeIcon type={type as any} size="sm" />
+                <ChangeTypeIcon type={type as ChangeType} size="sm" />
                 <span className="text-sm font-medium text-gray-700">
                   {getChangeTypeLabel(type as any)}
                 </span>
@@ -106,7 +106,7 @@ export const ChangelogCard: React.FC<ChangelogCardProps> = ({
             {Object.entries(changesByType).map(([type, changes]) => (
               <div key={type} className="space-y-3">
                 <div className="flex items-center space-x-3">
-                  <ChangeTypeIcon type={type as any} />
+                  <ChangeTypeIcon type={type as ChangeType} />
                   <h4 className="text-lg font-semibold text-gray-800">
                     {getChangeTypeLabel(type as any)}
                   </h4>

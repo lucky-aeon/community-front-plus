@@ -6,6 +6,7 @@ import {
   UploadOptions,
   UploadConfig,
   IMAGE_UPLOAD_CONFIG,
+  VIDEO_UPLOAD_CONFIG,
   SUPPORTED_IMAGE_TYPES
 } from '@shared/types/upload.types';
 
@@ -119,6 +120,37 @@ export class UploadService {
     } catch (error) {
       console.error('批量图片上传失败:', error);
       throw error;
+    }
+  }
+
+  /**
+   * 上传单个视频文件
+   */
+  static async uploadVideo(
+    file: File,
+    options?: { onProgress?: UploadProgressCallback }
+  ): Promise<UploadResponse> {
+    try {
+      const uploadOptions: UploadOptions = {
+        onProgress: options?.onProgress,
+        compress: false,
+      };
+
+      const aliyunResponse = await AliyunUploadService.uploadFile(
+        file,
+        uploadOptions,
+        VIDEO_UPLOAD_CONFIG as UploadConfig
+      );
+      return this.convertAliyunResponse(aliyunResponse);
+
+    } catch (error) {
+      console.error('视频上传失败:', error);
+
+      if (error instanceof Error) {
+        throw error;
+      } else {
+        throw new Error('上传失败，请稍后重试');
+      }
     }
   }
 

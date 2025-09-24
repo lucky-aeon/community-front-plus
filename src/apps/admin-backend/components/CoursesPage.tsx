@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -59,7 +58,7 @@ export const CoursesPage: React.FC = () => {
       coverUrl?: string;
       coverResourceId?: string;
     };
-  }>({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '' } });
+  }>({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '' } });
 
   // 删除
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; item?: CourseDTO }>({ open: false });

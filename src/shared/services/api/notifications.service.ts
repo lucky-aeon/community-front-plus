@@ -23,7 +23,7 @@ export class NotificationsService {
   static async getUnreadCount(): Promise<number> {
     const url = `${this.BASE_PATH}/unread-count`;
     const resp = await apiClient.get<ApiResponse<UnreadCountResponse>>(url);
-    return (resp.data.data as any)?.unreadCount ?? 0;
+    return resp.data.data?.unreadCount ?? 0;
   }
 
   /** 标记单条为已读 */
@@ -50,4 +50,3 @@ export class NotificationsService {
     }
   }
 }
-

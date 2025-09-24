@@ -20,7 +20,7 @@ import {
   Star
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { MembershipBadge } from '@shared/components/ui/MembershipBadge';
+import { MembershipBadge, type MembershipTier } from '@shared/components/ui/MembershipBadge';
 import { UserService } from '@shared/services/api';
 import type { UserDTO } from '@shared/types';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
@@ -163,12 +163,12 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
               </p>
               <p className="text-xs text-gray-500 truncate">{user?.email}</p>
               <div className="flex items-center mt-1">
-                <MembershipBadge
-                  tier={(user?.membershipTier || 'basic') as any}
-                  size="sm"
-                  text={user?.currentSubscriptionPlanName || undefined}
-                  level={user?.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}
-                />
+                    <MembershipBadge
+                      tier={(user?.membershipTier || 'basic') as MembershipTier}
+                      size="sm"
+                      text={user?.currentSubscriptionPlanName || undefined}
+                      level={user?.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}
+                    />
               </div>
             </div>
           </div>

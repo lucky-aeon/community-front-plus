@@ -31,7 +31,7 @@ export const SubscribeButton: React.FC<SubscribeButtonProps> = ({
       try {
         const s = await SubscribeService.checkSubscribeStatus({ targetId, targetType });
         if (mounted) setStatus(s);
-      } catch {}
+      } catch { void 0; }
     };
     run();
     return () => { mounted = false; };
@@ -43,7 +43,7 @@ export const SubscribeButton: React.FC<SubscribeButtonProps> = ({
       setLoading(true);
       const resp = await SubscribeService.toggleSubscribe({ targetId, targetType });
       setStatus({ isFollowing: resp.isFollowing, targetId: resp.targetId, targetType: resp.targetType });
-    } catch {} finally {
+    } catch { void 0; } finally {
       setLoading(false);
     }
   };

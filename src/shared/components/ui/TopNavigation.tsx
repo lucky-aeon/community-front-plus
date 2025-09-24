@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { MembershipBadge } from './MembershipBadge';
+import { MembershipBadge, type MembershipTier } from './MembershipBadge';
 import { SearchBar } from './SearchBar';
 import { cn } from '@shared/utils/cn';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
@@ -217,7 +217,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                           <div className="text-xs text-warm-gray-500 truncate">{user.email}</div>
                           <div className="mt-1">
                             <MembershipBadge
-                              tier={user.membershipTier as any}
+                              tier={user.membershipTier as MembershipTier}
                               size="sm"
                               text={user.currentSubscriptionPlanName || undefined}
                               level={user.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}

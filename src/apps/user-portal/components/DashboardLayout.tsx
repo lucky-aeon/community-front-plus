@@ -7,7 +7,7 @@ import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarSection, SidebarSectionTitle } from '@/components/ui/sidebar';
-import { MembershipBadge } from '@shared/components/ui/MembershipBadge';
+import { MembershipBadge, type MembershipTier } from '@shared/components/ui/MembershipBadge';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -71,7 +71,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                   <div className="min-w-0">
                     <div className="text-sm font-medium truncate">{user?.name}</div>
                     <MembershipBadge
-                      tier={(user?.membershipTier || 'basic') as any}
+                      tier={(user?.membershipTier || 'basic') as MembershipTier}
                       size="sm"
                       text={user?.currentSubscriptionPlanName || undefined}
                       level={user?.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}

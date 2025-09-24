@@ -1,9 +1,5 @@
 import { apiClient, ApiResponse } from './config';
-import {
-  ResourceInfo,
-  PagedResourceResponse,
-  ResourceQueryRequest
-} from '@shared/types/upload.types';
+import { PagedResourceResponse, ResourceQueryRequest } from '@shared/types/upload.types';
 
 /**
  * 资源访问服务
@@ -32,7 +28,7 @@ export class ResourceAccessService {
       if (token) {
         return { Authorization: `Bearer ${token}` };
       }
-    } catch (_) {}
+    } catch { void 0; }
     return undefined;
   }
 

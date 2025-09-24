@@ -109,6 +109,8 @@ export interface UploadOptions {
     maxHeight?: number;
     quality?: number;
   };
+  // 新增：向上暴露 XHR 实例，用于取消上传
+  onCreateXhr?: (xhr: XMLHttpRequest) => void;
 }
 
 // 文件验证结果

@@ -96,7 +96,7 @@ export class PostsService {
     page.records = page.records.map(p => ({
       ...p,
       coverImage: ResourceAccessService.toAccessUrl(p.coverImage),
-      authorAvatar: ResourceAccessService.toAccessUrl((p as any).authorAvatar)
+      authorAvatar: ResourceAccessService.toAccessUrl(p.authorAvatar)
     } as FrontPostDTO));
     return page;
   }

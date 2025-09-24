@@ -4,6 +4,9 @@ import 'cherry-markdown/dist/cherry-markdown.css';
 import Viewer from 'viewerjs';
 import 'viewerjs/dist/viewer.css';
 import './MarkdownEditor.css';
+import { UploadService } from '@shared/services/api/upload.service';
+import { ResourceAccessService } from '@shared/services/api/resource-access.service';
+import { showToast } from '@shared/utils/toast';
 
 interface MarkdownEditorProps {
   value: string;
@@ -34,6 +37,16 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [isInitialized, setIsInitialized] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isEchartsLoaded, setIsEchartsLoaded] = useState(false);
+  // 上传任务队列（用于显示进度与取消）
+  const [uploadTasks, setUploadTasks] = useState<Array<{
+    id: string;
+    name: string;
+    progress: number;
+    status: 'uploading' | 'success' | 'error' | 'canceled';
+    type: 'image' | 'video';
+    xhrs: XMLHttpRequest[]; // 可能包含视频与poster两个xhr
+    error?: string;
+  }>>([]);
   
   // 添加更新来源跟踪，防止循环更新
   const isUserInputRef = useRef(false);
@@ -120,20 +133,170 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
   // 文件上传处理
   const handleFileUpload = useCallback(async (file: File, callback: (url: string, params?: Record<string, unknown>) => void) => {
-    // 简单的本地文件预览实现
-    // 在实际项目中，这里应该上传到服务器
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      callback(result, {
-        name: file.name.replace(/\.[^.]+$/, ''),
-        isShadow: true,
-        isRadius: true,
-        width: '100%',
-        height: 'auto'
-      });
-    };
-    reader.readAsDataURL(file);
+    try {
+      // 根据文件类型选择上传方法
+      const isImage = file.type.startsWith('image/');
+      const isVideo = file.type.startsWith('video/');
+
+      if (!isImage && !isVideo) {
+        showToast.error('仅支持上传图片或视频文件');
+        return;
+      }
+
+      // 新建上传任务
+      const taskId = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+      setUploadTasks((prev) => [
+        ...prev,
+        { id: taskId, name: file.name, progress: 0, status: 'uploading', type: isImage ? 'image' : 'video', xhrs: [] }
+      ]);
+
+      // 允许取消：收集xhr
+      const collectedXhrs: XMLHttpRequest[] = [];
+      const onCreateXhr = (xhr: XMLHttpRequest) => {
+        collectedXhrs.push(xhr);
+        setUploadTasks((prev) => prev.map(t => t.id === taskId ? { ...t, xhrs: [...collectedXhrs] } : t));
+      };
+
+      // 进度更新
+      const onProgress = (p: number) => {
+        setUploadTasks((prev) => prev.map(t => t.id === taskId ? { ...t, progress: p } : t));
+      };
+
+      let posterUrl: string | undefined;
+      // 如果是视频，先并行准备 poster（首帧截图再上传）。不阻塞视频上传开始。
+      const posterPromise = (async () => {
+        if (!isVideo) return undefined;
+        try {
+          const blob = await captureVideoPoster(file, 800);
+          const posterFile = new File([blob], `${file.name.replace(/\.[^.]+$/, '')}-poster.jpg`, { type: 'image/jpeg' });
+          const posterResp = await UploadService.uploadImage(posterFile, { onCreateXhr });
+          return posterResp.url;
+        } catch (e) {
+          console.warn('生成视频封面失败，继续无poster:', e);
+          return undefined;
+        }
+      })();
+
+      const resp = isImage
+        ? await UploadService.uploadImage(file, { onProgress, onCreateXhr })
+        : await UploadService.uploadVideo(file, { onProgress, onCreateXhr });
+
+      if (!resp.url) {
+        throw new Error('上传失败：未返回访问URL');
+      }
+
+      try { await ResourceAccessService.ensureSession(); } catch {}
+
+      // 等待 poster（仅视频）
+      if (isVideo) {
+        posterUrl = await posterPromise;
+      }
+
+      // 图片/视频分别携带适合的渲染参数
+      if (isImage) {
+        callback(resp.url, {
+          name: file.name.replace(/\.[^.]+$/, ''),
+          isShadow: true,
+          isRadius: true,
+          width: '100%',
+          height: 'auto'
+        });
+      } else {
+        // 对视频，传入 poster 与常用控制属性
+        const params: Record<string, unknown> = {
+          controls: true,
+          autoplay: false,
+          loop: false,
+          width: '100%',
+          height: 'auto'
+        };
+        if (posterUrl) params.poster = posterUrl;
+        callback(resp.url, params);
+      }
+
+      setUploadTasks((prev) => prev.map(t => t.id === taskId ? { ...t, status: 'success', progress: 100 } : t));
+      showToast.success(`${isImage ? '图片' : '视频'}上传成功`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '上传失败，请稍后重试';
+      console.error('文件上传失败:', error);
+      // 判定是否为取消
+      const isCanceled = error instanceof Error && /取消/.test(error.message);
+      setUploadTasks((prev) => prev.map(t => t.status === 'uploading' ? { ...t, status: isCanceled ? 'canceled' : 'error', error: message } : t));
+      if (isCanceled) {
+        showToast.info('上传已取消');
+      } else {
+        showToast.error(message);
+      }
+    }
+  }, []);
+
+  // 取消上传
+  const cancelUpload = useCallback((taskId: string) => {
+    setUploadTasks((prev) => {
+      const target = prev.find(t => t.id === taskId);
+      if (target) {
+        try { target.xhrs.forEach(x => x.abort()); } catch {}
+      }
+      return prev.map(t => t.id === taskId ? { ...t, status: 'canceled' } : t);
+    });
+  }, []);
+
+  // 自动清理完成/取消的任务（短暂展示后隐藏）
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setUploadTasks((prev) => prev.filter(t => t.status === 'uploading'));
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, [uploadTasks]);
+
+  // 视频首帧截图
+  const captureVideoPoster = useCallback((file: File, maxWidth = 800): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      try {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.muted = true;
+        video.playsInline = true;
+        const url = URL.createObjectURL(file);
+        const cleanup = () => URL.revokeObjectURL(url);
+
+        const onLoaded = () => {
+          // 定位到 0.1s 以尽量避免黑帧
+          const seekTo = Math.min(0.1, (video.duration || 1) / 10);
+          const onSeeked = () => {
+            try {
+              const w = video.videoWidth;
+              const h = video.videoHeight;
+              if (!w || !h) throw new Error('无法获取视频尺寸');
+              const ratio = Math.min(maxWidth / w, 1);
+              const canvas = document.createElement('canvas');
+              canvas.width = Math.round(w * ratio);
+              canvas.height = Math.round(h * ratio);
+              const ctx = canvas.getContext('2d');
+              if (!ctx) throw new Error('无法创建画布上下文');
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+              canvas.toBlob((blob) => {
+                if (blob) resolve(blob); else reject(new Error('无法生成封面'));
+                cleanup();
+              }, 'image/jpeg', 0.85);
+            } catch (e) {
+              cleanup();
+              reject(e instanceof Error ? e : new Error('封面生成失败'));
+            }
+          };
+          video.removeEventListener('loadeddata', onLoaded);
+          video.addEventListener('seeked', onSeeked, { once: true });
+          try { video.currentTime = seekTo; } catch { onSeeked(); }
+        };
+
+        video.addEventListener('loadeddata', onLoaded);
+        video.addEventListener('error', () => { cleanup(); reject(new Error('视频加载失败')); }, { once: true });
+        video.src = url;
+        // 某些浏览器需要 play 才能渲染首帧，但 muted + playsInline 可自动，不强制
+      } catch (e) {
+        reject(e instanceof Error ? e : new Error('封面生成失败'));
+      }
+    });
   }, []);
 
   // Cherry编辑器配置
@@ -195,7 +358,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             isUserInputRef.current = false;
           }, 0);
         },
-        afterInit: (cherry: Cherry) => {
+        afterInit: (_cherry: Cherry) => {
           setIsInitialized(true);
           
           // 添加全屏按钮 - 延迟确保DOM完全渲染
@@ -335,7 +498,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
   return (
     <div 
-      className={`markdown-editor-wrapper ${className} ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`}
+      className={`markdown-editor-wrapper relative ${className} ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`}
       style={{ 
         height: isFullscreen ? '100vh' : (typeof height === 'number' ? `${height}px` : height),
         width: isFullscreen ? '100vw' : '100%'
@@ -354,6 +517,42 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           border: isFullscreen ? 'none' : (previewOnly ? 'none' : undefined)
         }}
       />
+      {/* 上传任务小面板 */}
+      {uploadTasks.length > 0 && (
+        <div className="absolute right-3 bottom-3 z-50 max-w-[320px] space-y-2">
+          {uploadTasks.map(task => (
+            <div key={task.id} className={`rounded-lg border bg-white shadow-sm p-3 ${task.status !== 'uploading' ? 'opacity-90' : ''}`}>
+              <div className="flex items-center justify-between text-sm mb-2">
+                <div className="truncate mr-2" title={task.name}>
+                  {task.type === 'image' ? '图片' : '视频'}上传中：{task.name}
+                </div>
+                {task.status === 'uploading' && (
+                  <button
+                    className="text-gray-500 hover:text-gray-800"
+                    onClick={() => cancelUpload(task.id)}
+                    title="取消上传"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={`h-full ${task.status === 'error' ? 'bg-red-400' : task.status === 'canceled' ? 'bg-gray-400' : 'bg-blue-500'}`}
+                  style={{ width: `${task.status === 'success' ? 100 : task.progress}%` }}
+                />
+              </div>
+              {task.status !== 'uploading' && (
+                <div className="mt-1 text-xs text-gray-500">
+                  {task.status === 'success' && '完成'}
+                  {task.status === 'error' && (task.error || '失败')}
+                  {task.status === 'canceled' && '已取消'}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

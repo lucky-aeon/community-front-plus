@@ -18,12 +18,13 @@ export class UserDeviceSessionService {
    */
   static async getMySessionOverview(): Promise<MySessionOverview> {
     // 后端接口：GET /api/user/sessions/active -> [{ ip, lastSeenTime, current }]
-    const res = await apiClient.get<ApiResponse<any[]>>('/user/sessions/active');
-    const raw: any[] = Array.isArray(res.data?.data) ? res.data.data : [];
+    type RawSession = { ip: string; lastSeenTime: string; isCurrent?: boolean; current?: boolean };
+    const res = await apiClient.get<ApiResponse<RawSession[]>>('/user/sessions/active');
+    const raw: RawSession[] = Array.isArray(res.data?.data) ? res.data.data : [];
     const list: ActiveSessionDTO[] = raw.map((it) => ({
       ip: it.ip,
       lastSeenTime: it.lastSeenTime,
-      isCurrent: Boolean(typeof it.isCurrent !== 'undefined' ? it.isCurrent : it.current),
+      isCurrent: typeof it.isCurrent !== 'undefined' ? Boolean(it.isCurrent) : Boolean(it.current),
     }));
     return {
       activeIps: list,

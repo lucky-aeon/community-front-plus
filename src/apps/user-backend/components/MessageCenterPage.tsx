@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { NotificationsService } from '@shared/services/api';
-import type { NotificationType, UserNotificationDTO, PageResponse } from '@shared/types';
+import type { NotificationType, NotificationQueryRequest, UserNotificationDTO, PageResponse } from '@shared/types';
 import { showToast } from '@shared/utils/toast';
 
 export const MessageCenterPage: React.FC = () => {
@@ -53,7 +53,7 @@ export const MessageCenterPage: React.FC = () => {
   const mapTabToQuery = (): { type?: NotificationType; read?: boolean } => {
     switch (activeTab) {
       case 'unread':
-        return { read: false } as any;
+        return { read: false };
       case 'comment':
         return { type: 'COMMENT' };
       case 'like':
@@ -68,7 +68,7 @@ export const MessageCenterPage: React.FC = () => {
   const fetchList = async (reset = true) => {
     setLoading(true);
     try {
-      const params = { pageNum, pageSize, ...mapTabToQuery() } as any;
+      const params: NotificationQueryRequest = { pageNum, pageSize, ...mapTabToQuery() };
       const data = await NotificationsService.getNotifications(params);
       setPageData(prev => ({
         ...data,
@@ -92,7 +92,7 @@ export const MessageCenterPage: React.FC = () => {
         ...prev,
         records: prev.records.map(r => r.id === messageId ? { ...r, read: true } : r)
       }));
-      try { setUnreadCount(await NotificationsService.getUnreadCount()); } catch {}
+      try { setUnreadCount(await NotificationsService.getUnreadCount()); } catch { void 0; }
     } catch {
       showToast.error('标记已读失败');
     }
@@ -107,7 +107,7 @@ export const MessageCenterPage: React.FC = () => {
         records: prev.records.filter(r => r.id !== messageId),
         total: Math.max(0, prev.total - 1)
       }));
-      try { setUnreadCount(await NotificationsService.getUnreadCount()); } catch {}
+      try { setUnreadCount(await NotificationsService.getUnreadCount()); } catch { void 0; }
     } catch {
       showToast.error('删除失败');
     }
@@ -205,19 +205,19 @@ export const MessageCenterPage: React.FC = () => {
         <div className="flex flex-wrap gap-2">
           {tabs.map((tab) => (
             <button
-              key={tab.id as any}
-              onClick={() => setActiveTab(tab.id as any)}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
               className={`
                 flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                ${activeTab === (tab.id as any)
+                ${activeTab === tab.id
                   ? 'bg-blue-100 text-blue-700 border border-blue-200'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                 }
               `}
             >
-              <span>{(tab as any).name}</span>
-              {typeof (tab as any).count === 'number' && (tab as any).count > 0 && (
-                <Badge variant="secondary" size="sm">{(tab as any).count}</Badge>
+              <span>{tab.name}</span>
+              {typeof tab.count === 'number' && tab.count > 0 && (
+                <Badge variant="secondary" size="sm">{tab.count}</Badge>
               )}
             </button>
           ))}
@@ -302,4 +302,3 @@ export const MessageCenterPage: React.FC = () => {
     </div>
   );
 };
-

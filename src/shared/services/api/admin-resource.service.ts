@@ -9,16 +9,15 @@ export class AdminResourceService {
   static async getResources(
     params: ResourceQueryRequest = {}
   ): Promise<PageResponse<ResourceDTO>> {
-    const res = await apiClient.get<ApiResponse<any>>('/admin/resources', {
-      params,
-    });
-    const data = res.data.data as {
-      records: ResourceDTO[];
-      total: number;
-      pageNum: number;
-      pageSize: number;
-      pages: number;
+    type RawPage = {
+      records?: ResourceDTO[];
+      total?: number;
+      pageNum?: number;
+      pageSize?: number;
+      pages?: number;
     };
+    const res = await apiClient.get<ApiResponse<RawPage>>('/admin/resources', { params });
+    const data = res.data.data || {} as RawPage;
     return {
       records: data.records || [],
       total: data.total || 0,

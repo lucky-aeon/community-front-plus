@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User, Mail, Calendar, Crown, Edit, Save, X, CreditCard, CheckCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { MembershipBadge } from '@shared/components/ui/MembershipBadge';
+import { MembershipBadge, type MembershipTier } from '@shared/components/ui/MembershipBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
@@ -112,7 +112,7 @@ export const ProfilePage: React.FC = () => {
                 />
                 <div className="absolute -bottom-1 -right-1">
                   <MembershipBadge
-                    tier={(user?.membershipTier || 'basic') as any}
+                    tier={(user?.membershipTier || 'basic') as MembershipTier}
                     size="sm"
                     text={displayPlanName || undefined}
                     level={user?.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}
@@ -176,7 +176,7 @@ export const ProfilePage: React.FC = () => {
                 <div>
                   <p className="text-sm text-gray-600">会员等级</p>
                   <MembershipBadge
-                    tier={(user?.membershipTier || 'basic') as any}
+                    tier={(user?.membershipTier || 'basic') as MembershipTier}
                     size="sm"
                     text={displayPlanName || undefined}
                     level={user?.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}

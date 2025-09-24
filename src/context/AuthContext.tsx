@@ -39,13 +39,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           try {
             const refreshed = await AuthService.refreshUserInfo();
             if (refreshed) setUser(refreshed);
-          } catch (_) {
-            // 静默失败即可
-          }
+          } catch { void 0; }
           // 建立资源访问会话（服务端下发 HttpOnly 短期 Cookie）
           try {
             await ResourceAccessService.ensureSession();
-          } catch {}
+          } catch { void 0; }
         } else {
           // Token 无效，清除存储的信息
           AuthService.logout();
@@ -69,9 +67,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         await AuthService.heartbeat();
         // 同步刷新资源访问会话，保证 RAUTH 在观看长视频等场景不中断
         await ResourceAccessService.ensureSession();
-      } catch (e: any) {
+      } catch (e) {
         // 仅在401时登出，其他网络错误忽略并继续轮询
-        const status = e?.response?.status;
+        const status = (e as { response?: { status?: number } })?.response?.status;
         if (status === 401) {
           logout();
           return; // 停止后续心跳
@@ -97,7 +95,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const user = await AuthService.login({ email, password });
       setUser(user);
-      try { await ResourceAccessService.ensureSession(); } catch {}
+      try { await ResourceAccessService.ensureSession(); } catch { void 0; }
     } catch (error) {
       // 错误已经在 axios 拦截器中处理了，这里重新抛出
       throw error;
@@ -111,7 +109,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const user = await AuthService.register({ name, email, password });
       setUser(user);
-      try { await ResourceAccessService.ensureSession(); } catch {}
+      try { await ResourceAccessService.ensureSession(); } catch { void 0; }
     } catch (error) {
       // 错误已经在 axios 拦截器中处理了，这里重新抛出
       throw error;

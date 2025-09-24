@@ -42,12 +42,12 @@ apiClient.interceptors.response.use(
       const url = response.config?.url || '';
       // 关注/取消关注切换：/app/follows/toggle
       if (url.includes('/app/follows/toggle') && response.status >= 200 && response.status < 300) {
-        const data: any = response.data?.data;
+        const data = response.data?.data as { isFollowing?: boolean } | undefined;
         if (data && typeof data.isFollowing !== 'undefined') {
           showToast.success(data.isFollowing ? '关注成功' : '取消关注');
         }
       }
-    } catch {}
+    } catch { void 0; }
 
     return response;
   },

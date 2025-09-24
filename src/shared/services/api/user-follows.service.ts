@@ -18,11 +18,14 @@ export class UserFollowsService {
   static async getAllFollows(params: FollowQueryRequest = {}): Promise<PageResponse<FollowDTO>> {
     const res = await apiClient.get<ApiResponse<PageResponse<FollowDTO>>>('/user/follows', { params });
     const page = res.data.data;
-    page.records = page.records.map(r => ({
-      ...r,
-      targetCover: ResourceAccessService.toAccessUrl(r.targetCover) || ResourceAccessService.toAccessUrl((r as any).courseCover as string),
-      targetAvatar: ResourceAccessService.toAccessUrl(r.targetAvatar)
-    } as FollowDTO));
+    page.records = page.records.map((r) => {
+      const coverFallback = (r as Record<string, unknown>)?.['courseCover'] as string | undefined;
+      return {
+        ...r,
+        targetCover: ResourceAccessService.toAccessUrl(r.targetCover) || ResourceAccessService.toAccessUrl(coverFallback),
+        targetAvatar: ResourceAccessService.toAccessUrl(r.targetAvatar),
+      } as FollowDTO;
+    });
     return page;
   }
   /**
@@ -32,9 +35,9 @@ export class UserFollowsService {
   static async getFollowedUsers(params: FollowQueryRequest = {}): Promise<PageResponse<FollowDTO>> {
     const res = await apiClient.get<ApiResponse<PageResponse<FollowDTO>>>('/user/follows', { params: { ...params, targetType: 'USER' } });
     const page = res.data.data;
-    page.records = page.records.map(r => ({
+    page.records = page.records.map((r) => ({
       ...r,
-      targetAvatar: ResourceAccessService.toAccessUrl(r.targetAvatar)
+      targetAvatar: ResourceAccessService.toAccessUrl(r.targetAvatar),
     } as FollowDTO));
     return page;
   }
@@ -46,10 +49,13 @@ export class UserFollowsService {
   static async getFollowedCourses(params: FollowQueryRequest = {}): Promise<PageResponse<FollowDTO>> {
     const res = await apiClient.get<ApiResponse<PageResponse<FollowDTO>>>('/user/follows', { params: { ...params, targetType: 'COURSE' } });
     const page = res.data.data;
-    page.records = page.records.map(r => ({
-      ...r,
-      targetCover: ResourceAccessService.toAccessUrl(r.targetCover) || ResourceAccessService.toAccessUrl((r as any).courseCover as string)
-    } as FollowDTO));
+    page.records = page.records.map((r) => {
+      const coverFallback = (r as Record<string, unknown>)?.['courseCover'] as string | undefined;
+      return {
+        ...r,
+        targetCover: ResourceAccessService.toAccessUrl(r.targetCover) || ResourceAccessService.toAccessUrl(coverFallback),
+      } as FollowDTO;
+    });
     return page;
   }
 }

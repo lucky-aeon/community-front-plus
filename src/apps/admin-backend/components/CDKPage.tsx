@@ -151,9 +151,9 @@ export const CDKPage: React.FC = () => {
   };
 
   const statusBadge = (status: CDKStatus) => {
-    const variant = status === 'ACTIVE' ? 'default' : status === 'USED' ? 'secondary' : 'secondary';
+    const variant: 'default' | 'secondary' = status === 'ACTIVE' ? 'default' : 'secondary';
     const text = status === 'ACTIVE' ? '可用' : status === 'USED' ? '已使用' : '已禁用';
-    return <Badge variant={variant as any}>{text}</Badge>;
+    return <Badge variant={variant}>{text}</Badge>;
   };
 
   return (
@@ -322,7 +322,7 @@ export const CDKPage: React.FC = () => {
       {/* 创建对话框 */}
       <Dialog open={createDialog.open} onOpenChange={(open) => {
         if (!createDialog.submitting) {
-          setCreateDialog(prev => ({ open, submitting: false, cdkType: '', targetId: '', quantity: '1', result: undefined }));
+          setCreateDialog(() => ({ open, submitting: false, cdkType: '', targetId: '', quantity: '1', result: undefined }));
         }
       }}>
         <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-2xl">

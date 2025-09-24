@@ -45,6 +45,16 @@
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
+/* 视频样式，使视频在预览区自适应 */
+.markdown-editor-wrapper .cherry-previewer video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  margin: 12px 0;
+}
+
 .markdown-editor-wrapper .cherry-previewer pre {
   background: #f3f4f6;
   border-radius: 8px;
