@@ -79,7 +79,7 @@ export class AliyunUploadService {
       // 创建XMLHttpRequest以支持上传进度/取消
       const xhr = new XMLHttpRequest();
       // 暴露给上层用于取消
-      try { options.onCreateXhr?.(xhr); } catch {}
+      try { options.onCreateXhr?.(xhr); } catch { /* ignore */ }
 
       return new Promise<AliyunUploadResponse>((resolve, reject) => {
         // 上传进度监听
@@ -129,7 +129,7 @@ export class AliyunUploadService {
                 type: (respObj.type as string) || file.type,
                 key: credentials.key
               });
-            } catch (parseError) {
+            } catch {
               // 如果没有回调或解析失败，使用默认响应
               // 构建正确的OSS URL格式：https://{bucket}.{endpoint}/{key}
               const ossBaseUrl = credentials.endpoint.startsWith('http')
@@ -204,7 +204,7 @@ export class AliyunUploadService {
         return computed;
       }
       return provided;
-    } catch (e) {
+    } catch {
       // 计算失败则回退使用后端签名
       console.warn('[OSS] 浏览器无法计算签名，回退使用后端提供的 signature');
       return provided;

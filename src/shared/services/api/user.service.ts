@@ -96,7 +96,7 @@ export class UserService {
           if (/^https?:\/\//i.test(v) || v.startsWith('/')) return v;
           try {
             return ResourceAccessService.getResourceAccessUrl(v);
-          } catch (_) {
+          } catch {
             return v;
           }
         };

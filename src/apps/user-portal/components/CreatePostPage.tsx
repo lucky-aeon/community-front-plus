@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ImageUpload } from '@shared/components/common/ImageUpload';
-import { Badge } from '@/components/ui/badge';
 import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
 import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { CategorySelect } from '@shared/components/common/CategorySelect';
@@ -44,7 +43,9 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
         const url = ResourceAccessService.getResourceAccessUrl(val);
         setCoverImage(url);
         setCoverResourceId(val);
-      } catch {}
+      } catch {
+        // 忽略资源ID解析错误
+      }
     }
   }, [initialData?.coverImage]);
 

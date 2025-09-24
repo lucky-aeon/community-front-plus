@@ -24,7 +24,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     code: '',
   });
   const emailInputRef = useRef<HTMLInputElement>(null);
-  const [codeRequested, setCodeRequested] = useState(false);
   const [cooldown, setCooldown] = useState(0); // seconds left
 
   const { login, registerWithCode, isLoading } = useAuth();
@@ -85,7 +84,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       }
       onClose();
       setFormData({ email: '', password: '', confirmPassword: '', code: '' });
-      setCodeRequested(false);
       setCooldown(0);
     } catch (error) {
       // 错误消息已经通过 axios 拦截器和 toast 显示了，不需要在组件中重复显示
@@ -108,7 +106,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }
     if (cooldown > 0) return;
     // 预览模式：此处先不调用后端，直接模拟成功，避免未接入接口时报错
-    setCodeRequested(true);
     setCooldown(300); // 5 分钟
     showToast.success('验证码已发送至邮箱（预览）');
   };

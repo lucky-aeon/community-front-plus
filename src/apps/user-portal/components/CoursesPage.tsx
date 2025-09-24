@@ -22,7 +22,6 @@ export const CoursesPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
   const pageSize = 12;
 
   // 无搜索/筛选
@@ -39,7 +38,7 @@ export const CoursesPage: React.FC = () => {
       const response = await CoursesService.getFrontCoursesList(params);
       setCourses(response.records);
       setTotalPages(response.pages);
-      setTotalCount(response.total);
+      // totalCount 未在 UI 使用，避免未使用状态
     } catch (err) {
       console.error('加载课程列表失败:', err);
       setError('课程列表加载失败，请稍后重试');

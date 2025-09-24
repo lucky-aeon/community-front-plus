@@ -450,7 +450,10 @@ export const CoursesPage: React.FC = () => {
           if (!open) setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } });
         }
       }}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-5xl">
+        <DialogContent
+          className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-5xl"
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>{editDialog.mode === 'create' ? '新建课程' : '编辑课程'}</DialogTitle>
             <DialogDescription>填写课程基础信息（更多高级字段后续在详情中维护）</DialogDescription>
@@ -573,7 +576,10 @@ export const CoursesPage: React.FC = () => {
           if (!open) setChapterDialog({ open: false, loading: false, saving: false, items: [] });
         }
       }}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-4xl">
+        <DialogContent
+          className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-4xl"
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>章节管理 - {chapterDialog.course?.title}</DialogTitle>
             <DialogDescription>拖拽排序，新增/编辑/删除章节</DialogDescription>

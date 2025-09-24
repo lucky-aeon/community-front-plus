@@ -29,15 +29,6 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const handleLogout = () => setShowLogoutConfirm(true);
   const confirmLogout = () => logout();
 
-  const getMembershipColor = (tier: string) => {
-    switch (tier) {
-      case 'basic': return 'bg-blue-100 text-blue-800';
-      case 'premium': return 'bg-purple-100 text-purple-800';
-      case 'vip': return 'bg-yellow-200 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
   return (
     <div className="min-h-screen bg-muted/20 flex">
       {/* Desktop sidebar */}

@@ -34,7 +34,7 @@ export const CourseDetailPage: React.FC = () => {
         try {
           const status = await SubscribeService.checkSubscribeStatus({ targetId: courseId, targetType: 'COURSE' });
           setIsFollowing(!!status.isFollowing);
-        } catch (_) {
+        } catch {
           // 忽略订阅状态错误（未登录或接口异常），不影响详情显示
         }
       } catch (err) {
@@ -82,7 +82,7 @@ export const CourseDetailPage: React.FC = () => {
     try {
       const res = await SubscribeService.toggleSubscribe({ targetId: course.id, targetType: 'COURSE' });
       setIsFollowing(!!res.isFollowing);
-    } catch (e) {
+    } catch {
       // 错误提示由拦截器处理
     } finally {
       setFollowLoading(false);

@@ -366,7 +366,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
             isUserInputRef.current = false;
           }, 0);
         },
-        afterInit: (_cherry: Cherry) => {
+        afterInit: () => {
           setIsInitialized(true);
           
           // 添加全屏按钮 - 延迟确保DOM完全渲染
@@ -489,6 +489,8 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
     };
   }, [getCherryConfig, isEchartsLoaded]);
 
+  // 注意：不在全屏切换时重建实例，保持原行为，避免闪烁
+
   // 同步外部value变化（优化逻辑，避免循环更新）
   useEffect(() => {
     if (isInitialized && cherryInstanceRef.current && value !== undefined) {
@@ -530,34 +532,37 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
   useImperativeHandle(ref, () => ({
     insertMarkdown: (snippet: string) => {
       try {
-        const inst: any = cherryInstanceRef.current as any;
-        const cm: any = inst?.editor?.editor; // CodeMirror 实例（尽力获取）
+        const inst = cherryInstanceRef.current as unknown as { editor?: { editor?: { replaceSelection?: (text: string) => void; focus?: () => void } } } | null;
+        const cm = inst?.editor?.editor;
         if (cm && typeof cm.replaceSelection === 'function') {
           cm.replaceSelection(snippet);
-          cm.focus();
+          cm.focus?.();
           return;
         }
-      } catch { void 0; }
+      } catch { /* ignore */ }
       // 兼容：无法获取光标时，追加到末尾
       try {
-        const inst: any = cherryInstanceRef.current as any;
+        const inst = cherryInstanceRef.current as unknown as { getValue?: () => string; setValue?: (v: string, keepCursor?: boolean) => void } | null;
         const current = inst?.getValue ? inst.getValue() : value;
-        const needsLF = current && !current.endsWith('\n');
+        const needsLF = !!current && !current.endsWith('\n');
         const next = `${current || ''}${needsLF ? '\n' : ''}${snippet}`;
-        inst?.setValue ? inst.setValue(next, false) : onChange(next);
+        if (inst?.setValue) {
+          inst.setValue(next, false);
+        } else {
+          onChange(next);
+        }
       } catch {
         // 兜底：直接更新
         const current = value || '';
-        const needsLF = current && !current.endsWith('\n');
+        const needsLF = !!current && !current.endsWith('\n');
         onChange(`${current}${needsLF ? '\n' : ''}${snippet}`);
       }
     },
     focus: () => {
       try {
-        const inst: any = cherryInstanceRef.current as any;
-        const cm: any = inst?.editor?.editor;
-        cm?.focus?.();
-      } catch { void 0; }
+        const inst = cherryInstanceRef.current as unknown as { editor?: { editor?: { focus?: () => void } } } | null;
+        inst?.editor?.editor?.focus?.();
+      } catch { /* ignore */ }
     }
   }), [value, onChange]);
 

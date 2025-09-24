@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -98,7 +98,7 @@ export const ResourcePicker: React.FC<ResourcePickerProps> = ({ open, onClose, o
     try {
       await navigator.clipboard.writeText(text);
       showToast.success(okMsg);
-    } catch (e) {
+    } catch {
       showToast.error('复制失败，请手动复制');
     }
   }, []);
@@ -192,4 +192,3 @@ export const ResourcePicker: React.FC<ResourcePickerProps> = ({ open, onClose, o
     </Dialog>
   );
 };
-

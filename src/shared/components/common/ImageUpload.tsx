@@ -22,7 +22,6 @@ interface ImageUploadProps {
   showPreview?: boolean;             // 是否显示预览
   previewSize?: 'sm' | 'md' | 'lg';  // 预览尺寸
   disabled?: boolean;
-  compress?: boolean;                // 是否压缩图片（新增）
 }
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -40,13 +39,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   showPreview = true,
   previewSize = 'md',
   disabled = false,
-  compress = true,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(value || null);
-  const [resourceId, setResourceId] = useState<string>(''); // 新增：存储资源ID
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 预览尺寸映射
@@ -64,13 +61,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         setPreviewUrl(value);
       } else {
         // 假设是资源ID，生成访问URL
-        setResourceId(value);
         const accessUrl = ResourceAccessService.getResourceAccessUrl(value);
         setPreviewUrl(accessUrl);
       }
     } else {
       setPreviewUrl(null);
-      setResourceId('');
     }
   }, [value]);
 
@@ -110,11 +105,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       const response = await UploadService.uploadImage(file, { onProgress });
 
       if (response.url) {
-        try { await ResourceAccessService.ensureSession(); } catch {}
+        try { await ResourceAccessService.ensureSession(); } catch { /* 忽略会话检查错误 */ }
         // 更新预览URL和资源ID
         setPreviewUrl(response.url);
         const newResourceId = response.resourceId || response.uploadId || '';
-        setResourceId(newResourceId);
 
         // 调用回调函数
         onChange(response.url);
@@ -185,7 +179,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     e.stopPropagation();
     onChange('');
     setPreviewUrl(null);
-    setResourceId('');
   }, [onChange]);
 
   return (

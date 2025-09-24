@@ -94,7 +94,7 @@ export const ProfileSettingsPage: React.FC = () => {
       const payload: { description?: string; avatar?: string } = { description: formData.bio };
       if (avatarResourceId) payload.avatar = avatarResourceId;
 
-      const updatedUser = await UserService.updateProfile(payload as any);
+      const updatedUser = await UserService.updateProfile(payload);
       
       setCurrentUserData(updatedUser);
       // 如果后端返回了新的头像URL，优先使用；否则继续使用本地预览
@@ -196,7 +196,7 @@ export const ProfileSettingsPage: React.FC = () => {
                         try {
                           const accessUrl = ResourceAccessService.getResourceAccessUrl(resourceId);
                           setAvatarUrl(accessUrl);
-                        } catch {}
+                        } catch { /* 忽略资源解析失败 */ }
                       }
                     }}
                     size="xl"

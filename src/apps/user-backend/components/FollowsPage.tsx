@@ -11,6 +11,13 @@ import { SubscribeService } from '@shared/services/api/subscribe.service';
 import { useNavigate } from 'react-router-dom';
 
 type TabKey = 'all' | 'users' | 'courses';
+type FollowItemEx = FollowDTO & {
+  targetUserAvatar?: string;
+  targetUserName?: string;
+  courseCover?: string;
+  courseTitle?: string;
+  createTime?: string;
+};
 
 export const FollowsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('all');
@@ -109,16 +116,16 @@ export const FollowsPage: React.FC = () => {
         <Card key={`all-${item.targetId}`} className="p-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Avatar className="h-10 w-10">
-              <AvatarImage src={item.targetAvatar || (item as any).targetUserAvatar} />
-              <AvatarFallback>{(item.targetName || (item as any).targetUserName || 'U')[0]}</AvatarFallback>
+              <AvatarImage src={item.targetAvatar || (item as FollowItemEx).targetUserAvatar} />
+              <AvatarFallback>{(item.targetName || (item as FollowItemEx).targetUserName || 'U')[0]}</AvatarFallback>
             </Avatar>
             <div>
               <div className="font-medium text-gray-900 flex items-center">
                 <Users className="h-4 w-4 text-gray-400 mr-2" />
-                {item.targetName || (item as any).targetUserName}
+                {item.targetName || (item as FollowItemEx).targetUserName}
               </div>
-              <div className="text-sm text-gray-500 line-clamp-1">{item.description || (item as any).targetUserDescription || '这个人很神秘，什么都没有写。'}</div>
-              <div className="text-xs text-gray-400 mt-1">关注于 {formatFollowTime(item.followTime || (item as any).createTime)}</div>
+              <div className="text-sm text-gray-500 line-clamp-1">{item.description || (item as FollowItemEx).targetUserDescription || '这个人很神秘，什么都没有写。'}</div>
+              <div className="text-xs text-gray-400 mt-1">关注于 {formatFollowTime(item.followTime || (item as FollowItemEx).createTime)}</div>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -134,17 +141,17 @@ export const FollowsPage: React.FC = () => {
       <Card key={`all-${item.targetId}`} className="p-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <div className="h-14 w-20 rounded bg-gray-100 overflow-hidden">
-            {item.targetCover || (item as any).courseCover ? (
-              <img src={item.targetCover || (item as any).courseCover} alt={(item.targetName || (item as any).courseTitle) as string} className="h-full w-full object-cover" />
+            {item.targetCover || (item as FollowItemEx).courseCover ? (
+              <img src={item.targetCover || (item as FollowItemEx).courseCover} alt={(item.targetName || (item as FollowItemEx).courseTitle) || ''} className="h-full w-full object-cover" />
             ) : null}
           </div>
           <div>
             <div className="font-medium text-gray-900 flex items-center">
               <GraduationCap className="h-4 w-4 text-gray-400 mr-2" />
-              {item.targetName || (item as any).courseTitle}
+              {item.targetName || (item as FollowItemEx).courseTitle}
             </div>
             <div className="text-sm text-gray-500">{item.authorName ? `作者：${item.authorName}` : '课程'}</div>
-            <div className="text-xs text-gray-400 mt-1">订阅于 {formatFollowTime(item.followTime || (item as any).createTime)}</div>
+            <div className="text-xs text-gray-400 mt-1">订阅于 {formatFollowTime(item.followTime || (item as FollowItemEx).createTime)}</div>
           </div>
         </div>
         <div className="flex items-center space-x-2">
@@ -168,16 +175,16 @@ export const FollowsPage: React.FC = () => {
           <Card key={u.targetId} className="p-4 flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={u.targetAvatar || (u as any).targetUserAvatar} />
-                <AvatarFallback>{(u.targetName || (u as any).targetUserName || 'U')[0]}</AvatarFallback>
+                <AvatarImage src={u.targetAvatar || (u as FollowItemEx).targetUserAvatar} />
+                <AvatarFallback>{(u.targetName || (u as FollowItemEx).targetUserName || 'U')[0]}</AvatarFallback>
               </Avatar>
               <div>
                 <div className="font-medium text-gray-900 flex items-center">
                   <Users className="h-4 w-4 text-gray-400 mr-2" />
-                  {u.targetName || (u as any).targetUserName}
+                  {u.targetName || (u as FollowItemEx).targetUserName}
                 </div>
-                <div className="text-sm text-gray-500 line-clamp-1">{u.description || (u as any).targetUserDescription || '这个人很神秘，什么都没有写。'}</div>
-                <div className="text-xs text-gray-400 mt-1">关注于 {formatFollowTime(u.followTime || (u as any).createTime)}</div>
+                <div className="text-sm text-gray-500 line-clamp-1">{u.description || (u as FollowItemEx).targetUserDescription || '这个人很神秘，什么都没有写。'}</div>
+                <div className="text-xs text-gray-400 mt-1">关注于 {formatFollowTime(u.followTime || (u as FollowItemEx).createTime)}</div>
               </div>
             </div>
             <div className="flex items-center space-x-2">
@@ -210,17 +217,17 @@ export const FollowsPage: React.FC = () => {
           <Card key={c.targetId} className="p-4 flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="h-14 w-20 rounded bg-gray-100 overflow-hidden">
-                {c.targetCover || (c as any).courseCover ? (
-                  <img src={c.targetCover || (c as any).courseCover} alt={(c.targetName || (c as any).courseTitle) as string} className="h-full w-full object-cover" />
+                {c.targetCover || (c as FollowItemEx).courseCover ? (
+                  <img src={c.targetCover || (c as FollowItemEx).courseCover} alt={(c.targetName || (c as FollowItemEx).courseTitle) || ''} className="h-full w-full object-cover" />
                 ) : null}
               </div>
               <div>
                 <div className="font-medium text-gray-900 flex items-center">
                   <GraduationCap className="h-4 w-4 text-gray-400 mr-2" />
-                  {c.targetName || (c as any).courseTitle}
+                  {c.targetName || (c as FollowItemEx).courseTitle}
                 </div>
                 <div className="text-sm text-gray-500">{c.authorName ? `作者：${c.authorName}` : '课程'}</div>
-                <div className="text-xs text-gray-400 mt-1">订阅于 {formatFollowTime(c.followTime || (c as any).createTime)}</div>
+                <div className="text-xs text-gray-400 mt-1">订阅于 {formatFollowTime(c.followTime || (c as FollowItemEx).createTime)}</div>
               </div>
             </div>
             <div className="flex items-center space-x-2">

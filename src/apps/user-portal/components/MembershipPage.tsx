@@ -17,7 +17,7 @@ export const MembershipPage: React.FC = () => {
       try {
         const list = await AppSubscriptionPlansService.getPlans();
         if (!cancelled) setPlans(list);
-      } catch (e) {
+      } catch {
         if (!cancelled) setPlans([]);
       } finally {
         if (!cancelled) setLoading(false);

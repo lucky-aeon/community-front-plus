@@ -157,7 +157,7 @@ export const Comments: React.FC<CommentsProps> = ({
         const detail = await ChaptersService.getFrontChapterDetail(item.businessId);
         navigate(`/dashboard/courses/${detail.courseId}/chapters/${item.businessId}#comment-${item.id}`);
       }
-    } catch (e) {
+    } catch {
       // fallback：至少跳到业务详情
       if (item.businessType === 'POST') navigate(routeUtils.getPostDetailRoute(item.businessId));
       if (item.businessType === 'COURSE') navigate(routeUtils.getCourseDetailRoute(item.businessId));
@@ -174,7 +174,7 @@ export const Comments: React.FC<CommentsProps> = ({
     if (!content) return;
     try {
       setSubmitting(true);
-      const created = await CommentsService.createComment({ businessId, businessType, content });
+      await CommentsService.createComment({ businessId, businessType, content });
       setNewContent('');
       // 直接刷新列表，保证与服务端一致（避免分页边界问题）
       await loadComments(true);

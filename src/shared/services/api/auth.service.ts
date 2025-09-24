@@ -225,7 +225,7 @@ export class AuthService {
       if (/^https?:\/\//i.test(v) || v.startsWith('/')) return v;
       try {
         return ResourceAccessService.getResourceAccessUrl(v);
-      } catch (_) {
+      } catch {
         return v;
       }
     };
@@ -262,7 +262,7 @@ export class AuthService {
         localStorage.setItem('user', JSON.stringify(updated));
         return updated;
       }
-    } catch (_) {
+    } catch {
       // 静默失败
     }
     return user;

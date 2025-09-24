@@ -6,13 +6,11 @@ import { Button } from '@/components/ui/button';
 import { ChangelogCard } from '@shared/components/business/ChangelogCard';
 import { changelogEntries } from '@shared/constants/mockData';
 
-interface ChangelogPageProps {
-  onVersionClick?: (versionId: string) => void;
-}
+type FilterId = 'all' | 'important' | 'feature' | 'improvement' | 'bugfix';
 
-export const ChangelogPage: React.FC<ChangelogPageProps> = ({ onVersionClick }) => {
+export const ChangelogPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState<'all' | 'important' | 'feature' | 'improvement' | 'bugfix'>('all');
+  const [activeFilter, setActiveFilter] = useState<FilterId>('all');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
 
   // 筛选和搜索逻辑
@@ -68,7 +66,7 @@ export const ChangelogPage: React.FC<ChangelogPageProps> = ({ onVersionClick }) 
     return { total, important, features, improvements, bugfixes };
   }, []);
 
-  const filterTabs = [
+  const filterTabs: { id: FilterId; name: string; count: number; icon: typeof FileText | typeof Clock | null }[] = [
     { id: 'all', name: '全部更新', count: stats.total, icon: FileText },
     { id: 'important', name: '重要更新', count: stats.important, icon: Clock },
     { id: 'feature', name: '新功能', count: stats.features, icon: null },
@@ -118,7 +116,7 @@ export const ChangelogPage: React.FC<ChangelogPageProps> = ({ onVersionClick }) 
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveFilter(tab.id as any)}
+                onClick={() => setActiveFilter(tab.id)}
                 className={`
                   inline-flex items-center space-x-2 px-4 py-2 rounded-xl font-medium transition-all duration-200 border
                   ${activeFilter === tab.id

@@ -65,7 +65,7 @@ export const QuickActionCards: React.FC<QuickActionCardsProps> = ({ className })
 
   return (
     <div className={cn("grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4", className)}>
-      {quickActions.map((action, index) => {
+      {quickActions.map((action) => {
         const IconComponent = action.icon;
 
         return (

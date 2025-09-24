@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback, useMemo } from 'react';
-import { Camera, Loader2, User } from 'lucide-react';
+import { Camera, Loader2 } from 'lucide-react';
 import { cn } from '@shared/utils/cn';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -110,7 +110,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
 
       if (response.url) {
         // 确保资源访问会话有效，避免刚上传后预览401
-        try { await ResourceAccessService.ensureSession(); } catch {}
+        try { await ResourceAccessService.ensureSession(); } catch { /* 忽略会话检查错误 */ }
         onChange(response.url);
         onUploadSuccess?.(response.resourceId || '');
         showToast.success('头像上传成功');
@@ -140,7 +140,7 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
     // 否则视为资源ID，构造访问URL
     try {
       return ResourceAccessService.getResourceAccessUrl(v);
-    } catch (_) {
+    } catch {
       return v; // 兜底
     }
   }, [value]);
