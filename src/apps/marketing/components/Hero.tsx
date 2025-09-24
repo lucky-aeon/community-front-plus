@@ -1,11 +1,52 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { TrendingUp, Users, Award, Code, MessageSquare } from 'lucide-react';
+import { PublicCoursesService, PublicStatsService } from '@shared/services/api';
 
 export const Hero: React.FC = () => {
+  const [courseTotal, setCourseTotal] = useState<number>(0);
+  const [userTotal, setUserTotal] = useState<number>(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadTotal = async () => {
+      try {
+        // 仅取 total，避免加载大量数据
+        const [coursePage, users] = await Promise.all([
+          PublicCoursesService.getPublicCoursesList({ pageNum: 1, pageSize: 1 }),
+          PublicStatsService.getUsersTotalCount(),
+        ]);
+        if (!cancelled) {
+          setCourseTotal(coursePage.total || 0);
+          setUserTotal(users || 0);
+        }
+      } catch {
+        if (!cancelled) {
+          setCourseTotal(0);
+          setUserTotal(0);
+        }
+      }
+    };
+    loadTotal();
+    return () => { cancelled = true; };
+  }, []);
+
+  const courseCountDisplay = useMemo(() => {
+    // 严格使用接口返回总数，不做占位回退
+    return courseTotal.toLocaleString('zh-CN');
+  }, [courseTotal]);
+
+  const userCountDisplay = useMemo(() => {
+    // >= 1000 显示 K+，否则显示原值
+    if (userTotal >= 1000) {
+      const k = Math.floor(userTotal / 1000);
+      return `${k}K+`;
+    }
+    return String(userTotal);
+  }, [userTotal]);
 
   const stats = [
-    { icon: Users, value: '50K+', label: '活跃学员' },
-    { icon: Award, value: '500+', label: '专业课程' },
+    { icon: Users, value: userCountDisplay, label: '活跃学员' },
+    { icon: Award, value: courseCountDisplay, label: '专业课程' },
     { icon: TrendingUp, value: '95%', label: '成功率' }
   ];
 

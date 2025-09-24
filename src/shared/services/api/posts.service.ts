@@ -83,6 +83,26 @@ export class PostsService {
   }
 
   /**
+   * 采纳评论（作者）
+   * POST /api/user/posts/{postId}/accept/{commentId}
+   */
+  static async acceptComment(postId: string, commentId: string): Promise<PostDTO> {
+    const res = await apiClient.post<ApiResponse<PostDTO>>(`/user/posts/${postId}/accept/${commentId}`);
+    const data = res.data.data;
+    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as PostDTO;
+  }
+
+  /**
+   * 撤销采纳（作者）
+   * DELETE /api/user/posts/{postId}/accept/{commentId}
+   */
+  static async revokeAccepted(postId: string, commentId: string): Promise<PostDTO> {
+    const res = await apiClient.delete<ApiResponse<PostDTO>>(`/user/posts/${postId}/accept/${commentId}`);
+    const data = res.data.data;
+    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as PostDTO;
+  }
+
+  /**
    * ============= 公开文章查询接口 =============
    */
 
@@ -165,5 +185,25 @@ export class PostsService {
   static async getAdminPosts(params: AdminPostQueryRequest = {}): Promise<PageResponse<AdminPostDTO>> {
     const response = await apiClient.get<ApiResponse<PageResponse<AdminPostDTO>>>('/admin/posts', { params });
     return response.data.data;
+  }
+
+  /**
+   * 管理员强制采纳
+   * POST /api/admin/posts/{postId}/accept/{commentId}
+   */
+  static async adminAcceptComment(postId: string, commentId: string): Promise<PostDTO> {
+    const res = await apiClient.post<ApiResponse<PostDTO>>(`/admin/posts/${postId}/accept/${commentId}`);
+    const data = res.data.data;
+    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as PostDTO;
+  }
+
+  /**
+   * 管理员强制撤销采纳
+   * DELETE /api/admin/posts/{postId}/accept/{commentId}
+   */
+  static async adminRevokeAccepted(postId: string, commentId: string): Promise<PostDTO> {
+    const res = await apiClient.delete<ApiResponse<PostDTO>>(`/admin/posts/${postId}/accept/${commentId}`);
+    const data = res.data.data;
+    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as PostDTO;
   }
 }

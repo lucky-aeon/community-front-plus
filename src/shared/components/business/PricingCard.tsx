@@ -9,9 +9,10 @@ import { Badge } from '@/components/ui/badge';
 interface PricingCardProps {
   plan: MembershipPlan;
   onSelect: () => void;
+  buttonLabel?: string; // 可选自定义按钮文案（默认依据用户状态）
 }
 
-export const PricingCard: React.FC<PricingCardProps> = ({ plan, onSelect }) => {
+export const PricingCard: React.FC<PricingCardProps> = ({ plan, onSelect, buttonLabel }) => {
   const { user } = useAuth();
   const isCurrentPlan = user?.membershipTier === plan.tier;
 
@@ -34,18 +35,20 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, onSelect }) => {
           </div>
           
           <div className="flex items-baseline justify-center space-x-2">
-            <span className="text-4xl font-bold text-gray-900">${plan.price}</span>
+            <span className="text-4xl font-bold text-gray-900">¥{plan.price}</span>
             {plan.originalPrice && (
               <span className="text-xl text-gray-500 line-through">
-                ${plan.originalPrice}
+                ¥{plan.originalPrice}
               </span>
             )}
-            <span className="text-gray-500">/{plan.duration.split(' ')[1]}</span>
+            <span className="text-gray-500">/{
+              plan.duration.includes('year') ? '年' : plan.duration.includes('month') ? '月' : plan.duration
+            }</span>
           </div>
           
-          {plan.originalPrice && (
+          {plan.originalPrice && plan.originalPrice > plan.price && (
             <Badge variant="success" className="mt-2">
-              每月节省 ${plan.originalPrice - plan.price}元
+              立省 ¥{plan.originalPrice - plan.price}
             </Badge>
           )}
         </div>
@@ -70,12 +73,13 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, onSelect }) => {
           }`}
           disabled={isCurrentPlan}
         >
-          {isCurrentPlan 
-            ? '当前套餐'
-            : user?.membershipTier === 'guest'
-              ? '立即开始'
-              : '立即升级'
-          }
+          {buttonLabel ?? (
+            isCurrentPlan
+              ? '当前套餐'
+              : user?.membershipTier === 'guest'
+                ? '立即开始'
+                : '立即订阅'
+          )}
         </Button>
       </div>
     </Card>

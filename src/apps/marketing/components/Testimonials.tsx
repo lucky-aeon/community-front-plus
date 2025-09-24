@@ -165,18 +165,7 @@ export const Testimonials: React.FC = () => {
           </>
         )}
 
-        {/* 鼓励用户分享评价 */}
-        <div className="text-center mt-12">
-          <p className="text-gray-600 mb-4">
-            也想分享您的学习体验？
-          </p>
-          <a
-            href="/dashboard/user-backend/testimonial"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
-          >
-            分享我的评价
-          </a>
-        </div>
+        {/* 已去除“分享我的评价”引导区块，根据需求隐藏 */}
       </div>
     </section>
   );

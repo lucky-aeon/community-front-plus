@@ -16,4 +16,3 @@ export class AppSubscriptionPlansService {
     return resp.data.data;
   }
 }
-

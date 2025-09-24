@@ -126,6 +126,14 @@ export const PostDetailPage: React.FC = () => {
           <Badge variant="outline" className="text-sm">
             {post.categoryName}
           </Badge>
+          {/* 问答解决状态：仅 categoryType 为 QA 时展示 */}
+          {post.categoryType === 'QA' && (
+            (post.acceptedCommentIds && post.acceptedCommentIds.length > 0) ? (
+              <Badge variant="secondary" className="bg-emerald-500 text-white border-0">已解决</Badge>
+            ) : (
+              <Badge variant="outline" className="text-gray-600">未解决</Badge>
+            )
+          )}
           {post.isTop && (
             <Badge variant="secondary" className="flex items-center space-x-1 bg-yellow-500 text-white border-0">
               <CheckCircle className="h-3 w-3" />
@@ -281,7 +289,23 @@ export const PostDetailPage: React.FC = () => {
             </div>
           </Card>
 
-          <Comments businessId={post.id} businessType="POST" authorId={post.authorId} />
+          <Comments
+            businessId={post.id}
+            businessType="POST"
+            authorId={post.authorId}
+            isQA={post.categoryType === 'QA'}
+            onQAResolveChange={({ action, commentId }) => {
+              setPost(prev => {
+                if (!prev) return prev;
+                // 非问答则不处理
+                if (typeof prev.acceptedCommentIds === 'undefined') return prev;
+                const set = new Set(prev.acceptedCommentIds || []);
+                if (action === 'accept') set.add(commentId);
+                if (action === 'revoke') set.delete(commentId);
+                return { ...prev, acceptedCommentIds: Array.from(set) } as FrontPostDetailDTO;
+              });
+            }}
+          />
         </div>
       </div>
     </div>

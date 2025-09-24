@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { MessageSquare, Send, Loader2, MoreHorizontal, Trash2, CornerDownRight, LogIn, FileText, BookOpen, Book, Clock, ChevronRight, AtSign } from 'lucide-react';
+import { MessageSquare, Send, Loader2, Trash2, CornerDownRight, LogIn, FileText, BookOpen, Book, Clock, ChevronRight, AtSign } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+// 移除三点菜单，直接铺开操作按钮
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@shared/utils/cn';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { CommentsService, ChaptersService } from '@shared/services/api';
+import { PostsService } from '@shared/services/api/posts.service';
 import type { BusinessType, CommentDTO, PageResponse, LatestCommentDTO } from '@shared/types';
 import { AuthModal } from '@shared/components/business/AuthModal';
 import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
@@ -24,6 +25,10 @@ export interface CommentsProps {
   className?: string;
   onCountChange?: (count: number) => void;
   mode?: 'thread' | 'latest';
+  // 是否问答类型（用于展示采纳/撤销操作）
+  isQA?: boolean;
+  // 采纳/撤销成功时回传给父组件（用于同步文章状态）
+  onQAResolveChange?: (payload: { action: 'accept' | 'revoke'; commentId: string; resolveStatus?: 'UNSOLVED' | 'SOLVED'; solvedAt?: string }) => void;
 }
 
 /**
@@ -40,6 +45,8 @@ export const Comments: React.FC<CommentsProps> = ({
   className,
   onCountChange,
   mode = 'thread',
+  isQA = false,
+  onQAResolveChange,
 }) => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -61,6 +68,7 @@ export const Comments: React.FC<CommentsProps> = ({
   const [replyDraft, setReplyDraft] = useState<Record<string, string>>({});
   const [replying, setReplying] = useState<Record<string, boolean>>({});
   const [openReply, setOpenReply] = useState<Record<string, boolean>>({});
+  const [accepting, setAccepting] = useState<Record<string, boolean>>({});
 
   // 资源库弹窗与编辑器引用
   const [showResourcePicker, setShowResourcePicker] = useState(false);
@@ -233,6 +241,40 @@ export const Comments: React.FC<CommentsProps> = ({
 
   const canDelete = (c: CommentDTO) => CommentsService.canDeleteComment(c, user?.id);
 
+  const canAccept = (c: CommentDTO) => {
+    // 仅文章业务、问答类型，且当前用户为作者
+    if (!user || !authorId) return false;
+    if (businessType !== 'POST') return false;
+    if (!isQA) return false;
+    return user.id === authorId;
+  };
+
+  const handleToggleAccept = async (c: CommentDTO) => {
+    if (!canAccept(c)) return;
+    try {
+      setAccepting(prev => ({ ...prev, [c.id]: true }));
+      const isAccepted = !!c.accepted;
+      const resPost = isAccepted
+        ? await PostsService.revokeAccepted(businessId, c.id)
+        : await PostsService.acceptComment(businessId, c.id);
+      // 更新本地评论的 accepted 状态
+      setFlatComments(prev => prev.map(item => item.id === c.id ? { ...item, accepted: !isAccepted } : item));
+      // 通知父组件同步文章解决状态
+      onQAResolveChange?.({
+        action: isAccepted ? 'revoke' : 'accept',
+        commentId: c.id,
+        resolveStatus: resPost.resolveStatus as any,
+        solvedAt: resPost.solvedAt,
+      });
+    } catch (e) {
+      console.error('切换采纳状态失败', e);
+      const msg = e instanceof Error ? e.message : '请稍后重试';
+      toast({ title: '操作失败', description: msg, variant: 'destructive' });
+    } finally {
+      setAccepting(prev => ({ ...prev, [c.id]: false }));
+    }
+  };
+
   const renderItem = (c: CommentDTO) => {
     const isAuthor = authorId && c.commentUserId === authorId;
     return (
@@ -247,6 +289,9 @@ export const Comments: React.FC<CommentsProps> = ({
               <span className="text-sm font-medium text-gray-900">{c.commentUserName}</span>
               {isAuthor && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-honey-100 text-honey-800 border border-honey-200">作者</span>
+              )}
+              {isQA && c.accepted && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">已采纳</span>
               )}
               <span className="text-xs text-gray-500">· {formatTime(c.createTime)}</span>
             </div>
@@ -273,6 +318,27 @@ export const Comments: React.FC<CommentsProps> = ({
               <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => setOpenReply(prev => ({ ...prev, [c.id]: !prev[c.id] }))}>
                 <CornerDownRight className="h-4 w-4 mr-1" /> 回复
               </Button>
+              {canAccept(c) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 px-2"
+                  onClick={() => handleToggleAccept(c)}
+                  disabled={accepting[c.id]}
+                >
+                  {c.accepted ? '撤销采纳' : '采纳此评论'}
+                </Button>
+              )}
+              {canDelete(c) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-red-600 hover:text-red-700"
+                  onClick={() => handleDelete(c)}
+                >
+                  <Trash2 className="h-4 w-4 mr-1" /> 删除
+                </Button>
+              )}
             </div>
             {openReply[c.id] && (
               <div className="mt-2">
@@ -296,22 +362,7 @@ export const Comments: React.FC<CommentsProps> = ({
               </div>
             )}
           </div>
-          <div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {canDelete(c) && (
-                  <DropdownMenuItem onClick={() => handleDelete(c)} className="text-red-600">
-                    <Trash2 className="h-4 w-4 mr-2" /> 删除
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          {/* 操作按钮直接展示，减少心智负担 */}
         </div>
       </div>
     );

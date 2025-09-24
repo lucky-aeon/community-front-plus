@@ -217,6 +217,9 @@ export interface PostDTO {
   publishTime?: string;    // 发布时间
   createTime: string;      // 创建时间
   updateTime: string;      // 更新时间
+  // 问答解决状态（仅问答分类生效）
+  resolveStatus?: QAResolveStatus;
+  solvedAt?: string;
 }
 
 // 前端展示的文章DTO（公开文章列表）
@@ -247,8 +250,9 @@ export interface FrontPostDetailDTO {
   authorName: string;      // 作者名称
   authorAvatar?: string;   // 作者头像
   authorDescription?: string;  // 作者描述
-  categoryId: string;      // 分类ID
+  categoryId?: string;     // 分类ID（公开详情未必返回，置为可选）
   categoryName: string;    // 分类名称
+  categoryType?: 'ARTICLE' | 'QA'; // 分类类型（如后端提供则使用）
   tags?: string[];         // 标签
   likeCount: number;
   viewCount: number;
@@ -257,6 +261,8 @@ export interface FrontPostDetailDTO {
   publishTime: string;     // 发布时间
   createTime: string;      // 创建时间
   updateTime: string;      // 更新时间
+  // 问答帖子：前端用于渲染采纳标记
+  acceptedCommentIds?: string[];
 }
 
 // 分页查询响应
@@ -362,6 +368,9 @@ export interface Category {
   children?: Category[];    // 子分类（树形结构）
 }
 
+// 问答解决状态
+export type QAResolveStatus = 'UNSOLVED' | 'SOLVED';
+
 // 创建文章响应（保持向下兼容）
 export interface CreatePostResponse {
   id: string;
@@ -457,6 +466,7 @@ export interface CommentDTO {
   createTime: string;            // 创建时间
   updateTime: string;            // 更新时间
   isLiked?: boolean;             // 当前用户是否已点赞（前端使用）
+  accepted?: boolean;            // 针对文章业务（POST），表示该评论是否被采纳
 }
 
 // 创建评论请求参数

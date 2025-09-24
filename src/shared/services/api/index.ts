@@ -14,6 +14,7 @@ export { SubscribeService, FollowService } from './subscribe.service';
 export { SubscriptionPlansService } from './subscription-plans.service';
 export { SubscriptionPlanCoursesService } from './subscription-plan-courses.service';
 export { AppSubscriptionPlansService } from './app-subscription-plans.service';
+export { PublicSubscriptionPlansService } from './public-subscription-plans.service';
 export { NotificationsService } from './notifications.service';
 export { CDKService } from './cdk.service';
 export { UpdateLogService } from './update-log.service';
@@ -23,6 +24,7 @@ export { ResourceService } from './resource.service';
 export { AdminResourceService } from './admin-resource.service';
 export { UserFollowsService } from './user-follows.service';
 export { PublicCoursesService } from './public-courses.service';
+export { PublicStatsService } from './public-stats.service';
 export { apiClient, type ApiResponse } from './config';
 
 // 导出类型定义
