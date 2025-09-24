@@ -1,4 +1,5 @@
 import { apiClient, ApiResponse } from './config';
+import { ResourceAccessService } from './resource-access.service';
 import { User } from '../../types';
 
 // 登录请求参数接口
@@ -217,11 +218,23 @@ export class AuthService {
     const start = backendUser.currentSubscriptionStartTime || undefined;
     const planName = backendUser.currentSubscriptionPlanName || '';
 
+    // 规范化 avatar：如果是资源ID则转换为访问URL
+    const normalizeAvatar = (avatar?: string) => {
+      if (!avatar) return undefined;
+      const v = String(avatar);
+      if (/^https?:\/\//i.test(v) || v.startsWith('/')) return v;
+      try {
+        return ResourceAccessService.getResourceAccessUrl(v);
+      } catch (_) {
+        return v;
+      }
+    };
+
     return {
       id: backendUser.id,
       name: backendUser.name,
       email: backendUser.email,
-      avatar: backendUser.avatar || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`,
+      avatar: normalizeAvatar(backendUser.avatar) || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`,
       maxConcurrentDevices: backendUser.maxConcurrentDevices,
       // 不在前端推断套餐等级
       membershipTier: 'basic',

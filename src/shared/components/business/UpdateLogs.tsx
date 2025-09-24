@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UpdateLogDTO } from '@shared/types';
 import { UpdateLogModal } from './UpdateLogModal';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 
 interface UpdateLogsProps {
   logs?: UpdateLogDTO[];

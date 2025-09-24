@@ -59,10 +59,9 @@ export class ResourceService {
 
   /**
    * 构造资源访问跳转URL（302跳转到带签名的资源链接）
-   * GET /api/user/resource/{resourceId}/access
+   * GET /api/public/resource/{resourceId}/access
    */
   static buildAccessUrl(resourceId: string): string {
-    return `/api/user/resource/${encodeURIComponent(resourceId)}/access`;
+    return `/api/public/resource/${encodeURIComponent(resourceId)}/access`;
   }
 }
-

@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FrontCourseDTO, LatestChapterDTO } from '@shared/types';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 
 interface RecentCourseChaptersProps {
   courses?: FrontCourseDTO[];

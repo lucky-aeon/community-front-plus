@@ -1,16 +1,18 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { X, AlertCircle, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { UploadService, UPLOAD_CONFIG } from '../../services/api/upload.service';
+import { UploadService, UPLOAD_CONFIG, UploadProgressCallback } from '../../services/api/upload.service';
+import { ResourceAccessService } from '../../services/api/resource-access.service';
 import { showToast } from '../../utils/toast';
 
 interface ImageUploadProps {
   label?: string;
-  value?: string;                    // 当前图片URL
+  value?: string;                    // 当前图片URL或资源ID
   onChange: (url: string) => void;   // URL变化回调
   onError?: (error: string) => void; // 错误回调
+  onUploadSuccess?: (resourceId: string) => void; // 上传成功回调（新增）
   required?: boolean;
   error?: string;
   placeholder?: string;
@@ -20,6 +22,7 @@ interface ImageUploadProps {
   showPreview?: boolean;             // 是否显示预览
   previewSize?: 'sm' | 'md' | 'lg';  // 预览尺寸
   disabled?: boolean;
+  compress?: boolean;                // 是否压缩图片（新增）
 }
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -27,6 +30,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   value,
   onChange,
   onError,
+  onUploadSuccess,
   required,
   error,
   placeholder = '点击上传或拖拽图片到此处',
@@ -36,11 +40,13 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   showPreview = true,
   previewSize = 'md',
   disabled = false,
+  compress = true,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [previewUrl, setPreviewUrl] = useState<string | null>(value || null);
+  const [resourceId, setResourceId] = useState<string>(''); // 新增：存储资源ID
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 预览尺寸映射
@@ -52,7 +58,20 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
   // 同步外部value变化
   useEffect(() => {
-    setPreviewUrl(value || null);
+    if (value) {
+      // 判断value是资源ID还是完整URL
+      if (value.startsWith('http') || value.startsWith('/')) {
+        setPreviewUrl(value);
+      } else {
+        // 假设是资源ID，生成访问URL
+        setResourceId(value);
+        const accessUrl = ResourceAccessService.getResourceAccessUrl(value);
+        setPreviewUrl(accessUrl);
+      }
+    } else {
+      setPreviewUrl(null);
+      setResourceId('');
+    }
   }, [value]);
 
   // 验证文件
@@ -82,18 +101,28 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       setIsUploading(true);
       setUploadProgress(0);
 
-      const response = await UploadService.uploadImage(file, {
-        onProgress: (progress) => {
-          setUploadProgress(progress);
-        }
-      });
+      // 创建进度回调
+      const onProgress: UploadProgressCallback = (progress) => {
+        setUploadProgress(progress);
+      };
 
-      if (response.success && response.data?.url) {
-        onChange(response.data.url);
-        setPreviewUrl(response.data.url);
+      // 使用新的上传服务
+      const response = await UploadService.uploadImage(file, { onProgress });
+
+      if (response.url) {
+        try { await ResourceAccessService.ensureSession(); } catch {}
+        // 更新预览URL和资源ID
+        setPreviewUrl(response.url);
+        const newResourceId = response.resourceId || response.uploadId || '';
+        setResourceId(newResourceId);
+
+        // 调用回调函数
+        onChange(response.url);
+        onUploadSuccess?.(newResourceId);
+
         showToast.success('图片上传成功');
       } else {
-        throw new Error(response.message || '上传失败');
+        throw new Error('上传失败：无法获取文件URL');
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '上传失败';
@@ -103,7 +132,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       setIsUploading(false);
       setUploadProgress(0);
     }
-  }, [validateFile, onChange, onError]);
+  }, [validateFile, onChange, onUploadSuccess, onError]);
 
   // 处理文件选择
   const handleFileSelect = useCallback((file: File) => {
@@ -156,6 +185,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     e.stopPropagation();
     onChange('');
     setPreviewUrl(null);
+    setResourceId('');
   }, [onChange]);
 
   return (

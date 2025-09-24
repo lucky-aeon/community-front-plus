@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 
 export interface TransferItem {
   key: string;
@@ -145,4 +145,3 @@ export const Transfer: React.FC<TransferProps> = ({
 };
 
 export default Transfer;
-

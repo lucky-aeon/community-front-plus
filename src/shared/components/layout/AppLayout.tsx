@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { TopNavigation } from '@shared/components/ui/TopNavigation';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 
 interface AppLayoutProps {
   children?: React.ReactNode;

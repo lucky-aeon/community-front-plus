@@ -1,4 +1,5 @@
 import { apiClient, ApiResponse } from './config';
+import { ResourceAccessService } from './resource-access.service';
 import {
   CommentDTO,
   LatestCommentDTO,
@@ -57,7 +58,9 @@ export class CommentsService {
       '/user/comments/related',
       { params }
     );
-    return response.data.data;
+    const page = response.data.data;
+    page.records = page.records.map(c => ({ ...c, commentUserAvatar: ResourceAccessService.toAccessUrl(c.commentUserAvatar) } as CommentDTO));
+    return page;
   }
 
   /**
@@ -66,7 +69,7 @@ export class CommentsService {
    */
   static async getLatestComments(): Promise<LatestCommentDTO[]> {
     const response = await apiClient.get<ApiResponse<LatestCommentDTO[]>>('/user/comments/latest');
-    return response.data.data;
+    return (response.data.data || []).map(c => ({ ...c, commentUserAvatar: ResourceAccessService.toAccessUrl(c.commentUserAvatar) } as LatestCommentDTO));
   }
 
   /**
@@ -78,7 +81,9 @@ export class CommentsService {
       '/app/comments',
       { params }
     );
-    return response.data.data;
+    const page = response.data.data;
+    page.records = page.records.map(c => ({ ...c, commentUserAvatar: ResourceAccessService.toAccessUrl(c.commentUserAvatar) } as CommentDTO));
+    return page;
   }
 
   /**

@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CommentDTO, LatestCommentDTO } from '@shared/types';
 import { CommentsService } from '@shared/services/api/comments.service';
 import { ChaptersService } from '@shared/services/api';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 import { Comments } from '@shared/components/ui/Comments';
 
 interface RecentCommentsProps {

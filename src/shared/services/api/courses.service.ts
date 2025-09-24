@@ -1,4 +1,5 @@
 import { apiClient, ApiResponse } from './config';
+import { ResourceAccessService } from './resource-access.service';
 import {
   CreateCourseRequest,
   UpdateCourseRequest,
@@ -29,7 +30,9 @@ export class CoursesService {
       ...(params?.techStack && { techStack: params.techStack }),
       ...(params?.tags && { tags: params.tags })
     });
-    return response.data.data;
+    const page = response.data.data;
+    page.records = page.records.map(c => ({ ...c, coverImage: ResourceAccessService.toAccessUrl(c.coverImage) } as FrontCourseDTO));
+    return page;
   }
 
   /**
@@ -38,7 +41,8 @@ export class CoursesService {
    */
   static async getFrontCourseDetail(id: string): Promise<FrontCourseDetailDTO> {
     const response = await apiClient.get<ApiResponse<FrontCourseDetailDTO>>(`/app/courses/${id}`);
-    return response.data.data;
+    const data = response.data.data;
+    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as FrontCourseDetailDTO;
   }
 
   /**
@@ -51,7 +55,8 @@ export class CoursesService {
    */
   static async createCourse(params: CreateCourseRequest): Promise<CourseDTO> {
     const response = await apiClient.post<ApiResponse<CourseDTO>>('/admin/courses', params);
-    return response.data.data;
+    const data = response.data.data;
+    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as CourseDTO;
   }
 
   /**
@@ -60,7 +65,8 @@ export class CoursesService {
    */
   static async updateCourse(id: string, params: UpdateCourseRequest): Promise<CourseDTO> {
     const response = await apiClient.put<ApiResponse<CourseDTO>>(`/admin/courses/${id}`, params);
-    return response.data.data;
+    const data = response.data.data;
+    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as CourseDTO;
   }
 
   /**
@@ -77,7 +83,8 @@ export class CoursesService {
    */
   static async getCourseById(id: string): Promise<CourseDTO> {
     const response = await apiClient.get<ApiResponse<CourseDTO>>(`/admin/courses/${id}`);
-    return response.data.data;
+    const data = response.data.data;
+    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as CourseDTO;
   }
 
   /**
@@ -93,7 +100,9 @@ export class CoursesService {
         ...(params?.keyword && { keyword: params.keyword })
       }
     });
-    return response.data.data;
+    const page = response.data.data;
+    page.records = page.records.map(c => ({ ...c, coverImage: ResourceAccessService.toAccessUrl(c.coverImage) } as CourseDTO));
+    return page;
   }
 
   /**

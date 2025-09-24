@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { MembershipBadge } from '@shared/components/ui/MembershipBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { membershipPlans } from '@shared/constants/mockData';
 
 export const ProfilePage: React.FC = () => {

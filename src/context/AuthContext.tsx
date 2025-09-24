@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, AuthContextType } from '../shared/types';
 import { AuthService } from '../shared/services/api/auth.service';
+import { ResourceAccessService } from '../shared/services/api/resource-access.service';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -41,6 +42,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           } catch (_) {
             // 静默失败即可
           }
+          // 建立资源访问会话（服务端下发 HttpOnly 短期 Cookie）
+          try {
+            await ResourceAccessService.ensureSession();
+          } catch {}
         } else {
           // Token 无效，清除存储的信息
           AuthService.logout();
@@ -62,6 +67,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const tick = async () => {
       try {
         await AuthService.heartbeat();
+        // 同步刷新资源访问会话，保证 RAUTH 在观看长视频等场景不中断
+        await ResourceAccessService.ensureSession();
       } catch (e: any) {
         // 仅在401时登出，其他网络错误忽略并继续轮询
         const status = e?.response?.status;
@@ -90,6 +97,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const user = await AuthService.login({ email, password });
       setUser(user);
+      try { await ResourceAccessService.ensureSession(); } catch {}
     } catch (error) {
       // 错误已经在 axios 拦截器中处理了，这里重新抛出
       throw error;
@@ -103,6 +111,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const user = await AuthService.register({ name, email, password });
       setUser(user);
+      try { await ResourceAccessService.ensureSession(); } catch {}
     } catch (error) {
       // 错误已经在 axios 拦截器中处理了，这里重新抛出
       throw error;
@@ -127,6 +136,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const user = await AuthService.registerWithCode({ email, code, password });
       setUser(user);
+      try { await ResourceAccessService.ensureSession(); } catch {}
     } catch (error) {
       throw error;
     } finally {

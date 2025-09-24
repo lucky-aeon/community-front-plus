@@ -1,4 +1,5 @@
 import { apiClient, ApiResponse } from './config';
+import { ResourceAccessService } from './resource-access.service';
 import { 
   UpdateProfileRequest, 
   ChangePasswordRequest, 
@@ -88,12 +89,24 @@ export class UserService {
         // 更新用户信息，保持前端特有的字段
         const membershipExpiry = userDTO.currentSubscriptionEndTime;
 
+        // 如果后端返回的 avatar 是资源ID，这里转换为可访问URL，便于全局展示
+        const normalizeAvatar = (avatar?: string, fallback?: string) => {
+          if (!avatar) return fallback;
+          const v = String(avatar);
+          if (/^https?:\/\//i.test(v) || v.startsWith('/')) return v;
+          try {
+            return ResourceAccessService.getResourceAccessUrl(v);
+          } catch (_) {
+            return v;
+          }
+        };
+
         const updatedUser = {
           ...user,
           id: userDTO.id,
           name: userDTO.name,
           email: userDTO.email,
-          avatar: userDTO.avatar || user.avatar, // 保持现有头像或使用新的
+          avatar: normalizeAvatar(userDTO.avatar, user.avatar), // 支持资源ID或URL
           // 会员到期时间（仅回显，不推断等级）
           membershipExpiry: membershipExpiry ? new Date(membershipExpiry) : user.membershipExpiry,
           currentSubscriptionPlanId: userDTO.currentSubscriptionPlanId || user.currentSubscriptionPlanId,

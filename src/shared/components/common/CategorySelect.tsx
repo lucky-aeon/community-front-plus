@@ -105,18 +105,18 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({
         </SelectTrigger>
         <SelectContent>
           {loading ? (
-            <SelectItem value="" disabled>
+            <SelectItem value="__loading__" disabled>
               加载中...
             </SelectItem>
           ) : loadError ? (
-            <SelectItem value="" disabled>
+            <SelectItem value="__error__" disabled>
               <div className="flex items-center gap-2 text-red-600">
                 <AlertCircle className="w-4 h-4" />
                 {loadError}
               </div>
             </SelectItem>
           ) : categories.length === 0 ? (
-            <SelectItem value="" disabled>
+            <SelectItem value="__empty__" disabled>
               暂无分类
             </SelectItem>
           ) : (

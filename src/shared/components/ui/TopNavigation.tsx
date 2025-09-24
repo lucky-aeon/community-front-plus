@@ -13,11 +13,11 @@ import {
   Shield,
   Key
 } from 'lucide-react';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { MembershipBadge } from './MembershipBadge';
 import { SearchBar } from './SearchBar';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
   DropdownMenu,

@@ -30,6 +30,8 @@ import type {
   UpdateCourseRequest
 } from '@shared/types';
 import AdminPagination from '@shared/components/AdminPagination';
+import { ImageUpload } from '@shared/components/common/ImageUpload';
+import { ResourceAccessService } from '@shared/services/api/resource-access.service';
 
 type Filters = { pageNum: number; pageSize: number; keyword: string; status?: CourseStatus };
 
@@ -54,8 +56,10 @@ export const CoursesPage: React.FC = () => {
       rating?: number;
       tags: string[];
       techStack: string[];
+      coverUrl?: string;
+      coverResourceId?: string;
     };
-  }>({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } });
+  }>({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '' } });
 
   // 删除
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; item?: CourseDTO }>({ open: false });
@@ -98,7 +102,7 @@ export const CoursesPage: React.FC = () => {
   const handleQuery = () => { setFilters(prev => ({ ...prev, pageNum: 1 })); loadCourses(1, pagination.size); };
 
   // 打开创建/编辑
-  const openCreate = () => setEditDialog({ open: true, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } });
+  const openCreate = () => setEditDialog({ open: true, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '' } });
   const openEdit = (item: CourseDTO) => setEditDialog({
     open: true,
     mode: 'edit',
@@ -112,7 +116,14 @@ export const CoursesPage: React.FC = () => {
       originalPrice: item.originalPrice != null ? String(item.originalPrice) : '',
       rating: item.rating != null ? item.rating : 0,
       tags: (item.tags || []),
-      techStack: (item.techStack || [])
+      techStack: (item.techStack || []),
+      coverUrl: (() => {
+        if (item.coverImage && !(item.coverImage.startsWith('http') || item.coverImage.startsWith('/'))) {
+          try { return ResourceAccessService.getResourceAccessUrl(item.coverImage); } catch { return item.coverImage; }
+        }
+        return item.coverImage || '';
+      })(),
+      coverResourceId: (item.coverImage && !(item.coverImage.startsWith('http') || item.coverImage.startsWith('/'))) ? item.coverImage : ''
     }
   });
 
@@ -129,7 +140,8 @@ export const CoursesPage: React.FC = () => {
       ...(form.originalPrice ? { originalPrice: Number(form.originalPrice) } : {}),
       ...(form.rating ? { rating: Number(form.rating) } : {}),
       ...(form.tags && form.tags.length ? { tags: form.tags } : {}),
-      ...(form.techStack && form.techStack.length ? { techStack: form.techStack } : {})
+      ...(form.techStack && form.techStack.length ? { techStack: form.techStack } : {}),
+      ...(form.coverResourceId ? { coverImage: form.coverResourceId } : (form.coverUrl ? { coverImage: form.coverUrl } : {})),
     };
     try {
       setEditDialog(prev => ({ ...prev, submitting: true }));
@@ -138,7 +150,7 @@ export const CoursesPage: React.FC = () => {
       } else if (id) {
         await CoursesService.updateCourse(id, payloadBase as UpdateCourseRequest);
       }
-      setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } });
+      setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '' } });
       await loadCourses();
     } catch (e) {
       console.error('保存课程失败', e);
@@ -442,6 +454,17 @@ export const CoursesPage: React.FC = () => {
             <div className="space-y-2">
               <Label>标题</Label>
               <Input value={editDialog.form.title} onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, title: e.target.value } }))} placeholder="课程标题" />
+            </div>
+            <div className="space-y-2">
+              <Label>封面图片</Label>
+              <ImageUpload
+                value={editDialog.form.coverUrl || ''}
+                onChange={(url) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, coverUrl: url } }))}
+                onUploadSuccess={(rid) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, coverResourceId: rid } }))}
+                placeholder="上传课程封面（可选）"
+                showPreview
+                previewSize="md"
+              />
             </div>
             <div className="space-y-2">
               <Label>状态</Label>

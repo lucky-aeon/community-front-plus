@@ -5,7 +5,7 @@ import { showToast } from '@shared/utils/toast';
 import type { SubscriptionPlanDTO } from '@shared/types';
 import { AppSubscriptionPlansService } from '@shared/services/api';
 import { Check, Crown } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 
 export const MembershipPage: React.FC = () => {
   const [plans, setPlans] = useState<SubscriptionPlanDTO[] | null>(null);

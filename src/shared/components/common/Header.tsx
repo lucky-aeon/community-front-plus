@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User, Menu, X, LogOut } from 'lucide-react';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { MembershipBadge } from '@shared/components/ui/MembershipBadge';
 

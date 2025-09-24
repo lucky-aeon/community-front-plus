@@ -1,6 +1,6 @@
 import React from 'react';
 import { Crown, Star, Shield } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 
 export type MembershipTier = 'guest' | 'basic' | 'premium' | 'vip';
 

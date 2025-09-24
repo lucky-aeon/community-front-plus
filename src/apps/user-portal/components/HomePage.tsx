@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { PageContainer } from '@shared/components/layout/PageContainer';
 import { DashboardOverview } from '@shared/components/business/DashboardOverview';
 

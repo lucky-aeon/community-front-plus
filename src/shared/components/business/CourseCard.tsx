@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CoursesService } from '../../services/api';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 
 interface CourseCardProps {
   course: FrontCourseDTO;

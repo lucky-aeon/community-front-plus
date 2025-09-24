@@ -4,7 +4,7 @@ import { X, Calendar, AlertCircle, Sparkles, Plus, Bug, Shield, AlertTriangle, F
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { UpdateLogDTO, ChangeType } from '@shared/types';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 
 interface UpdateLogModalProps {
   updateLog: UpdateLogDTO | null;

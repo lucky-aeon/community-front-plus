@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowLeft, Save, Hash, FileText, HelpCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ import { CategorySelect } from '@shared/components/common/CategorySelect';
 import { PostsService } from '@shared/services/api/posts.service';
 import { PostDTO } from '@shared/types';
 import { showToast } from '@shared/utils/toast';
+import { ResourceAccessService } from '@shared/services/api/resource-access.service';
 
 interface CreatePostPageProps {
   onPostCreated: () => void;
@@ -23,6 +24,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
   const [content, setContent] = useState(initialData?.content || '');
   const [summary, setSummary] = useState(initialData?.summary || '');
   const [coverImage, setCoverImage] = useState(initialData?.coverImage || '');
+  const [coverResourceId, setCoverResourceId] = useState<string>('');
   const [categoryId, setCategoryId] = useState(initialData?.categoryId || '');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
@@ -30,6 +32,18 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const isEditMode = !!initialData;
+
+  // 初始化：如果初始 coverImage 是资源ID，则转换为访问URL并记录ID
+  useEffect(() => {
+    const val = initialData?.coverImage;
+    if (val && !(val.startsWith('http') || val.startsWith('/'))) {
+      try {
+        const url = ResourceAccessService.getResourceAccessUrl(val);
+        setCoverImage(url);
+        setCoverResourceId(val);
+      } catch {}
+    }
+  }, [initialData?.coverImage]);
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim()) && tags.length < 5) {
@@ -90,7 +104,9 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
         content: content.trim(),
         categoryId,
         ...(summary.trim() && { summary: summary.trim() }),
-        ...(coverImage.trim() && { coverImage: coverImage.trim() }),
+        ...(coverResourceId
+          ? { coverImage: coverResourceId }
+          : (coverImage.trim() ? { coverImage: coverImage.trim() } : {})),
       };
 
       let result: PostDTO;
@@ -305,12 +321,19 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
               <ImageUpload
                 label="封面图片"
                 value={coverImage}
-                onChange={setCoverImage}
+                onChange={(url) => {
+                  setCoverImage(url);
+                  // 如果用户清空或替换为外链，清理资源ID
+                  if (!url || url.startsWith('http') || url.startsWith('/')) {
+                    // 保留 setCoverResourceId 由 onUploadSuccess 决定；这里不清空非空 ID
+                  }
+                }}
                 error={errors.coverImage}
                 placeholder="上传文章封面图片（可选）"
                 showPreview={true}
                 previewSize="md"
                 onError={(error) => setErrors(prev => ({ ...prev, coverImage: error }))}
+                onUploadSuccess={(rid) => setCoverResourceId(rid)}
               />
             </Card>
 

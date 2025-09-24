@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Home, MessageSquare, BookOpen, Menu, X, ChevronLeft, ChevronRight, Settings, FileText, LogOut } from 'lucide-react';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { navigationConfig } from '@shared/routes/routes';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { Button } from '@/components/ui/button';

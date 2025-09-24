@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Save, Eye, EyeOff, Bell, BellOff } from 'lucide-react';
+import { Save, Eye, EyeOff, Bell, BellOff } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { UserService } from '../../../shared/services/api';
-import { UserDTO } from '../../../shared/types';
-import { useAuth } from '../../../context/AuthContext';
+import { UserService } from '@shared/services/api';
+import { ResourceAccessService } from '@shared/services/api/resource-access.service';
+import { UserDTO } from '@shared/types';
+import { useAuth } from '@/context/AuthContext';
 import { showToast } from '@shared/utils/toast';
+import { AvatarUpload } from '@shared/components/common/AvatarUpload';
 
 export const ProfileSettingsPage: React.FC = () => {
   const { user } = useAuth();
@@ -13,7 +15,9 @@ export const ProfileSettingsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [currentUserData, setCurrentUserData] = useState<UserDTO | null>(null);
-  
+  const [avatarUrl, setAvatarUrl] = useState<string>(user?.avatar || ''); // 新增头像状态
+  const [avatarResourceId, setAvatarResourceId] = useState<string>('');   // 新增：待保存的头像资源ID
+
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -35,6 +39,8 @@ export const ProfileSettingsPage: React.FC = () => {
           email: userData.email,
           bio: userData.description || ''
         }));
+        // 同步头像URL
+        setAvatarUrl(userData.avatar || '');
       } catch (error) {
         console.error('加载用户数据失败:', error);
       }
@@ -42,6 +48,28 @@ export const ProfileSettingsPage: React.FC = () => {
 
     loadUserData();
   }, []);
+
+  // 头像上传成功处理
+  const handleAvatarUploadSuccess = async (avatarAccessUrl: string) => {
+    try {
+      // 立即更新本地状态
+      setAvatarUrl(avatarAccessUrl);
+
+      // 如果用户服务支持单独更新头像，可以调用
+      // await UserService.updateAvatar(avatarAccessUrl);
+
+      showToast.success('头像上传成功');
+    } catch (error) {
+      console.error('更新头像失败:', error);
+      showToast.error('头像上传成功，但更新失败，请刷新页面');
+    }
+  };
+
+  // 头像上传错误处理
+  const handleAvatarUploadError = (error: string) => {
+    console.error('头像上传失败:', error);
+    showToast.error(`头像上传失败: ${error}`);
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -63,11 +91,18 @@ export const ProfileSettingsPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const updatedUser = await UserService.updateProfile({
-        description: formData.bio
-      });
+      const payload: { description?: string; avatar?: string } = { description: formData.bio };
+      if (avatarResourceId) payload.avatar = avatarResourceId;
+
+      const updatedUser = await UserService.updateProfile(payload as any);
       
       setCurrentUserData(updatedUser);
+      // 如果后端返回了新的头像URL，优先使用；否则继续使用本地预览
+      if (updatedUser?.avatar) {
+        setAvatarUrl(updatedUser.avatar);
+      }
+      // 清空待保存的资源ID
+      setAvatarResourceId('');
       // 成功消息由拦截器处理
     } catch (error) {
       console.error('更新个人信息失败:', error);
@@ -149,20 +184,34 @@ export const ProfileSettingsPage: React.FC = () => {
             <h2 className="text-lg font-semibold text-gray-900 mb-4">基本信息</h2>
             <div className="space-y-4">
               {/* 头像设置 */}
-              <div className="flex items-center space-x-4">
-                <div className="relative">
-                  <img
-                    src={user?.avatar}
-                    alt={user?.name}
-                    className="w-20 h-20 rounded-full object-cover"
-                  />
-                  <button className="absolute bottom-0 right-0 bg-orange-500 text-white rounded-full p-2 shadow-lg hover:bg-orange-600 transition-colors">
-                    <Camera className="h-4 w-4" />
-                  </button>
-                </div>
+              <div className="flex items-center space-x-6">
                 <div>
+                  <AvatarUpload
+                    value={avatarUrl}
+                    onChange={handleAvatarUploadSuccess}
+                    onError={handleAvatarUploadError}
+                    onUploadSuccess={(resourceId) => {
+                      setAvatarResourceId(resourceId || '');
+                      if (resourceId) {
+                        try {
+                          const accessUrl = ResourceAccessService.getResourceAccessUrl(resourceId);
+                          setAvatarUrl(accessUrl);
+                        } catch {}
+                      }
+                    }}
+                    size="xl"
+                    userName={currentUserData?.name || user?.name || '用户'}
+                    maxSize={5 * 1024 * 1024} // 5MB
+                  />
+                </div>
+                <div className="flex-1">
                   <h3 className="text-sm font-medium text-gray-900">头像</h3>
-                  <p className="text-sm text-gray-500">点击图标更换头像</p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    点击头像或相机图标上传新头像
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    支持 JPG、PNG、GIF 等格式，文件大小不超过 5MB
+                  </p>
                 </div>
               </div>
 

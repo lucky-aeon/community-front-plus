@@ -1,4 +1,5 @@
 import { apiClient, ApiResponse } from './config';
+import { ResourceAccessService } from './resource-access.service';
 import {
   CreatePostRequest,
   UpdatePostRequest,
@@ -25,7 +26,8 @@ export class PostsService {
    */
   static async createPost(params: CreatePostRequest): Promise<PostDTO> {
     const response = await apiClient.post<ApiResponse<PostDTO>>('/user/posts', params);
-    return response.data.data;
+    const data = response.data.data;
+    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as PostDTO;
   }
 
   /**
@@ -34,7 +36,8 @@ export class PostsService {
    */
   static async updatePost(id: string, params: UpdatePostRequest): Promise<PostDTO> {
     const response = await apiClient.put<ApiResponse<PostDTO>>(`/user/posts/${id}`, params);
-    return response.data.data;
+    const data = response.data.data;
+    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as PostDTO;
   }
 
   /**
@@ -43,7 +46,8 @@ export class PostsService {
    */
   static async getPostById(id: string): Promise<PostDTO> {
     const response = await apiClient.get<ApiResponse<PostDTO>>(`/user/posts/${id}`);
-    return response.data.data;
+    const data = response.data.data;
+    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as PostDTO;
   }
 
   /**
@@ -56,7 +60,9 @@ export class PostsService {
     status?: 'DRAFT' | 'PUBLISHED';
   }): Promise<PageResponse<PostDTO>> {
     const response = await apiClient.get<ApiResponse<PageResponse<PostDTO>>>('/user/posts', { params });
-    return response.data.data;
+    const page = response.data.data;
+    page.records = page.records.map(p => ({ ...p, coverImage: ResourceAccessService.toAccessUrl(p.coverImage) } as PostDTO));
+    return page;
   }
 
   /**
@@ -86,7 +92,9 @@ export class PostsService {
    */
   static async getPublicPosts(params: PublicPostQueryRequest = {}): Promise<PageResponse<FrontPostDTO>> {
     const response = await apiClient.post<ApiResponse<PageResponse<FrontPostDTO>>>('/app/posts/queries', params);
-    return response.data.data;
+    const page = response.data.data;
+    page.records = page.records.map(p => ({ ...p, coverImage: ResourceAccessService.toAccessUrl(p.coverImage) } as FrontPostDTO));
+    return page;
   }
 
   /**
@@ -95,7 +103,12 @@ export class PostsService {
    */
   static async getPublicPostDetail(id: string): Promise<FrontPostDetailDTO> {
     const response = await apiClient.get<ApiResponse<FrontPostDetailDTO>>(`/app/posts/${id}`);
-    return response.data.data;
+    const data = response.data.data;
+    return {
+      ...data,
+      coverImage: ResourceAccessService.toAccessUrl(data.coverImage),
+      authorAvatar: ResourceAccessService.toAccessUrl(data.authorAvatar)
+    } as FrontPostDetailDTO;
   }
 
   /**

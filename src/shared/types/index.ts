@@ -373,6 +373,7 @@ export interface CreatePostResponse {
 // 更新用户个人简介请求参数
 export interface UpdateProfileRequest {
   description?: string;      // 个人简介，最大500个字符，可为空
+  avatar?: string;           // 头像资源ID（保存ID，由后端解析为可访问URL）
 }
 
 // 修改密码请求参数

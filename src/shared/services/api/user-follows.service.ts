@@ -1,4 +1,5 @@
 import { apiClient, ApiResponse } from './config';
+import { ResourceAccessService } from './resource-access.service';
 import { PageResponse } from '../../types';
 import { FollowDTO, FollowQueryRequest } from '../../types';
 
@@ -16,7 +17,13 @@ export class UserFollowsService {
    */
   static async getAllFollows(params: FollowQueryRequest = {}): Promise<PageResponse<FollowDTO>> {
     const res = await apiClient.get<ApiResponse<PageResponse<FollowDTO>>>('/user/follows', { params });
-    return res.data.data;
+    const page = res.data.data;
+    page.records = page.records.map(r => ({
+      ...r,
+      targetCover: ResourceAccessService.toAccessUrl(r.targetCover) || ResourceAccessService.toAccessUrl((r as any).courseCover as string),
+      targetAvatar: ResourceAccessService.toAccessUrl(r.targetAvatar)
+    } as FollowDTO));
+    return page;
   }
   /**
    * 获取我关注的用户列表
@@ -24,7 +31,12 @@ export class UserFollowsService {
    */
   static async getFollowedUsers(params: FollowQueryRequest = {}): Promise<PageResponse<FollowDTO>> {
     const res = await apiClient.get<ApiResponse<PageResponse<FollowDTO>>>('/user/follows', { params: { ...params, targetType: 'USER' } });
-    return res.data.data;
+    const page = res.data.data;
+    page.records = page.records.map(r => ({
+      ...r,
+      targetAvatar: ResourceAccessService.toAccessUrl(r.targetAvatar)
+    } as FollowDTO));
+    return page;
   }
 
   /**
@@ -33,7 +45,12 @@ export class UserFollowsService {
    */
   static async getFollowedCourses(params: FollowQueryRequest = {}): Promise<PageResponse<FollowDTO>> {
     const res = await apiClient.get<ApiResponse<PageResponse<FollowDTO>>>('/user/follows', { params: { ...params, targetType: 'COURSE' } });
-    return res.data.data;
+    const page = res.data.data;
+    page.records = page.records.map(r => ({
+      ...r,
+      targetCover: ResourceAccessService.toAccessUrl(r.targetCover) || ResourceAccessService.toAccessUrl((r as any).courseCover as string)
+    } as FollowDTO));
+    return page;
   }
 }
 

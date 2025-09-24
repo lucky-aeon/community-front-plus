@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ROUTES } from '@shared/routes/routes';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 
 interface QuickAction {
   id: string;

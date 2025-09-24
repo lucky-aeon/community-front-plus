@@ -1,7 +1,7 @@
 import React from 'react';
 import { Check, Crown, Star } from 'lucide-react';
-import { MembershipPlan } from '../../shared/types';
-import { useAuth } from '../../../context/AuthContext';
+import { MembershipPlan } from '@shared/types';
+import { useAuth } from '@/context/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

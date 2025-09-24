@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 
 export interface RatingProps {
   value: number;
@@ -41,4 +41,3 @@ export const Rating: React.FC<RatingProps> = ({ value = 0, onChange, max = 5, re
 };
 
 export default Rating;
-

@@ -3,7 +3,7 @@ import { TrendingUp, BookOpen, MessageSquare, Clock, Target, Award, Users, Zap }
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 
 interface LearningStatsProps {
   className?: string;

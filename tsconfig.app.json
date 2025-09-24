@@ -28,7 +28,8 @@
       "@apps/*": ["./src/apps/*"],
       "@marketing/*": ["./src/apps/marketing/*"],
       "@user-portal/*": ["./src/apps/user-portal/*"],
-      "@user-backend/*": ["./src/apps/user-backend/*"]
+      "@user-backend/*": ["./src/apps/user-backend/*"],
+      "@admin-backend/*": ["./src/apps/admin-backend/*"]
     }
   },
   "include": ["src"]

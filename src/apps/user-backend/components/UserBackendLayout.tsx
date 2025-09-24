@@ -19,7 +19,7 @@ import {
   LogOut,
   Star
 } from 'lucide-react';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { MembershipBadge } from '@shared/components/ui/MembershipBadge';
 import { UserService } from '@shared/services/api';
 import type { UserDTO } from '@shared/types';

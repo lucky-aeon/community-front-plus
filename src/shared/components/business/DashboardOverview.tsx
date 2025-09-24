@@ -13,7 +13,7 @@ import {
   LatestCommentDTO,
   UpdateLogDTO
 } from '@shared/types';
-import { cn } from '@/lib/utils';
+import { cn } from '@shared/utils/cn';
 
 interface DashboardOverviewProps {
   className?: string;
