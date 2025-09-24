@@ -11,8 +11,11 @@ import { CommentsService } from '@shared/services/api/comments.service';
 import { CommentDTO, PageResponse, BusinessType } from '@shared/types';
 import { showToast } from '@shared/utils/toast';
 import { useAuth } from '@/context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { routeUtils } from '@shared/routes/routes';
 
 export const MyCommentsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [comments, setComments] = useState<CommentDTO[]>([]);
@@ -170,6 +173,25 @@ export const MyCommentsPage: React.FC = () => {
     }
   };
 
+  const getBusinessIcon = (businessType: BusinessType) => {
+    switch (businessType) {
+      case 'POST':
+        return <FileText className="h-3 w-3" />;
+      case 'COURSE':
+        return <GraduationCap className="h-3 w-3" />;
+      case 'CHAPTER':
+        return <BookOpen className="h-3 w-3" />;
+      default:
+        return null;
+    }
+  };
+
+  const getBusinessLink = (c: CommentDTO): string | undefined => {
+    if (c.businessType === 'POST') return routeUtils.getPostDetailRoute(c.businessId);
+    if (c.businessType === 'COURSE') return routeUtils.getCourseDetailRoute(c.businessId);
+    return undefined;
+  };
+
   return (
     <div className="space-y-6">
       {/* 页面头部 */}
@@ -229,6 +251,20 @@ export const MyCommentsPage: React.FC = () => {
                     <span className="text-sm text-gray-500">
                       {new Date(comment.createTime).toLocaleString('zh-CN')}
                     </span>
+                    {comment.businessName && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const link = getBusinessLink(comment);
+                          if (link) navigate(link);
+                        }}
+                        className="inline-flex items-center gap-1 max-w-[220px] px-2 py-1 rounded-full border border-honey-border bg-honey-50 text-honey-700 hover:bg-honey-100"
+                        title={comment.businessName}
+                      >
+                        {getBusinessIcon(comment.businessType)}
+                        <span className="text-xs font-medium truncate">{comment.businessName}</span>
+                      </button>
+                    )}
                   </div>
                   <div className="flex items-center space-x-2">
                     <Button 

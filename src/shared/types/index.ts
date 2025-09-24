@@ -436,6 +436,7 @@ export interface CommentDTO {
   content: string;               // 评论内容
   businessId: string;            // 业务ID（文章ID或课程ID）
   businessType: BusinessType;    // 业务类型
+  businessName?: string;         // 业务名称（文章标题/课程名称等，可选）
   parentCommentId?: string;      // 父评论ID（用于回复）
   rootCommentId?: string;        // 根评论ID（用于多级回复）
   commentUserId: string;         // 评论用户ID
