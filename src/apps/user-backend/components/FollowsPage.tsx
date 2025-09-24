@@ -277,10 +277,10 @@ export const FollowsPage: React.FC = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabKey)}>
-        <TabsList className="grid grid-cols-3 w-full">
-          <TabsTrigger value="all">全部</TabsTrigger>
-          <TabsTrigger value="users">关注的用户</TabsTrigger>
-          <TabsTrigger value="courses">订阅的课程</TabsTrigger>
+        <TabsList className="grid grid-cols-3 w-full rounded-full bg-muted p-1 h-12">
+          <TabsTrigger value="all" className="rounded-full h-10 text-base data-[state=active]:shadow-none">全部</TabsTrigger>
+          <TabsTrigger value="users" className="rounded-full h-10 text-base data-[state=active]:shadow-none">关注的用户</TabsTrigger>
+          <TabsTrigger value="courses" className="rounded-full h-10 text-base data-[state=active]:shadow-none">订阅的课程</TabsTrigger>
         </TabsList>
         <TabsContent value="all" className="mt-4">
           <div className="space-y-4">

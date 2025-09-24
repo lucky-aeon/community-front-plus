@@ -132,6 +132,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const registerOnly = async (email: string, code: string, password: string) => {
+    setIsLoading(true);
+    try {
+      await AuthService.registerOnly({ email, emailVerificationCode: code, password });
+      // 不设置用户状态，不自动登录
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = () => {
     setUser(null);
     AuthService.logout();
@@ -143,6 +153,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     sendRegisterCode,
     registerWithCode,
+    registerOnly,
     logout,
     isLoading,
     isInitializing,

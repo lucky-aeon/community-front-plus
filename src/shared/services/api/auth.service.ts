@@ -102,7 +102,16 @@ export class AuthService {
   }
 
   /**
-   * 使用邮箱验证码注册
+   * 纯注册方法 - 仅完成注册，不自动登录
+   */
+  static async registerOnly(params: RegisterWithCodeRequest): Promise<void> {
+    // 调用注册接口，但不处理返回的token和用户信息
+    await apiClient.post<ApiResponse<LoginResponse>>('/auth/register', params);
+    // 注册成功，不进行任何本地存储操作
+  }
+
+  /**
+   * 使用邮箱验证码注册 (原有方法，保持向后兼容)
    */
   static async registerWithCode(params: RegisterWithCodeRequest): Promise<User> {
     // 后端将验证码注册也统一在 /auth/register
@@ -110,10 +119,16 @@ export class AuthService {
 
     const { token, user: backendUser } = response.data.data;
 
+    // 存储 token
     localStorage.setItem('auth_token', token);
+
+    // 将后端用户数据映射为前端用户数据
     let user: User = this.mapBackendUserToFrontendUser(backendUser);
     user = await this.enrichPlanLevel(user);
+
+    // 存储用户信息
     localStorage.setItem('user', JSON.stringify(user));
+
     return user;
   }
 

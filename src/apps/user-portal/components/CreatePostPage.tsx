@@ -141,8 +141,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
         // 编辑模式
         result = await PostsService.updatePost(initialData.id, postParams);
       } else {
-        // 创建模式：直接创建并发布
-        result = await PostsService.createAndPublishPost(postParams);
+        // 创建模式：直接创建草稿，后端创建接口默认为草稿状态
+        result = await PostsService.createPost(postParams);
       }
       
       console.log('文章操作成功:', result);
@@ -351,9 +351,9 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
                 >
                   <Save className="h-4 w-4" />
                   <span>
-                    {isSubmitting 
-                      ? (isEditMode ? '更新中...' : '发布中...') 
-                      : (isEditMode ? '保存更新' : '发布')
+                    {isSubmitting
+                      ? (isEditMode ? '保存中...' : '保存中...')
+                      : (isEditMode ? '保存更新' : '保存草稿')
                     }
                   </span>
                 </Button>

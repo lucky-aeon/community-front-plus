@@ -57,8 +57,8 @@ apiClient.interceptors.response.use(
       const { status, data } = error.response;
       const cfg = error.config || {};
       const headers = (cfg.headers || {}) as Record<string, string>;
-      const skipAuthLogout = headers['X-Skip-Auth-Logout'] === 'true' || (cfg as any).__skipAuthLogout === true;
-      
+      const skipAuthLogout = headers['X-Skip-Auth-Logout'] === 'true' || (cfg as unknown as { __skipAuthLogout?: boolean }).__skipAuthLogout === true;
+
       switch (status) {
         case 401:
           // 未授权

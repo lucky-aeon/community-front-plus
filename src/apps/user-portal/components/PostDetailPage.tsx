@@ -147,9 +147,11 @@ export const PostDetailPage: React.FC = () => {
                 alt={post.authorName}
                 className="h-16 w-16 rounded-full object-cover"
               />
-              <div>
+              <div className="space-y-2">
                 <h4 className="font-medium text-gray-900">{post.authorName}</h4>
-                {/* 作者 tag 已移除 */}
+                {post.authorDescription && (
+                  <p className="text-sm text-gray-600 line-clamp-3">{post.authorDescription}</p>
+                )}
               </div>
             </div>
             <SubscribeButton
@@ -199,12 +201,14 @@ export const PostDetailPage: React.FC = () => {
                   alt={post.authorName}
                   className="h-12 w-12 rounded-full object-cover"
                 />
-                <div>
+                <div className="space-y-1">
                   <div className="flex items-center space-x-2">
                     <h3 className="font-semibold text-gray-900">{post.authorName}</h3>
-                    {/* 作者 tag 已移除 */}
                   </div>
                   <p className="text-sm text-gray-500">{formatDate(post.publishTime)}</p>
+                  {post.authorDescription && (
+                    <p className="text-sm text-gray-600 line-clamp-2 max-w-md">{post.authorDescription}</p>
+                  )}
                 </div>
               </div>
             </div>

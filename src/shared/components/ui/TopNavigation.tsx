@@ -17,6 +17,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { MembershipBadge, type MembershipTier } from './MembershipBadge';
 import { SearchBar } from './SearchBar';
+import { LogoutConfirmDialog } from './LogoutConfirmDialog';
 import { cn } from '@shared/utils/cn';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import {
@@ -71,6 +72,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
   // 临时未读数（后续可接入通知中心/接口）
   const [isRedeemOpen, setIsRedeemOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,7 +89,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
     };
     fetchRole();
     return () => { cancelled = true; };
-  }, [user?.id]);
+  }, [user]);
 
   const isActiveRoute = (path: string) => {
     if (path === '/dashboard/home') {
@@ -102,6 +104,11 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
 
   const handleLogoClick = () => {
     navigate('/dashboard/home');
+  };
+
+  const handleLogoutConfirm = () => {
+    setIsMobileMenuOpen(false); // 关闭移动端菜单（如果打开的话）
+    logout();
   };
 
   return (
@@ -258,10 +265,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                     <DropdownMenuSeparator />
                     <div className="py-1">
                       <DropdownMenuItem
-                        onClick={() => {
-                          const ok = window.confirm('确定要退出登录吗？');
-                          if (ok) logout();
-                        }}
+                        onClick={() => setShowLogoutConfirm(true)}
                         className="cursor-pointer text-red-600 focus:text-red-700"
                       >
                         <LogOut className="h-4 w-4" />
@@ -390,13 +394,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                 <Button
                   variant="ghost"
                   className="w-full justify-start text-red-600 hover:bg-red-50"
-                  onClick={() => {
-                    const ok = window.confirm('确定要退出登录吗？');
-                    if (ok) {
-                      setIsMobileMenuOpen(false);
-                      logout();
-                    }
-                  }}
+                  onClick={() => setShowLogoutConfirm(true)}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   退出登录
@@ -429,6 +427,13 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
     </header>
     {/* 全局 Redeem CDK 对话框 */}
     <RedeemCDKDialog open={isRedeemOpen} onOpenChange={setIsRedeemOpen} />
+
+    {/* 退出登录确认对话框 */}
+    <LogoutConfirmDialog
+      isOpen={showLogoutConfirm}
+      onConfirm={handleLogoutConfirm}
+      onCancel={() => setShowLogoutConfirm(false)}
+    />
     </>
   );
 };

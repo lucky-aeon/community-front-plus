@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, Search, Filter } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RecentContent } from '@shared/components/business/RecentContent';
 import { PostsService } from '@shared/services/api/posts.service';
@@ -58,9 +57,9 @@ export const DiscussionsPage: React.FC = () => {
   });
 
   const tabs = [
-    { id: 'all', name: '全部讨论', count: pageData?.total || 0 },
-    { id: 'articles', name: '文章', count: 0 }, // 这里可以单独调用接口获取数量，暂时设为0
-    { id: 'questions', name: '问答', count: 0 } // 这里可以单独调用接口获取数量，暂时设为0
+    { id: 'all', name: '全部讨论' },
+    { id: 'articles', name: '文章' },
+    { id: 'questions', name: '问答' }
   ];
 
   // 处理标签页切换
@@ -97,70 +96,75 @@ export const DiscussionsPage: React.FC = () => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-3 rounded-full bg-muted p-1 h-12">
           {tabs.map((tab) => (
-            <TabsTrigger key={tab.id} value={tab.id} className="flex items-center space-x-2">
+            <TabsTrigger
+              key={tab.id}
+              value={tab.id}
+              className="flex items-center justify-center rounded-full h-10 text-base data-[state=active]:shadow-none"
+            >
               <span>{tab.name}</span>
-              <Badge variant="secondary" size="sm">
-                {tab.count}
-              </Badge>
             </TabsTrigger>
           ))}
         </TabsList>
-      </Tabs>
-
-      {/* Posts List */}
-      {isLoading ? (
-        <div className="space-y-6">
-          {Array.from({ length: 5 }).map((_, index) => (
-            <div key={index} className="bg-white rounded-lg border border-gray-200 p-6">
-              <div className="grid gap-4 items-start sm:grid-cols-[1fr_192px]">
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Skeleton className="h-4 w-16" />
-                    <Skeleton className="h-4 w-20" />
+        {/* 使用 TabsContent 来对齐 shadcn/ui 的面板语义 */}
+        {(['all', 'articles', 'questions'] as const).map((key) => (
+          <TabsContent key={key} value={key}>
+            {/* Posts List */}
+            {isLoading ? (
+              <div className="space-y-6">
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <div key={index} className="bg-white rounded-lg border border-gray-200 p-6">
+                    <div className="grid gap-4 items-start sm:grid-cols-[1fr_192px]">
+                      <div className="space-y-3">
+                        <div className="flex items-center space-x-2">
+                          <Skeleton className="h-4 w-16" />
+                          <Skeleton className="h-4 w-20" />
+                        </div>
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-2/3" />
+                      </div>
+                      <div className="hidden sm:block">
+                        <Skeleton className="w-full h-24 rounded-lg" />
+                      </div>
+                      <div className="sm:col-span-2 flex items-center justify-between pt-4 mt-2 border-t border-gray-100">
+                        <div className="flex items-center space-x-3">
+                          <Skeleton className="h-8 w-8 rounded-full" />
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-16" />
+                        </div>
+                        <div className="flex items-center space-x-4">
+                          <Skeleton className="h-4 w-8" />
+                          <Skeleton className="h-4 w-8" />
+                          <Skeleton className="h-4 w-12" />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-2/3" />
-                </div>
-                <div className="hidden sm:block">
-                  <Skeleton className="w-full h-24 rounded-lg" />
-                </div>
-                <div className="sm:col-span-2 flex items-center justify-between pt-4 mt-2 border-t border-gray-100">
-                  <div className="flex items-center space-x-3">
-                    <Skeleton className="h-8 w-8 rounded-full" />
-                    <Skeleton className="h-4 w-32" />
-                    <Skeleton className="h-3 w-16" />
-                  </div>
-                  <div className="flex items-center space-x-4">
-                    <Skeleton className="h-4 w-8" />
-                    <Skeleton className="h-4 w-8" />
-                    <Skeleton className="h-4 w-12" />
-                  </div>
-                </div>
+                ))}
               </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <RecentContent
-          posts={filteredPosts}
-          pageData={pageData}
-          currentPage={currentPage}
-          onPageChange={handlePageChange}
-          showHeader={false}
-          showPagination={true}
-        />
-      )}
+            ) : (
+              <RecentContent
+                posts={filteredPosts}
+                pageData={pageData}
+                currentPage={currentPage}
+                onPageChange={handlePageChange}
+                showHeader={false}
+                showPagination={true}
+              />
+            )}
 
-      {!isLoading && filteredPosts.length === 0 && (
-        <div className="text-center py-12">
-          <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">暂无相关讨论</h3>
-          <p className="text-gray-600">尝试调整搜索条件或发布新的讨论内容</p>
-        </div>
-      )}
+            {!isLoading && filteredPosts.length === 0 && (
+              <div className="text-center py-12">
+                <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">暂无相关讨论</h3>
+                <p className="text-gray-600">尝试调整搜索条件或发布新的讨论内容</p>
+              </div>
+            )}
+          </TabsContent>
+        ))}
+      </Tabs>
     </div>
   );
 };

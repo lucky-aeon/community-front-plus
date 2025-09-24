@@ -63,6 +63,8 @@ export interface AuthContextType {
   // 新注册接口：邮箱验证码注册
   sendRegisterCode: (email: string) => Promise<void>;
   registerWithCode: (email: string, code: string, password: string) => Promise<void>;
+  // 纯注册接口：仅完成注册，不自动登录
+  registerOnly: (email: string, code: string, password: string) => Promise<void>;
   logout: () => void;
   // 表示登录/注册等认证动作的进行态（用于按钮/表单禁用）
   isLoading: boolean;
@@ -244,6 +246,7 @@ export interface FrontPostDetailDTO {
   authorId: string;        // 作者ID
   authorName: string;      // 作者名称
   authorAvatar?: string;   // 作者头像
+  authorDescription?: string;  // 作者描述
   categoryId: string;      // 分类ID
   categoryName: string;    // 分类名称
   tags?: string[];         // 标签

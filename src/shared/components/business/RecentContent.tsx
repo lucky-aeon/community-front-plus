@@ -160,9 +160,6 @@ export const RecentContent: React.FC<RecentContentProps> = ({
       <div className="space-y-4">
         {contentItems.length > 0 ? (
           contentItems.map((item) => {
-            const typeConfig = getTypeConfig(item.type);
-            const TypeIcon = typeConfig.icon;
-
             return (
               <Card
                 key={item.id}
@@ -178,14 +175,9 @@ export const RecentContent: React.FC<RecentContentProps> = ({
                     {/* Header */}
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div className="flex items-center gap-2 flex-wrap">
-                        {/* 使用不带悬停色的变体，并移除可见边框，避免 hover 变色 */}
-                        <Badge variant="outline" className={cn("text-xs border-transparent", typeConfig.color)}>
-                          <TypeIcon className="h-3 w-3 mr-1" />
-                          {typeConfig.label}
-                        </Badge>
 
                         {item.category && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="bg-green-100 text-green-700 text-xs border-transparent">
                             {item.category}
                           </Badge>
                         )}
@@ -221,16 +213,6 @@ export const RecentContent: React.FC<RecentContentProps> = ({
                       </p>
                     )}
 
-                    {/* Tags */}
-                    {item.tags && item.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mb-2">
-                        {item.tags.slice(0, 5).map((t) => (
-                          <Badge key={t} variant="outline" className="text-xs border-transparent">
-                            {t}
-                          </Badge>
-                        ))}
-                      </div>
-                    )}
 
                     {/* Footer moved to meta row below */}
                   </div>

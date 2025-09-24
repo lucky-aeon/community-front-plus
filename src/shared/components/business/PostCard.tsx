@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, Heart, Clock, CheckCircle } from 'lucide-react';
+import { MessageSquare, Heart, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Post } from '@shared/types';
@@ -61,18 +61,6 @@ export const PostCard: React.FC<PostCardProps> = ({
               </div>
             </div>
           </div>
-          
-          <div className="flex items-center space-x-2">
-            <Badge variant={post.type === 'article' ? 'primary' : 'warning'}>
-              {post.type === 'article' ? '文章' : '问答'}
-            </Badge>
-            {post.type === 'question' && post.isAnswered && (
-              <Badge variant="success" className="flex items-center space-x-1">
-                <CheckCircle className="h-3 w-3" />
-                <span>已解答</span>
-              </Badge>
-            )}
-          </div>
         </div>
       )}
 
@@ -95,9 +83,6 @@ export const PostCard: React.FC<PostCardProps> = ({
               <p className="text-sm text-gray-500">{formatDate(post.createdAt)}</p>
             </div>
           </div>
-          <Badge variant={post.type === 'article' ? 'primary' : 'warning'}>
-            {post.type === 'article' ? '文章' : '问答'}
-          </Badge>
         </div>
       )}
       
