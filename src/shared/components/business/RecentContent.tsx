@@ -170,25 +170,9 @@ export const RecentContent: React.FC<RecentContentProps> = ({
                 )}
                 onClick={() => handleItemClick(item)}
               >
-                <div className="flex items-start gap-4">
-                  {/* Cover Image */}
-                  {item.coverImage && item.type === 'course' && (
-                    <div className="relative flex-shrink-0">
-                      <img
-                        src={item.coverImage}
-                        alt={item.title}
-                        className="w-24 h-16 rounded-lg object-cover"
-                      />
-                      {item.isPremium && (
-                        <div className="absolute -top-2 -right-2">
-                          <Crown className="h-4 w-4 text-premium-500" />
-                        </div>
-                      )}
-                    </div>
-                  )}
-
+                <div className={cn("grid gap-4 items-stretch", item.coverImage ? "sm:grid-cols-[1fr_192px]" : "")}> 
                   {/* Main Content */}
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0">
                     {/* Header */}
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -234,40 +218,63 @@ export const RecentContent: React.FC<RecentContentProps> = ({
                       </p>
                     )}
 
-                    {/* Footer */}
-                    <div className="flex items-center justify-between">
-                      {/* Author */}
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={item.author.avatar}
-                          alt={item.author.name}
-                          className="h-8 w-8 rounded-full object-cover"
-                        />
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-gray-900">
-                            {item.author.name}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1 text-xs text-warm-gray-500">
-                          <Clock className="h-3 w-3" />
-                          <span>{formatTime(item.publishTime)}</span>
-                        </div>
-                      </div>
+                    {/* Footer moved to meta row below */}
+                  </div>
 
-                      {/* Stats */}
-                      <div className="flex items-center gap-4 text-sm text-warm-gray-500">
-                        <div className="flex items-center gap-1">
-                          <Heart className="h-4 w-4" />
-                          <span>{item.stats.likes}</span>
+                  {/* Cover Image on the right (fills card height) */}
+                  {item.coverImage && (
+                    <div className="relative hidden sm:block overflow-hidden rounded-lg h-full self-stretch">
+                      <img
+                        src={item.coverImage}
+                        alt={item.title}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = '/api/placeholder/192/144';
+                        }}
+                        className="w-full h-full object-cover"
+                      />
+                      {item.isPremium && (
+                        <div className="absolute top-2 right-2">
+                          <Crown className="h-5 w-5 text-premium-500 drop-shadow" />
                         </div>
-                        <div className="flex items-center gap-1">
-                          <MessageSquare className="h-4 w-4" />
-                          <span>{item.stats.comments}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <User className="h-4 w-4" />
-                          <span>{item.stats.views}</span>
-                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Meta Row: author + stats */}
+                  <div className="sm:col-span-2 flex items-center justify-between pt-4 mt-2 border-t border-gray-100">
+                    {/* Author */}
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={item.author.avatar}
+                        alt={item.author.name}
+                        className="h-8 w-8 rounded-full object-cover"
+                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-900">
+                          {item.author.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 text-xs text-warm-gray-500">
+                        <Clock className="h-3 w-3" />
+                        <span>{formatTime(item.publishTime)}</span>
+                      </div>
+                    </div>
+
+                    {/* Stats */}
+                    <div className="flex items-center gap-4 text-sm text-warm-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Heart className="h-4 w-4" />
+                        <span>{item.stats.likes}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MessageSquare className="h-4 w-4" />
+                        <span>{item.stats.comments}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <User className="h-4 w-4" />
+                        <span>{item.stats.views}</span>
                       </div>
                     </div>
                   </div>

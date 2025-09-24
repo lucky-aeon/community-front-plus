@@ -8,8 +8,8 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Folder, AlertCircle } from 'lucide-react';
-import { Category } from '../../types';
-import { PostsService } from '../../services/api/posts.service';
+import { Category } from '@shared/types';
+import { PostsService } from '@shared/services/api/posts.service';
 
 interface CategorySelectProps {
   value: string;

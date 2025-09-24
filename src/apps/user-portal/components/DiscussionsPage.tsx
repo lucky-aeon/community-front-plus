@@ -114,9 +114,8 @@ export const DiscussionsPage: React.FC = () => {
         <div className="space-y-6">
           {Array.from({ length: 5 }).map((_, index) => (
             <div key={index} className="bg-white rounded-lg border border-gray-200 p-6">
-              <div className="flex items-start space-x-4">
-                <Skeleton className="w-24 h-24 rounded-lg" />
-                <div className="flex-1 space-y-3">
+              <div className="grid gap-4 items-start sm:grid-cols-[1fr_192px]">
+                <div className="space-y-3">
                   <div className="flex items-center space-x-2">
                     <Skeleton className="h-4 w-16" />
                     <Skeleton className="h-4 w-20" />
@@ -124,17 +123,20 @@ export const DiscussionsPage: React.FC = () => {
                   <Skeleton className="h-6 w-3/4" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-2/3" />
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-center space-x-4">
-                      <Skeleton className="h-4 w-20" />
-                      <Skeleton className="h-4 w-16" />
-                      <Skeleton className="h-4 w-24" />
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <Skeleton className="h-4 w-8" />
-                      <Skeleton className="h-4 w-8" />
-                      <Skeleton className="h-4 w-12" />
-                    </div>
+                </div>
+                <div className="hidden sm:block">
+                  <Skeleton className="w-full h-24 rounded-lg" />
+                </div>
+                <div className="sm:col-span-2 flex items-center justify-between pt-4 mt-2 border-t border-gray-100">
+                  <div className="flex items-center space-x-3">
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <Skeleton className="h-4 w-8" />
+                    <Skeleton className="h-4 w-8" />
+                    <Skeleton className="h-4 w-12" />
                   </div>
                 </div>
               </div>

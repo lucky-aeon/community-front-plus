@@ -8,7 +8,7 @@ import {
   FileValidationResult,
   UploadConfig,
   IMAGE_UPLOAD_CONFIG
-} from '../../types/upload.types';
+} from '@shared/types/upload.types';
 
 /**
  * 阿里云OSS上传服务

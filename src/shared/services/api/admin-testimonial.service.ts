@@ -5,7 +5,7 @@ import {
   PageResponse,
   ChangeStatusRequest,
   TestimonialStatus
-} from '../../types';
+} from '@shared/types';
 
 /**
  * 管理员评价管理服务类

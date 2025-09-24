@@ -96,4 +96,4 @@ export type {
   ResourceType,
   GetUploadCredentialsRequest,
   UploadCredentialsDTO,
-} from '../../types';
+} from '@shared/types';
