@@ -113,7 +113,6 @@ export const MyArticlesPage: React.FC = () => {
         </div>
         <Button 
           variant="primary" 
-          useCustomTheme={true} 
           className="flex items-center space-x-2" 
           onClick={() => navigate(ROUTES.USER_BACKEND_ARTICLES_CREATE)}
         >

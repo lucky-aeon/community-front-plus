@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Trash2, Search, FileText, GraduationCap, Reply, Send, X, BookOpen } from 'lucide-react';
+import { MessageSquare, Trash2, Search, FileText, GraduationCap, Reply, Send, X, BookOpen, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +8,7 @@ import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { LoadingPage as LoadingSpinner } from '@shared/components/common/LoadingPage';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { CommentsService } from '@shared/services/api/comments.service';
+import { ChaptersService } from '@shared/services/api';
 import { CommentDTO, PageResponse, BusinessType } from '@shared/types';
 import { showToast } from '@shared/utils/toast';
 import { useAuth } from '@/context/AuthContext';
@@ -186,10 +187,24 @@ export const MyCommentsPage: React.FC = () => {
     }
   };
 
-  const getBusinessLink = (c: CommentDTO): string | undefined => {
-    if (c.businessType === 'POST') return routeUtils.getPostDetailRoute(c.businessId);
-    if (c.businessType === 'COURSE') return routeUtils.getCourseDetailRoute(c.businessId);
-    return undefined;
+  const openBusinessTarget = async (c: CommentDTO) => {
+    try {
+      if (c.businessType === 'POST') {
+        navigate(routeUtils.getPostDetailRoute(c.businessId));
+        return;
+      }
+      if (c.businessType === 'COURSE') {
+        navigate(routeUtils.getCourseDetailRoute(c.businessId));
+        return;
+      }
+      if (c.businessType === 'CHAPTER') {
+        const detail = await ChaptersService.getFrontChapterDetail(c.businessId);
+        navigate(`/dashboard/courses/${detail.courseId}/chapters/${c.businessId}`);
+      }
+    } catch (e) {
+      console.error('跳转目标打开失败：', e);
+      showToast.error('目标内容不可访问或已删除');
+    }
   };
 
   return (
@@ -241,7 +256,11 @@ export const MyCommentsPage: React.FC = () => {
           {filteredComments.map((comment) => (
             <Card 
               key={comment.id} 
-              className="p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+              className="p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer group"
+              role="button"
+              tabIndex={0}
+              onClick={() => openBusinessTarget(comment)}
+              onKeyDown={(e) => { if (e.key === 'Enter') openBusinessTarget(comment); }}
             >
               <div className="space-y-4">
                 {/* 评论头部信息 */}
@@ -254,10 +273,7 @@ export const MyCommentsPage: React.FC = () => {
                     {comment.businessName && (
                       <button
                         type="button"
-                        onClick={() => {
-                          const link = getBusinessLink(comment);
-                          if (link) navigate(link);
-                        }}
+                        onClick={() => openBusinessTarget(comment)}
                         className="inline-flex items-center gap-1 max-w-[220px] px-2 py-1 rounded-full border border-honey-border bg-honey-50 text-honey-700 hover:bg-honey-100"
                         title={comment.businessName}
                       >
@@ -265,12 +281,32 @@ export const MyCommentsPage: React.FC = () => {
                         <span className="text-xs font-medium truncate">{comment.businessName}</span>
                       </button>
                     )}
+                    {/* 无业务名称时也提供跳转 */}
+                    {!comment.businessName && (
+                      <button
+                        type="button"
+                        onClick={() => openBusinessTarget(comment)}
+                        className="text-xs text-blue-600 hover:underline"
+                      >
+                        前往内容
+                      </button>
+                    )}
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+                    {/* 更明显的跳转入口 */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => { e.stopPropagation(); openBusinessTarget(comment); }}
+                      className="hidden sm:inline-flex items-center space-x-1 text-honey-700 hover:text-honey-800 hover:bg-honey-50 border-honey-200"
+                    >
+                      <span>查看内容</span>
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => setDeleteConfirm({ isOpen: true, commentId: comment.id })}
+                      onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ isOpen: true, commentId: comment.id }); }}
                       className="flex items-center space-x-1 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -280,7 +316,7 @@ export const MyCommentsPage: React.FC = () => {
                 </div>
 
                 {/* 评论内容 */}
-                <div className="prose-content">
+                <div className="prose-content" onClick={(e) => e.stopPropagation()}>
                   <MarkdownEditor
                     value={comment.content}
                     onChange={() => {}} // 只读模式
@@ -309,7 +345,7 @@ export const MyCommentsPage: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleStartReply(comment.id)}
+                    onClick={(e) => { e.stopPropagation(); handleStartReply(comment.id); }}
                     className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
                   >
                     <Reply className="h-4 w-4" />
@@ -319,7 +355,7 @@ export const MyCommentsPage: React.FC = () => {
 
                 {/* 回复编辑器区域 */}
                 {replyingCommentId === comment.id && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200" onClick={(e) => e.stopPropagation()}>
                     <div className="mb-3">
                       <h4 className="text-sm font-medium text-gray-700 mb-2">
                         回复 @{comment.commentUserName}
@@ -389,7 +425,6 @@ export const MyCommentsPage: React.FC = () => {
                 <Button 
                   key={page}
                   variant={currentPage === page ? 'primary' : 'neutral'} 
-                  useCustomTheme={currentPage === page}
                   size="sm"
                   onClick={() => setCurrentPage(page)}
                 >

@@ -203,14 +203,18 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
           {course.price !== undefined && (
             <div className="flex items-center justify-between">
               <div className="flex items-baseline space-x-2">
-                <span className="text-2xl font-bold text-gray-900">¥{course.price}</span>
-                {course.originalPrice !== undefined && course.price !== undefined && course.originalPrice > course.price && (
+                {course.price === 0 ? (
+                  <span className="text-2xl font-bold text-emerald-600">免费</span>
+                ) : (
+                  <span className="text-2xl font-bold text-gray-900">¥{course.price}</span>
+                )}
+                {course.price !== 0 && course.originalPrice !== undefined && course.originalPrice > (course.price ?? 0) && (
                   <span className="text-sm text-warm-gray-500 line-through">
                     ¥{course.originalPrice}
                   </span>
                 )}
               </div>
-              {course.originalPrice !== undefined && course.price !== undefined && course.originalPrice > course.price && (
+              {course.price !== 0 && course.originalPrice !== undefined && course.originalPrice > (course.price ?? 0) && (
                 <Badge className="bg-red-50 text-red-700 border-red-200 text-xs font-semibold">
                   限时优惠
                 </Badge>
@@ -231,7 +235,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
             )}
             onClick={handleCardClick}
           >
-            <span className="relative z-10 flex items-center justify-center">开始学习</span>
+            <span className="relative z-10 flex items-center justify-center">查看详情</span>
           </Button>
         </div>
       </div>

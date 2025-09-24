@@ -22,6 +22,7 @@ export { UserDeviceSessionService, type MySessionOverview } from './user-device-
 export { ResourceService } from './resource.service';
 export { AdminResourceService } from './admin-resource.service';
 export { UserFollowsService } from './user-follows.service';
+export { PublicCoursesService } from './public-courses.service';
 export { apiClient, type ApiResponse } from './config';
 
 // 导出类型定义

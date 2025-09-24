@@ -816,6 +816,45 @@ export interface FrontCourseDetailDTO {
   chapters: FrontChapterDTO[];   // 章节列表
 }
 
+// ================ 公开课程相关接口定义 ================
+
+// 公开课程列表DTO（未登录可见，字段不含敏感信息，也无作者名与封面）
+export interface PublicCourseDTO {
+  id: string;
+  title: string;
+  description: string;
+  techStack?: string[];
+  tags?: string[];
+  rating?: number;
+  status: CourseStatus;
+  totalReadingTime: number;
+  chapterCount: number;
+  originalPrice?: number;
+  price?: number;
+  demoUrl?: string;
+  resources?: CourseResource[];
+  createTime: string;
+}
+
+// 公开课程详情DTO（未登录可见，包含章节列表）
+export interface PublicCourseDetailDTO {
+  id: string;
+  title: string;
+  description: string;
+  techStack?: string[];
+  tags?: string[];
+  rating?: number;
+  status: CourseStatus;
+  totalReadingTime: number;
+  originalPrice?: number;
+  price?: number;
+  demoUrl?: string;
+  resources?: CourseResource[];
+  createTime: string;
+  updateTime?: string;
+  chapters: FrontChapterDTO[];
+}
+
 // ================ 管理员用户活动日志相关接口定义 ================
 
 // 活动类型枚举（与后端ActivityType.java保持一致）

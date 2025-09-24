@@ -51,7 +51,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ stats }) => {
                 variant="primary"
                 onClick={() => navigate(ROUTES.USER_BACKEND_ARTICLES_CREATE)}
                 className="flex items-center space-x-2"
-                useCustomTheme
               >
                 <Edit3 className="h-4 w-4" />
                 <span>发布文章</span>
