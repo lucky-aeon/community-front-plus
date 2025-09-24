@@ -111,6 +111,8 @@ export const CourseGrid: React.FC<CourseGridProps> = () => {
                 onClick={onCardClick}
                 showAuthor={false}
                 hideContent
+                hideHero
+                hideStatus
               />
             ))}
           </div>

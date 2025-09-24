@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, Save, Hash, FileText, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Save, FileText, HelpCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ImageUpload } from '@shared/components/common/ImageUpload';
+import { TagsInput } from '@/components/ui/tags-input';
 import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
 import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { CategorySelect } from '@shared/components/common/CategorySelect';
@@ -26,8 +27,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
   const [coverImage, setCoverImage] = useState(initialData?.coverImage || '');
   const [coverResourceId, setCoverResourceId] = useState<string>('');
   const [categoryId, setCategoryId] = useState(initialData?.categoryId || '');
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
+  const [tags, setTags] = useState<string[]>(initialData?.tags || []);
+  // Tags 输入由 TagsInput 管理
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showResourcePicker, setShowResourcePicker] = useState(false);
@@ -49,16 +50,35 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
     }
   }, [initialData?.coverImage]);
 
-  const handleAddTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim()) && tags.length < 5) {
-      setTags([...tags, tagInput.trim()]);
-      setTagInput('');
-    }
-  };
+  // 编辑态：根据已选分类推断内容类型（文章/问答），确保分类筛选正确
+  useEffect(() => {
+    const detectTypeFromCategory = async () => {
+      if (!isEditMode || !initialData?.categoryId) return;
+      try {
+        const allCats = await PostsService.getCategories(undefined);
+        const findById = (cats: any[]): any | undefined => {
+          for (const c of cats) {
+            if (c.id === initialData.categoryId) return c;
+            if (c.children) {
+              const r = findById(c.children);
+              if (r) return r;
+            }
+          }
+        };
+        const current = findById(allCats);
+        if (current?.type === 'QA') setPostType('question');
+        else setPostType('article');
+      } catch {
+        // 忽略分类识别失败
+      }
+    };
+    detectTypeFromCategory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode, initialData?.categoryId]);
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
-  };
+  // 由 TagsInput 控件负责新增
+
+  // 由 TagsInput 控件管理增删，这里不再需要单独的删除函数
 
   // 表单验证
   const validateForm = () => {
@@ -111,6 +131,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
         ...(coverResourceId
           ? { coverImage: coverResourceId }
           : (coverImage.trim() ? { coverImage: coverImage.trim() } : {})),
+        // 始终携带 tags 字段
+        tags: tags.map(t => t.trim()).filter(Boolean),
       };
 
       let result: PostDTO;
@@ -135,12 +157,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddTag();
-    }
-  };
+  // 输入交互交给 TagsInput 组件
 
   return (
     <>
@@ -277,39 +294,13 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
             <Card className="p-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
-                  标签 (最多5个)
+                  标签
                 </label>
-                <div className="flex flex-wrap gap-2 mb-3">
-                  {tags.map((tag) => (
-                    <button
-                      key={tag}
-                      onClick={() => handleRemoveTag(tag)}
-                      className="inline-flex items-center space-x-1 px-2 py-1 bg-gray-100 text-gray-800 rounded-md text-xs hover:bg-red-100 hover:text-red-800 transition-colors cursor-pointer"
-                    >
-                      <Hash className="h-3 w-3" />
-                      <span>{tag}</span>
-                      <span className="ml-1">×</span>
-                    </button>
-                  ))}
-                </div>
-                <div className="space-y-2">
-                  <Input
-                    placeholder="添加标签..."
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    disabled={tags.length >= 5}
-                    className="text-sm"
-                  />
-                  <Button
-                    variant="outline"
-                    onClick={handleAddTag}
-                    disabled={!tagInput.trim() || tags.length >= 5}
-                    className="w-full text-sm"
-                  >
-                    添加标签
-                  </Button>
-                </div>
+                <TagsInput
+                  value={tags}
+                  onChange={setTags}
+                  placeholder="输入标签，回车或逗号添加"
+                />
               </div>
             </Card>
 

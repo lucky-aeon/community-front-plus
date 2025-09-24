@@ -36,6 +36,19 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  // 将树形分类扁平化，便于下拉选择匹配已有值
+  const flattenCategories = (cats: Category[], level = 0): Array<{ id: string; name: string }> => {
+    const res: Array<{ id: string; name: string }> = [];
+    cats.forEach((c) => {
+      const prefix = level > 0 ? `${'\u2502 '.repeat(Math.max(0, level - 1))}${'\u2514\u2500 '}` : '';
+      res.push({ id: c.id, name: `${prefix}${c.name}` });
+      if (c.children && c.children.length > 0) {
+        res.push(...flattenCategories(c.children, level + 1));
+      }
+    });
+    return res;
+  };
+
   // 获取分类列表
   useEffect(() => {
     const fetchCategories = async () => {
@@ -56,9 +69,10 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({
             type: defaultType,
             level: 1,
             parentId: null,
-            sort: 1,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            sortOrder: 1,
+            isActive: true,
+            createTime: new Date().toISOString(),
+            updateTime: new Date().toISOString()
           },
           {
             id: 'default-2',
@@ -66,9 +80,10 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({
             type: defaultType,
             level: 1,
             parentId: null,
-            sort: 2,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            sortOrder: 2,
+            isActive: true,
+            createTime: new Date().toISOString(),
+            updateTime: new Date().toISOString()
           },
           {
             id: 'default-3',
@@ -76,9 +91,10 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({
             type: defaultType,
             level: 1,
             parentId: null,
-            sort: 3,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            sortOrder: 3,
+            isActive: true,
+            createTime: new Date().toISOString(),
+            updateTime: new Date().toISOString()
           }
         ]);
       } finally {
@@ -88,6 +104,26 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({
 
     fetchCategories();
   }, [categoryType]);
+
+  // 如果按类型过滤后未包含当前值，回退拉取全部类型以保证编辑态能正确显示
+  useEffect(() => {
+    const ensureSelectedExists = async () => {
+      if (!value || loading || loadError) return;
+      const flat = new Set(flattenCategories(categories).map(c => c.id));
+      if (flat.has(value)) return;
+      try {
+        setLoading(true);
+        const all = await PostsService.getCategories(undefined);
+        setCategories(all);
+      } catch (e) {
+        // 忽略回退异常
+      } finally {
+        setLoading(false);
+      }
+    };
+    ensureSelectedExists();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value, categories]);
 
 
   return (
@@ -120,7 +156,7 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({
               暂无分类
             </SelectItem>
           ) : (
-            categories.map((category) => (
+            flattenCategories(categories).map((category) => (
               <SelectItem key={category.id} value={category.id}>
                 <div className="flex items-center gap-2">
                   <Folder className="w-4 h-4 text-gray-500" />

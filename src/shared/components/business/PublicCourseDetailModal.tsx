@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { BookOpen, Clock, ExternalLink, Star, Tags } from 'lucide-react';
 import { PublicCoursesService } from '@shared/services/api';
 import { PublicCourseDetailDTO } from '@shared/types';
 import { CoursesService } from '@shared/services/api';
+import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 
 interface PublicCourseDetailModalProps {
   open: boolean;
@@ -39,20 +40,6 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
     fetchDetail();
   }, [open, courseId]);
 
-  const statusBadge = (status?: string) => {
-    const map: Record<string, string> = {
-      PENDING: 'bg-amber-100 text-amber-800 border-amber-200',
-      IN_PROGRESS: 'bg-honey-100 text-honey-800 border-honey-200',
-      COMPLETED: 'bg-sage-100 text-sage-800 border-sage-200',
-    };
-    const textMap: Record<string, string> = { PENDING: '待更新', IN_PROGRESS: '更新中', COMPLETED: '已完成' };
-    return (
-      <Badge className={`border ${map[status || ''] || 'bg-warm-gray-100 text-warm-gray-800 border-warm-gray-200'}`}>
-        {textMap[status || ''] || '未知状态'}
-      </Badge>
-    );
-  };
-
   const formatDate = (iso?: string) =>
     iso ? new Date(iso).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '-';
 
@@ -71,7 +58,6 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>课程详情</DialogTitle>
-          <DialogDescription>查看课程介绍与章节概览</DialogDescription>
         </DialogHeader>
 
         {/* 加载/错误状态 */}
@@ -109,10 +95,6 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
           <div className="space-y-4">
             {/* 顶部信息 */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                {statusBadge(detail.status)}
-                <span className="text-warm-gray-400 text-xs">创建于 {formatDate(detail.createTime)}</span>
-              </div>
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-xl font-bold text-gray-900 line-clamp-2">{detail.title}</h2>
                 <div className="shrink-0 flex items-center gap-2">
@@ -158,9 +140,18 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
               {/* 左侧：简介与标签 */}
               <Card className="p-4 lg:col-span-2 space-y-3">
                 <h3 className="text-base font-semibold">课程介绍</h3>
-                <p className="text-sm text-warm-gray-700 leading-relaxed whitespace-pre-line">
-                  {detail.description || '暂无介绍'}
-                </p>
+                <div className="prose-content">
+                  <MarkdownEditor
+                    value={detail.description || ''}
+                    onChange={() => {}}
+                    previewOnly
+                    height="auto"
+                    toolbar={false}
+                    enableFullscreen={false}
+                    enableToc={false}
+                    className="!border-none !shadow-none !bg-transparent"
+                  />
+                </div>
 
                 {/* 技术栈与标签 */}
                 <div className="pt-1 space-y-2">
@@ -191,12 +182,12 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
               <Card className="p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-base font-semibold">课程章节</h3>
-                  <Badge variant="secondary">共 {detail.chapters.length} 章</Badge>
+                  <span className="text-xs text-warm-gray-500">共 {detail.chapters.length} 章</span>
                 </div>
                 {detail.chapters.length === 0 ? (
                   <div className="text-sm text-warm-gray-600">暂无章节</div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
                     {[...detail.chapters]
                       .sort((a, b) => a.sortOrder - b.sortOrder)
                       .map((ch) => (
@@ -210,7 +201,7 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
                               <div>
                                 <div className="text-sm font-medium text-gray-900 line-clamp-1">{ch.title}</div>
                                 <div className="text-xs text-warm-gray-500 flex items-center gap-1">
-                                  <Clock className="h-3.5 w-3.5" /> 预计 {ch.readingTime} 分钟 · {formatDate(ch.createTime)}
+                                  <Clock className="h-3.5 w-3.5" /> 预计 {ch.readingTime} 分钟
                                 </div>
                               </div>
                             </div>

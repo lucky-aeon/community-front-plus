@@ -26,7 +26,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const emailInputRef = useRef<HTMLInputElement>(null);
   const [cooldown, setCooldown] = useState(0); // seconds left
 
-  const { login, registerWithCode, isLoading } = useAuth();
+  const { login, registerWithCode, sendRegisterCode, isLoading } = useAuth();
 
   useEffect(() => {
     if (isOpen && emailInputRef.current) {
@@ -98,16 +98,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     }));
   };
 
-  // 发送验证码 & 启动 5 分钟冷却
+  // 发送验证码：调用后端接口并启动 5 分钟冷却
   const handleSendCode = async () => {
-    if (!formData.email) {
+    const email = formData.email?.trim();
+    if (!email) {
       showToast.error('请先填写邮箱');
       return;
     }
+    const emailValid = /\S+@\S+\.[\S]+/.test(email);
+    if (!emailValid) {
+      showToast.error('请输入有效的邮箱地址');
+      return;
+    }
     if (cooldown > 0) return;
-    // 预览模式：此处先不调用后端，直接模拟成功，避免未接入接口时报错
-    setCooldown(300); // 5 分钟
-    showToast.success('验证码已发送至邮箱（预览）');
+
+    try {
+      // 调用上下文的发码接口（实际请求由 AuthService 执行）
+      await sendRegisterCode(email);
+      // 启动 5 分钟倒计时
+      setCooldown(300);
+    } catch (e) {
+      // 失败提示由 axios 拦截器统一处理，这里无需重复提示
+      console.error('发送注册验证码失败', e);
+    }
   };
 
   // 倒计时效果

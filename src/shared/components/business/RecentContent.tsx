@@ -37,6 +37,7 @@ interface ContentItem {
   isHot?: boolean;
   category?: string;
   coverImage?: string;
+  tags?: string[];
 }
 
 interface RecentContentProps {
@@ -83,6 +84,7 @@ export const RecentContent: React.FC<RecentContentProps> = ({
       publishTime: post.publishTime,
       category: post.categoryName,
       coverImage: post.coverImage,
+      tags: post.tags,
       isHot: post.isTop
     }));
   };
@@ -176,7 +178,8 @@ export const RecentContent: React.FC<RecentContentProps> = ({
                     {/* Header */}
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge className={cn("text-xs", typeConfig.color)}>
+                        {/* 使用不带悬停色的变体，并移除可见边框，避免 hover 变色 */}
+                        <Badge variant="outline" className={cn("text-xs border-transparent", typeConfig.color)}>
                           <TypeIcon className="h-3 w-3 mr-1" />
                           {typeConfig.label}
                         </Badge>
@@ -188,14 +191,14 @@ export const RecentContent: React.FC<RecentContentProps> = ({
                         )}
 
                         {item.isPremium && (
-                          <Badge className="bg-premium-100 text-premium-700 text-xs">
+                          <Badge variant="outline" className="bg-premium-100 text-premium-700 text-xs border-transparent">
                             <Sparkles className="h-3 w-3 mr-1" />
                             会员专享
                           </Badge>
                         )}
 
                         {item.isHot && (
-                          <Badge className="bg-red-100 text-red-700 text-xs animate-pulse">
+                          <Badge variant="outline" className="bg-red-100 text-red-700 text-xs animate-pulse border-transparent">
                             <TrendingUp className="h-3 w-3 mr-1" />
                             热门
                           </Badge>
@@ -216,6 +219,17 @@ export const RecentContent: React.FC<RecentContentProps> = ({
                       <p className="text-warm-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
                         {item.excerpt}
                       </p>
+                    )}
+
+                    {/* Tags */}
+                    {item.tags && item.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mb-2">
+                        {item.tags.slice(0, 5).map((t) => (
+                          <Badge key={t} variant="outline" className="text-xs border-transparent">
+                            {t}
+                          </Badge>
+                        ))}
+                      </div>
                     )}
 
                     {/* Footer moved to meta row below */}

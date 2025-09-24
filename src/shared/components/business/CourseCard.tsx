@@ -12,9 +12,11 @@ interface CourseCardProps {
   onClick?: (courseId: string) => void;
   showAuthor?: boolean; // 是否显示作者，默认显示
   hideContent?: boolean; // 列表页不展示简介/标签
+  hideHero?: boolean; // 是否隐藏顶部封面/渐变区
+  hideStatus?: boolean; // 是否隐藏状态徽章
 }
 
-export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAuthor = true, hideContent = false }) => {
+export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAuthor = true, hideContent = false, hideHero = false, hideStatus = false }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDING': return 'bg-amber-100 text-amber-800 border-amber-200';
@@ -58,78 +60,73 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
       )}
       onClick={handleCardClick}
     >
-      {/* Hero Section: 优先显示封面，没有则使用主题渐变 */}
-      <div className={cn(
-        "relative h-48 overflow-hidden",
-        hasCover ? "bg-black/5" : "bg-gradient-to-br from-honey-400/90 via-honey-500 to-premium-600"
-      )}>
-        {/* 封面图 */}
-        {hasCover && (
-          <img
-            src={course.coverImage}
-            alt={course.title}
-            className="absolute inset-0 w-full h-full object-cover"
-            loading="lazy"
-            onError={(e) => {
-              e.currentTarget.onerror = null;
-              e.currentTarget.src = '/api/placeholder/600/320';
-            }}
-          />
-        )}
-
-        {/* 叠加渐变与纹理 */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
-
-        {/* Floating Decoration */}
-        <div className="absolute top-4 right-4 w-16 h-16 bg-white/10 rounded-full blur-2xl animate-float" />
-        <div className="absolute bottom-8 left-8 w-12 h-12 bg-white/5 rounded-full blur-xl animate-float animation-delay-2000" />
-
-        {/* Content */}
-        <div className="relative h-full flex flex-col items-center justify-center text-white p-6">
-          {!hasCover && (
-            <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 mb-3 transform group-hover:scale-110 transition-transform duration-300">
-              <BookOpen className="h-12 w-12 text-white drop-shadow-sm" />
+      {/* 可选 Hero：未登录公开页禁用，避免任何“封面”感 */}
+      {!hideHero && (
+        <div className={cn(
+          "relative h-48 overflow-hidden",
+          hasCover ? "bg-black/5" : "bg-gradient-to-br from-honey-400/90 via-honey-500 to-premium-600"
+        )}>
+          {hasCover && (
+            <img
+              src={course.coverImage}
+              alt={course.title}
+              className="absolute inset-0 w-full h-full object-cover"
+              loading="lazy"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = '/api/placeholder/600/320';
+              }}
+            />
+          )}
+          <div className="absolute inset-0 bg-grid-pattern opacity-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
+          <div className="absolute top-4 right-4 w-16 h-16 bg-white/10 rounded-full blur-2xl animate-float" />
+          <div className="absolute bottom-8 left-8 w-12 h-12 bg-white/5 rounded-full blur-xl animate-float animation-delay-2000" />
+          <div className="relative h-full flex flex-col items-center justify-center text-white p-6">
+            {!hasCover && (
+              <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 mb-3 transform group-hover:scale-110 transition-transform duration-300">
+                <BookOpen className="h-12 w-12 text-white drop-shadow-sm" />
+              </div>
+            )}
+            <h4 className="text-lg font-bold text-center leading-tight drop-shadow-sm line-clamp-2">
+              {course.title}
+            </h4>
+          </div>
+          {!hideStatus && (
+            <div className="absolute top-4 left-4">
+              <Badge className={cn("border text-xs font-semibold shadow-sm","bg-white/90 backdrop-blur-sm", getStatusColor(course.status))}>
+                {getStatusText(course.status)}
+              </Badge>
             </div>
           )}
-          <h4 className="text-lg font-bold text-center leading-tight drop-shadow-sm line-clamp-2">
-            {course.title}
-          </h4>
+          {course.projectUrl && (
+            <Button
+              size="sm"
+              variant="secondary"
+              className={cn(
+                "absolute top-4 right-4 h-8 w-8 p-0",
+                "bg-white/20 hover:bg-white/30 text-white border-white/30",
+                "backdrop-blur-sm transition-all duration-200",
+                "hover:scale-110 shadow-lg"
+              )}
+              onClick={handleProjectUrlClick}
+            >
+              <ExternalLink className="h-4 w-4" />
+            </Button>
+          )}
         </div>
-
-        {/* Status Badge */}
-        <div className="absolute top-4 left-4">
-          <Badge
-            className={cn(
-              "border text-xs font-semibold shadow-sm",
-              "bg-white/90 backdrop-blur-sm",
-              getStatusColor(course.status)
-            )}
-          >
-            {getStatusText(course.status)}
-          </Badge>
-        </div>
-
-        {/* Project URL Button */}
-        {course.projectUrl && (
-          <Button
-            size="sm"
-            variant="secondary"
-            className={cn(
-              "absolute top-4 right-4 h-8 w-8 p-0",
-              "bg-white/20 hover:bg-white/30 text-white border-white/30",
-              "backdrop-blur-sm transition-all duration-200",
-              "hover:scale-110 shadow-lg"
-            )}
-            onClick={handleProjectUrlClick}
-          >
-            <ExternalLink className="h-4 w-4" />
-          </Button>
-        )}
-      </div>
+      )}
 
       {/* Content Section */}
-      <div className="p-6 space-y-4">
+      <div className={cn("p-6 space-y-4")}> 
+        {/* 当隐藏Hero时，单独展示状态徽章 */}
+        {hideHero && !hideStatus && (
+          <div className="flex items-center justify-between">
+            <Badge className={cn("border text-xs font-semibold", getStatusColor(course.status))}>
+              {getStatusText(course.status)}
+            </Badge>
+          </div>
+        )}
         {/* Rating 和（可选）作者 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-1.5">
@@ -199,7 +196,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
         )}
 
         {/* Price and Action */}
-        <div className="space-y-3 pt-2 border-t border-warm-gray-100">
+        <div className={cn("space-y-3", hideHero ? "pt-0" : "pt-2 border-t border-warm-gray-100")}> 
           {course.price !== undefined && (
             <div className="flex items-center justify-between">
               <div className="flex items-baseline space-x-2">

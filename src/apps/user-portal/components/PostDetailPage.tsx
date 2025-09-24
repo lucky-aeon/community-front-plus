@@ -122,7 +122,8 @@ export const PostDetailPage: React.FC = () => {
           <span>返回</span>
         </Button>
         <div className="flex items-center space-x-2">
-          <Badge variant="default">
+          {/* 与列表页一致：分类使用 outline 风格，不带 hover 变色 */}
+          <Badge variant="outline" className="text-sm">
             {post.categoryName}
           </Badge>
           {post.isTop && (
@@ -220,14 +221,16 @@ export const PostDetailPage: React.FC = () => {
             )}
 
             {/* Tags - 移到内容上方 */}
-            <div className="flex flex-wrap gap-2 mb-6">
-              <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-gray-700">🏷️ 标签：</span>
-                <Badge variant="secondary" className="hover:bg-blue-100 hover:text-blue-800 cursor-pointer">
-                  #{post.categoryName}
-                </Badge>
+            {post.tags && post.tags.length > 0 && (
+              <div className="flex items-center flex-wrap gap-2 mb-6">
+                <span className="text-sm font-medium text-gray-700 mr-1">🏷️ 标签：</span>
+                {post.tags.map((t) => (
+                  <Badge key={t} variant="outline" className="cursor-default text-xs">
+                    {t}
+                  </Badge>
+                ))}
               </div>
-            </div>
+            )}
 
             {/* Post Content */}
             <div className="mb-6">

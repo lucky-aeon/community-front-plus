@@ -179,6 +179,7 @@ export interface CreatePostRequest {
   summary?: string;       // 文章概要 (可选, 最多500字符)
   coverImage?: string;    // 封面图片URL (可选, 最多500字符)
   categoryId: string;     // 分类ID (必填, 必须是有效的分类UUID)
+  tags?: string[];        // 标签（字符串数组，数量不限）
 }
 
 // 更新文章请求参数（与CreatePostRequest相同）
@@ -188,6 +189,7 @@ export interface UpdatePostRequest {
   summary?: string;       // 文章概要 (可选)
   coverImage?: string;    // 封面图片URL (可选)
   categoryId: string;     // 分类ID
+  tags?: string[];        // 标签（字符串数组，数量不限）
 }
 
 // 修改文章状态请求参数
@@ -204,6 +206,7 @@ export interface PostDTO {
   coverImage?: string;
   authorId: string;
   categoryId: string;
+  tags?: string[];        // 标签
   status: 'DRAFT' | 'PUBLISHED';
   likeCount: number;
   viewCount: number;
@@ -223,6 +226,7 @@ export interface FrontPostDTO {
   authorName: string;      // 作者名称
   authorAvatar?: string;   // 作者头像（资源ID或URL）
   categoryName: string;    // 分类名称
+  tags?: string[];         // 标签
   likeCount: number;
   viewCount: number;
   commentCount: number;
@@ -242,6 +246,7 @@ export interface FrontPostDetailDTO {
   authorAvatar?: string;   // 作者头像
   categoryId: string;      // 分类ID
   categoryName: string;    // 分类名称
+  tags?: string[];         // 标签
   likeCount: number;
   viewCount: number;
   commentCount: number;
