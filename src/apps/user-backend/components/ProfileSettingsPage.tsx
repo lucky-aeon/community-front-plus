@@ -268,7 +268,7 @@ export const ProfileSettingsPage: React.FC = () => {
                 </div>
               </div>
 
-              <Button onClick={handleSave} disabled={isLoading} className="w-full sm:w-auto">
+              <Button onClick={handleSave} disabled={isLoading} variant="outline" className="w-full sm:w-auto">
                 <Save className="h-4 w-4 mr-2" />
                 {isLoading ? '保存中...' : '保存更改'}
               </Button>
