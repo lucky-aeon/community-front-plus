@@ -13,7 +13,7 @@ import {
   LatestCommentDTO,
   UpdateLogDTO
 } from '@shared/types';
-import { cn } from '@shared/utils/cn';
+import { cn } from '@/lib/utils';
 
 interface DashboardOverviewProps {
   className?: string;
@@ -107,7 +107,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className 
     excerpt: post.summary,
     author: {
       name: post.authorName,
-      avatar: '/api/placeholder/40/40',
+      avatar: post.authorAvatar || '/api/placeholder/40/40',
       membershipTier: 'basic' as const
     },
     stats: {

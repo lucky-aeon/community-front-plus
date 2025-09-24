@@ -14,7 +14,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { cn } from '@shared/utils/cn';
+import { cn } from '@/lib/utils';
 import { FrontPostDTO, PageResponse } from '@shared/types';
 
 interface ContentItem {

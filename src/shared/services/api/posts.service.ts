@@ -93,7 +93,11 @@ export class PostsService {
   static async getPublicPosts(params: PublicPostQueryRequest = {}): Promise<PageResponse<FrontPostDTO>> {
     const response = await apiClient.post<ApiResponse<PageResponse<FrontPostDTO>>>('/app/posts/queries', params);
     const page = response.data.data;
-    page.records = page.records.map(p => ({ ...p, coverImage: ResourceAccessService.toAccessUrl(p.coverImage) } as FrontPostDTO));
+    page.records = page.records.map(p => ({
+      ...p,
+      coverImage: ResourceAccessService.toAccessUrl(p.coverImage),
+      authorAvatar: ResourceAccessService.toAccessUrl((p as any).authorAvatar)
+    } as FrontPostDTO));
     return page;
   }
 

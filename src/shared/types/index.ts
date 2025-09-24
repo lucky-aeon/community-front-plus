@@ -221,6 +221,7 @@ export interface FrontPostDTO {
   summary?: string;
   coverImage?: string;
   authorName: string;      // 作者名称
+  authorAvatar?: string;   // 作者头像（资源ID或URL）
   categoryName: string;    // 分类名称
   likeCount: number;
   viewCount: number;
