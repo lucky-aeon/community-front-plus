@@ -9,7 +9,7 @@ import {
   X,
   Crown,
   LogOut,
-  User,
+  LayoutDashboard,
   Shield,
   Key
 } from 'lucide-react';
@@ -230,8 +230,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                     <DropdownMenuSeparator />
                     <div className="py-1">
                       <DropdownMenuItem onClick={() => navigate(ROUTES.USER_BACKEND)} className="cursor-pointer">
-                        <User className="h-4 w-4" />
-                        <span>内容管理</span>
+                        <LayoutDashboard className="h-4 w-4" />
+                        <span>后台管理</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => navigate(ROUTES.MEMBERSHIP)} className="cursor-pointer">
                         <Crown className="h-4 w-4" />
@@ -343,8 +343,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                         setIsMobileMenuOpen(false);
                       }}
                     >
-                      <User className="h-5 w-5" />
-                      <span className="text-sm font-medium">内容管理</span>
+                      <LayoutDashboard className="h-5 w-5" />
+                      <span className="text-sm font-medium">后台管理</span>
                     </button>
 
                     <button

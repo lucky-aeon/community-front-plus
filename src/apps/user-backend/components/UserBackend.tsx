@@ -13,15 +13,6 @@ import { CreatePostPage } from '../../user-portal/components/CreatePostPage';
 import { PostsService } from '@shared/services/api/posts.service';
 import { PostDTO } from '@shared/types';
 
-// 临时的占位页面组件
-const ComingSoonPage: React.FC<{ title: string }> = ({ title }) => (
-  <div className="flex flex-col items-center justify-center h-64 text-center">
-    <div className="text-6xl mb-4">🚧</div>
-    <h2 className="text-xl font-semibold text-gray-900 mb-2">{title}</h2>
-    <p className="text-gray-600">此功能正在开发中，敬请期待...</p>
-  </div>
-);
-
 // 创建文章页面包装器
 const CreateArticlePage: React.FC = () => {
   const navigate = useNavigate();
@@ -96,9 +87,7 @@ export const UserBackend: React.FC = () => {
         
         {/* 临时占位页面 */}
         <Route path="/comments" element={<MyCommentsPage />} />
-        <Route path="/favorites" element={<ComingSoonPage title="我的收藏" />} />
         <Route path="/follows" element={<FollowsPage />} />
-        <Route path="/analytics" element={<ComingSoonPage title="内容数据" />} />
         <Route path="/devices" element={<DeviceManagementPage />} />
         
         {/* 404 处理 */}

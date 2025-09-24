@@ -1,22 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Edit, Trash2, Plus, Search, Filter, AlertCircle, Send, Archive } from 'lucide-react';
+import { Edit, Trash2, Plus, Search, Send, Archive, RefreshCw, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { 
+  Select,
+  SelectTrigger,
+  SelectItem,
+  SelectContent,
+  SelectValue,
+} from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PostsService } from '@shared/services/api/posts.service';
 import { PostDTO, PageResponse } from '@shared/types';
 import { showToast } from '@shared/utils/toast';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
-import { LoadingPage as LoadingSpinner } from '@shared/components/common/LoadingPage';
 import { ROUTES, routeUtils } from '@shared/routes/routes';
+import AdminPagination from '@shared/components/AdminPagination';
 
-interface MyArticlesPageProps {
-  onArticleClick?: (articleId: string) => void;
-}
-
-export const MyArticlesPage: React.FC<MyArticlesPageProps> = ({ onArticleClick }) => {
+export const MyArticlesPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'DRAFT' | 'PUBLISHED'>('all');
@@ -99,16 +103,10 @@ export const MyArticlesPage: React.FC<MyArticlesPageProps> = ({ onArticleClick }
     }
   };
 
-  const statusOptions = [
-    { value: 'all', label: '全部' },
-    { value: 'PUBLISHED', label: '已发布' },
-    { value: 'DRAFT', label: '草稿' }
-  ];
-
   return (
-    <div className="space-y-6">
+    <div className="h-full flex flex-col">
       {/* 页面头部 */}
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">我的文章</h1>
           <p className="text-gray-600 mt-1">管理你发布的所有文章内容</p>
@@ -124,191 +122,165 @@ export const MyArticlesPage: React.FC<MyArticlesPageProps> = ({ onArticleClick }
         </Button>
       </div>
 
-          {/* 搜索和筛选 */}
-          <Card className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <input
-                  type="text"
-                  placeholder="搜索文章标题或内容..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Filter className="h-4 w-4 text-gray-400" />
-                <Select
-                  value={statusFilter}
-                  onChange={(value) => setStatusFilter(value as 'all' | 'DRAFT' | 'PUBLISHED')}
-                  options={statusOptions}
-                  size="sm"
-                  className="min-w-[120px]"
-                />
-              </div>
+      <Card>
+        <CardContent className="pt-6">
+          {/* 筛选区 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-3 min-w-0">
+            <div className="relative">
+              <Input
+                placeholder="搜索标题/内容关键字"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             </div>
-          </Card>
 
-          {/* 文章列表 */}
-          {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <LoadingSpinner size="lg" />
-            </div>
-          ) : filteredArticles.length === 0 ? (
-            <Card className="p-12 text-center">
-              <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">暂无文章</p>
-              <p className="text-gray-400 text-sm mt-2">开始创作您的第一篇文章吧！</p>
-              <Button 
-                variant="primary" 
-                useCustomTheme={true} 
-                className="mt-4" 
-                onClick={() => navigate(ROUTES.USER_BACKEND_ARTICLES_CREATE)}
-              >
-                写文章
-              </Button>
-            </Card>
-          ) : (
-            <div className="space-y-4">
-              {filteredArticles.map((article) => (
-                <Card 
-                  key={article.id} 
-                  className={`p-6 transition-all duration-300 cursor-pointer border-l-4 ${
-                    article.status === 'PUBLISHED' 
-                      ? 'border-l-green-500 hover:shadow-xl hover:-translate-y-1 bg-gradient-to-r from-green-50/30 to-transparent'
-                      : 'border-l-gray-300 hover:shadow-lg hover:-translate-y-0.5 bg-gradient-to-r from-gray-50/50 to-transparent'
-                  }`}
-                  onClick={() => onArticleClick?.(article.id)}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900 truncate">
-                          {article.title}
-                        </h3>
-                        {getStatusBadge(article.status)}
-                        {article.isTop && <Badge variant="warning">置顶</Badge>}
-                      </div>
-                      <p className="text-gray-600 mb-4 line-clamp-2">
-                        {article.summary || article.content.substring(0, 200) + '...'}
-                      </p>
-                      <div className="flex items-center space-x-6 text-sm text-gray-500">
-                        <span>{article.viewCount} 阅读</span>
-                        <span>{article.likeCount} 点赞</span>
-                        <span>{article.commentCount} 评论</span>
-                        <span>创建于 {new Date(article.createTime).toLocaleDateString()}</span>
-                        {article.updateTime !== article.createTime && (
-                          <span>更新于 {new Date(article.updateTime).toLocaleDateString()}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-3 ml-4" onClick={(e) => e.stopPropagation()}>
-                      {/* 编辑按钮 */}
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => navigate(routeUtils.getArticleEditRoute(article.id))}
-                        className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
-                      >
-                        <Edit className="h-4 w-4" />
-                        <span>编辑</span>
-                      </Button>
-                      
-                      {/* 状态切换按钮 - 新设计 */}
-                      {article.status === 'DRAFT' ? (
-                        <Button 
-                          variant="primary" 
-                          size="sm"
-                          onClick={() => handleToggleStatus(article.id, article.status)}
-                          className="flex items-center space-x-1 bg-green-600 hover:bg-green-700"
-                        >
-                          <Send className="h-4 w-4" />
-                          <span>发布</span>
-                        </Button>
-                      ) : (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleToggleStatus(article.id, article.status)}
-                          className="flex items-center space-x-1 text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-200"
-                        >
-                          <Archive className="h-4 w-4" />
-                          <span>撤回</span>
-                        </Button>
-                      )}
-                      
-                      {/* 删除按钮 */}
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setDeleteConfirm({ isOpen: true, articleId: article.id })}
-                        className="flex items-center space-x-1 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        <span>删除</span>
-                      </Button>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
+            <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v as 'all' | 'DRAFT' | 'PUBLISHED'); setCurrentPage(1); }}>
+              <SelectTrigger>
+                <SelectValue placeholder="文章状态" />
+              </SelectTrigger>
+              <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+                <SelectItem value="all">全部状态</SelectItem>
+                <SelectItem value="PUBLISHED">已发布</SelectItem>
+                <SelectItem value="DRAFT">草稿</SelectItem>
+              </SelectContent>
+            </Select>
 
-          {/* 分页 */}
-          {pageInfo && pageInfo.pages > 1 && (
-            <div className="flex justify-center">
-              <div className="flex items-center space-x-2">
-                <Button 
-                  variant="neutral" 
-                  size="sm" 
-                  disabled={currentPage <= 1}
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                >
-                  上一页
-                </Button>
-                {Array.from({ length: Math.min(5, pageInfo.pages) }, (_, i) => {
-                  const page = i + 1;
-                  return (
-                    <Button 
-                      key={page}
-                      variant={currentPage === page ? 'primary' : 'neutral'} 
-                      useCustomTheme={currentPage === page}
-                      size="sm"
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </Button>
-                  );
-                })}
-                <Button 
-                  variant="neutral" 
-                  size="sm" 
-                  disabled={currentPage >= pageInfo.pages}
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                >
-                  下一页
-                </Button>
-              </div>
-            </div>
-          )}
+            {/* 页大小选择已移除，统一使用底部分页组件 */}
+          </div>
 
-          {/* 删除确认对话框 */}
-          <ConfirmDialog
-            isOpen={deleteConfirm.isOpen}
-            onCancel={() => setDeleteConfirm({ isOpen: false, articleId: null })}
-            onConfirm={() => {
-              if (deleteConfirm.articleId) {
-                handleDeleteArticle(deleteConfirm.articleId);
-                setDeleteConfirm({ isOpen: false, articleId: null });
-              }
-            }}
-            title="确认删除文章"
-            message="删除后文章将无法恢复，您确定要继续吗？"
-            confirmText="确认删除"
-            cancelText="取消"
-            variant="danger"
-          />
+          <div className="flex flex-wrap items-center justify-end gap-2 mb-4">
+            <Button variant="outline" onClick={() => { setSearchTerm(''); setStatusFilter('all'); setCurrentPage(1); }} disabled={isLoading}>
+              <XCircle className="mr-2 h-4 w-4" /> 重置
+            </Button>
+            <Button variant="outline" onClick={() => fetchArticles(currentPage, statusFilter !== 'all' ? statusFilter : undefined)} disabled={isLoading}>
+              <RefreshCw className="mr-2 h-4 w-4" /> 刷新
+            </Button>
+          </div>
+
+          {/* 表格 */}
+          <div className="rounded-md border overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[280px]">标题</TableHead>
+                  <TableHead className="min-w-[90px]">状态</TableHead>
+                  <TableHead className="min-w-[80px]">阅读</TableHead>
+                  <TableHead className="min-w-[80px]">点赞</TableHead>
+                  <TableHead className="min-w-[80px]">评论</TableHead>
+                  <TableHead className="min-w-[160px]">创建时间</TableHead>
+                  <TableHead className="min-w-[160px]">更新时间</TableHead>
+                  <TableHead className="text-right min-w-[220px]">操作</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">加载中...</TableCell>
+                  </TableRow>
+                ) : filteredArticles.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">暂无数据</TableCell>
+                  </TableRow>
+                ) : (
+                  filteredArticles.map((article) => (
+                    <TableRow key={article.id}>
+                      <TableCell className="font-medium">
+                        <div className="max-w-[560px] truncate" title={article.title}>{article.title}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(article.status)}
+                          {article.isTop && <Badge variant="warning">置顶</Badge>}
+                        </div>
+                      </TableCell>
+                      <TableCell>{article.viewCount ?? 0}</TableCell>
+                      <TableCell>{article.likeCount ?? 0}</TableCell>
+                      <TableCell>{article.commentCount ?? 0}</TableCell>
+                      <TableCell>{article.createTime ? new Date(article.createTime).toLocaleString('zh-CN') : '-'}</TableCell>
+                      <TableCell>{article.updateTime ? new Date(article.updateTime).toLocaleString('zh-CN') : '-'}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => navigate(routeUtils.getArticleEditRoute(article.id))}
+                            className="flex items-center space-x-1"
+                          >
+                            <Edit className="h-4 w-4" />
+                            <span>编辑</span>
+                          </Button>
+                          {article.status === 'DRAFT' ? (
+                            <Button 
+                              variant="primary" 
+                              size="sm"
+                              onClick={() => handleToggleStatus(article.id, article.status)}
+                              className="flex items-center space-x-1 bg-green-600 hover:bg-green-700"
+                            >
+                              <Send className="h-4 w-4" />
+                              <span>发布</span>
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleToggleStatus(article.id, article.status)}
+                              className="flex items-center space-x-1 text-orange-600 hover:text-orange-700 hover:bg-orange-50 border-orange-200"
+                            >
+                              <Archive className="h-4 w-4" />
+                              <span>撤回</span>
+                            </Button>
+                          )}
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => setDeleteConfirm({ isOpen: true, articleId: article.id })}
+                            className="flex items-center space-x-1 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            <span>删除</span>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="pt-4">
+            {pageInfo && (
+              <AdminPagination
+                current={pageInfo.current}
+                totalPages={pageInfo.pages}
+                total={pageInfo.total}
+                onChange={(p) => setCurrentPage(p)}
+                mode="full"
+                alwaysShow
+              />
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 删除确认对话框 */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.isOpen}
+        onCancel={() => setDeleteConfirm({ isOpen: false, articleId: null })}
+        onConfirm={() => {
+          if (deleteConfirm.articleId) {
+            handleDeleteArticle(deleteConfirm.articleId);
+            setDeleteConfirm({ isOpen: false, articleId: null });
+          }
+        }}
+        title="确认删除文章"
+        message="删除后文章将无法恢复，您确定要继续吗？"
+        confirmText="确认删除"
+        cancelText="取消"
+        variant="danger"
+      />
     </div>
   );
 };

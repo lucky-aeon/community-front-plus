@@ -5,10 +5,8 @@ import {
   FileText,
   Folder,
   MessageSquare,
-  Heart,
   Bell,
   Users,
-  BarChart3,
   // Settings,
   User,
   Shield,
@@ -78,8 +76,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
         { id: 'articles', name: '我的文章', icon: FileText, path: '/dashboard/user-backend/articles' },
         { id: 'comments', name: '我的评论', icon: MessageSquare, path: '/dashboard/user-backend/comments' },
         { id: 'testimonial', name: '我的评价', icon: Star, path: '/dashboard/user-backend/testimonial' },
-        { id: 'resources', name: '资源管理', icon: Folder, path: '/dashboard/user-backend/resources' },
-        { id: 'favorites', name: '我的收藏', icon: Heart, path: '/dashboard/user-backend/favorites' }
+        { id: 'resources', name: '资源管理', icon: Folder, path: '/dashboard/user-backend/resources' }
       ]
     },
     {
@@ -87,12 +84,6 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
       items: [
         { id: 'messages', name: '消息中心', icon: Bell, path: '/dashboard/user-backend/messages' },
         { id: 'follows', name: '关注管理', icon: Users, path: '/dashboard/user-backend/follows' }
-      ]
-    },
-    {
-      title: '数据统计',
-      items: [
-        { id: 'analytics', name: '内容数据', icon: BarChart3, path: '/dashboard/user-backend/analytics' }
       ]
     },
     {

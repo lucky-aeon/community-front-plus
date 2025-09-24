@@ -15,6 +15,7 @@ export interface AdminPaginationProps {
   mode?: 'full' | 'simple';
   siblingCount?: number;   // 当前页两侧展示的页码数量
   boundaryCount?: number;  // 头尾展示的页码数量
+  alwaysShow?: boolean;    // 是否在仅一页时也显示分页
 }
 
 function getPages(current: number, totalPages: number, siblingCount: number, boundaryCount: number) {
@@ -50,8 +51,9 @@ export const AdminPagination: React.FC<AdminPaginationProps> = ({
   mode = 'full',
   siblingCount = 1,
   boundaryCount = 1,
+  alwaysShow = false,
 }) => {
-  if (!totalPages || totalPages <= 1) return null;
+  if (!totalPages || (totalPages <= 1 && !alwaysShow)) return null;
 
   if (mode === 'simple') {
     return (
@@ -143,4 +145,3 @@ export const AdminPagination: React.FC<AdminPaginationProps> = ({
 };
 
 export default AdminPagination;
-

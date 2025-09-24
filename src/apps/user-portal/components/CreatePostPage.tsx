@@ -119,8 +119,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
         // 编辑模式
         result = await PostsService.updatePost(initialData.id, postParams);
       } else {
-        // 创建模式
-        result = await PostsService.createPost(postParams);
+        // 创建模式：直接创建并发布
+        result = await PostsService.createAndPublishPost(postParams);
       }
       
       console.log('文章操作成功:', result);
