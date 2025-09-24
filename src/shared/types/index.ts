@@ -1417,3 +1417,12 @@ export interface OrderStatisticsDTO {
   giftCount: number;                   // 赠送订单数
   totalAmount: number;                 // 总金额（单位：元）
 }
+
+// ================ IP封禁管理相关接口定义 ================
+
+// 被封禁IP数据传输对象
+export interface BannedIpDTO {
+  ip: string;                          // IP地址
+  bannedUntil: string;                 // 封禁到期时间（ISO字符串格式）
+  remainSeconds: number;               // 剩余封禁时间（秒）
+}

@@ -5,6 +5,7 @@ import {
   Activity,
   Users,
   Shield,
+  ShieldCheck,
   FileText,
   Folder,
   Tag,
@@ -12,7 +13,7 @@ import {
   Settings,
   FileCheck,
   Menu,
-  
+
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
@@ -63,7 +64,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       items: [
         { id: 'users', name: '用户列表', icon: Users, path: '/dashboard/admin/users' },
         { id: 'sessions', name: '会话管理', icon: Smartphone, path: '/dashboard/admin/sessions' },
-        { id: 'permissions', name: '权限管理', icon: Shield, path: '/dashboard/admin/permissions' },
+        { id: 'ip-ban', name: 'IP封禁', icon: Shield, path: '/dashboard/admin/ip-ban' },
+        { id: 'permissions', name: '权限管理', icon: ShieldCheck, path: '/dashboard/admin/permissions' },
         { id: 'orders', name: '订单管理', icon: Receipt, path: '/dashboard/admin/orders' },
         { id: 'subscription-plans', name: '套餐管理', icon: Package, path: '/dashboard/admin/subscription-plans' },
         { id: 'cdk', name: 'CDK管理', icon: Key, path: '/dashboard/admin/cdk' }
