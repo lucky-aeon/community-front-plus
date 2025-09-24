@@ -32,10 +32,10 @@ export const PostsPage: React.FC = () => {
       setLoading(true);
       const req: AdminPostQueryRequest = { pageNum: pageNum ?? filters.pageNum, pageSize: pageSize ?? filters.pageSize };
       // 透传额外字段（后端如果支持将生效）
-      const reqAny: any = { ...req };
-      if (filters.keyword?.trim()) reqAny.keyword = filters.keyword.trim();
-      if (filters.status) reqAny.status = filters.status;
-      const res: PageResponse<AdminPostDTO> = await PostsService.getAdminPosts(reqAny as any);
+      const params: Record<string, unknown> = { ...req };
+      if (filters.keyword?.trim()) params.keyword = filters.keyword.trim();
+      if (filters.status) params.status = filters.status;
+      const res: PageResponse<AdminPostDTO> = await PostsService.getAdminPosts(params as unknown as AdminPostQueryRequest);
       setPosts(res.records);
       setPagination({ current: res.current, size: res.size, total: res.total, pages: res.pages });
     } catch (e) {

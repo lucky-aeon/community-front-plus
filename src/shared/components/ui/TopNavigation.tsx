@@ -25,7 +25,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuLabel,
+  // DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { ROUTES } from '@shared/routes/routes';
 import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
@@ -79,9 +79,9 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
       try {
         const info: UserDTO = await UserService.getCurrentUser();
         if (!cancelled) {
-          setIsAdmin((info as any)?.role === 'ADMIN');
+          setIsAdmin(info?.role === 'ADMIN');
         }
-      } catch (e) {
+      } catch {
         // 静默失败，不影响其他功能
       }
     };

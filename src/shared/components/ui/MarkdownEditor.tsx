@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
+import React, { useRef, useEffect, useState, useCallback, forwardRef, useImperativeHandle } from 'react';
 import Cherry from 'cherry-markdown';
 import 'cherry-markdown/dist/cherry-markdown.css';
 import Viewer from 'viewerjs';
@@ -7,6 +7,11 @@ import './MarkdownEditor.css';
 import { UploadService } from '@shared/services/api/upload.service';
 import { ResourceAccessService } from '@shared/services/api/resource-access.service';
 import { showToast } from '@shared/utils/toast';
+
+export interface MarkdownEditorHandle {
+  insertMarkdown: (snippet: string) => void;
+  focus: () => void;
+}
 
 interface MarkdownEditorProps {
   value: string;
@@ -18,9 +23,11 @@ interface MarkdownEditorProps {
   className?: string;
   enableFullscreen?: boolean;
   enableToc?: boolean;  // 是否启用目录功能
+  // 新增：打开资源库回调（用于在工具栏添加按钮入口）
+  onOpenResourcePicker?: () => void;
 }
 
-export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
+export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(({ 
   value,
   onChange,
   previewOnly = false,
@@ -29,8 +36,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   toolbar = true,
   className = '',
   enableFullscreen = true,
-  enableToc = false
-}) => {
+  enableToc = false,
+  onOpenResourcePicker,
+}, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const cherryInstanceRef = useRef<Cherry | null>(null);
   const containerIdRef = useRef(`markdown-editor-${Math.random().toString(36).substr(2, 9)}`);
@@ -185,7 +193,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         throw new Error('上传失败：未返回访问URL');
       }
 
-      try { await ResourceAccessService.ensureSession(); } catch {}
+      try { await ResourceAccessService.ensureSession(); } catch { void 0; }
 
       // 等待 poster（仅视频）
       if (isVideo) {
@@ -235,7 +243,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setUploadTasks((prev) => {
       const target = prev.find(t => t.id === taskId);
       if (target) {
-        try { target.xhrs.forEach(x => x.abort()); } catch {}
+        try { target.xhrs.forEach(x => x.abort()); } catch { void 0; }
       }
       return prev.map(t => t.id === taskId ? { ...t, status: 'canceled' } : t);
     });
@@ -409,6 +417,28 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
               }
             }
           }, 200);
+
+          // 添加资源库按钮
+          setTimeout(() => {
+            try {
+              const toolbarElement = document.querySelector(`#${containerIdRef.current} .cherry-toolbar .toolbar-right`);
+              if (toolbarElement && onOpenResourcePicker) {
+                const existingBtn = toolbarElement.querySelector('.cherry-resource-btn');
+                if (!existingBtn) {
+                  const resBtn = document.createElement('span');
+                  resBtn.className = 'cherry-toolbar-button cherry-resource-btn';
+                  resBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>';
+                  resBtn.style.cssText = `cursor:pointer;padding:4px 8px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;transition:background-color .2s;margin:0 2px;`;
+                  resBtn.onmouseenter = () => { resBtn.style.backgroundColor = '#f3f4f6'; };
+                  resBtn.onmouseleave = () => { resBtn.style.backgroundColor = 'transparent'; };
+                  resBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); try { onOpenResourcePicker(); } catch { /* ignore */ } };
+                  toolbarElement.appendChild(resBtn);
+                }
+              }
+            } catch (e) {
+              console.warn('Failed to add resource button:', e);
+            }
+          }, 240);
         }
       },
       fileUpload: handleFileUpload
@@ -496,6 +526,41 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     }
   }, [isFullscreen, isInitialized, enableFullscreen]);
 
+  // 向外暴露插入能力
+  useImperativeHandle(ref, () => ({
+    insertMarkdown: (snippet: string) => {
+      try {
+        const inst: any = cherryInstanceRef.current as any;
+        const cm: any = inst?.editor?.editor; // CodeMirror 实例（尽力获取）
+        if (cm && typeof cm.replaceSelection === 'function') {
+          cm.replaceSelection(snippet);
+          cm.focus();
+          return;
+        }
+      } catch { void 0; }
+      // 兼容：无法获取光标时，追加到末尾
+      try {
+        const inst: any = cherryInstanceRef.current as any;
+        const current = inst?.getValue ? inst.getValue() : value;
+        const needsLF = current && !current.endsWith('\n');
+        const next = `${current || ''}${needsLF ? '\n' : ''}${snippet}`;
+        inst?.setValue ? inst.setValue(next, false) : onChange(next);
+      } catch {
+        // 兜底：直接更新
+        const current = value || '';
+        const needsLF = current && !current.endsWith('\n');
+        onChange(`${current}${needsLF ? '\n' : ''}${snippet}`);
+      }
+    },
+    focus: () => {
+      try {
+        const inst: any = cherryInstanceRef.current as any;
+        const cm: any = inst?.editor?.editor;
+        cm?.focus?.();
+      } catch { void 0; }
+    }
+  }), [value, onChange]);
+
   return (
     <div 
       className={`markdown-editor-wrapper relative ${className} ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`}
@@ -555,4 +620,4 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       )}
     </div>
   );
-};
+});

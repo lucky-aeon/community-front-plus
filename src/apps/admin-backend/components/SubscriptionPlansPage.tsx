@@ -106,8 +106,7 @@ export const SubscriptionPlansPage: React.FC = () => {
   const handlePageChange = (page: number) => {
     setSearchParams(prev => ({ ...prev, pageNum: page }));
   };
-  const handleRefresh = () => loadPlans(pagination.current, pagination.size);
-  const handleQuery = () => { setSearchParams(prev => ({ ...prev, pageNum: 1 })); loadPlans(1, pagination.size); };
+  // 查询/刷新直接在按钮处调用 loadPlans
 
   // 打开创建对话框
   const openCreateDialog = () => {

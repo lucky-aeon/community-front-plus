@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
   FileText,
@@ -9,7 +9,7 @@ import {
   Bell,
   Users,
   BarChart3,
-  Settings,
+  // Settings,
   User,
   Shield,
   Smartphone,
@@ -34,7 +34,6 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
 }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -62,9 +61,9 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
       try {
         const info: UserDTO = await UserService.getCurrentUser();
         if (!cancelled) {
-          setIsAdmin((info as any)?.role === 'ADMIN');
+          setIsAdmin(info?.role === 'ADMIN');
         }
-      } catch (e) {
+      } catch {
         // 静默失败
       }
     };
@@ -105,14 +104,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
     }
   ];
 
-  const getMembershipColor = (tier: string) => {
-    switch (tier) {
-      case 'basic': return 'bg-blue-100 text-blue-800';
-      case 'premium': return 'bg-purple-100 text-purple-800';
-      case 'vip': return 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  // 删除未使用的颜色函数
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
@@ -177,7 +169,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
         {/* Navigation */}
         <nav className="mt-6 px-3 flex-1 flex flex-col">
           <div className="flex-1">
-            {navigationSections.map((section, sectionIndex) => (
+            {navigationSections.map((section) => (
               <div key={section.title} className="mb-8">
                 <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                   {section.title}

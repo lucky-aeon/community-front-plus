@@ -169,13 +169,7 @@ export const UsersPage: React.FC = () => {
     }
   };
 
-  // 分页处理
-  const handlePageChange = (page: number) => {
-    setSearchParams(prev => ({
-      ...prev,
-      pageNum: page
-    }));
-  };
+  // 分页处理在 AdminPagination 处内联 setSearchParams
 
   // 渲染用户状态徽章
   const renderStatusBadge = (status: 'ACTIVE' | 'INACTIVE') => {

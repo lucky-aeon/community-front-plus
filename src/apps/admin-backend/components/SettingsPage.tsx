@@ -39,7 +39,7 @@ export const SettingsPage: React.FC = () => {
       setLoadingPlans(true);
       const list = await SubscriptionPlanCoursesService.getSimpleSubscriptionPlans();
       setPlans(list);
-    } catch (e) {
+    } catch {
       // 错误已由拦截器提示
     } finally {
       setLoadingPlans(false);
@@ -51,10 +51,10 @@ export const SettingsPage: React.FC = () => {
     try {
       setLoadingConfig(true);
       const cfg: SystemConfigDTO = await SystemConfigService.getDefaultSubscriptionConfig();
-      const planId = (cfg?.data as any)?.subscriptionPlanId ?? '';
+      const planId = ((cfg?.data as Record<string, unknown> | undefined)?.subscriptionPlanId as string) ?? '';
       setInitialPlanId(planId);
       setSelectedPlanId(planId);
-    } catch (e) {
+    } catch {
       // 不存在配置时可能返回404，忽略即可
       setInitialPlanId('');
       setSelectedPlanId('');
@@ -68,7 +68,7 @@ export const SettingsPage: React.FC = () => {
     try {
       setLoadingSessionCfg(true);
       const cfg: SystemConfigDTO = await SystemConfigService.getUserSessionLimitConfig();
-      const data = (cfg?.data as any) as Partial<UserSessionLimitConfigData>;
+      const data = cfg?.data as Partial<UserSessionLimitConfigData> | undefined;
       const norm: UserSessionLimitConfigData = {
         maxActiveIps: Math.min(10, Math.max(1, Number(data?.maxActiveIps ?? 2))),
         policy: (data?.policy === 'DENY_NEW' || data?.policy === 'EVICT_OLDEST') ? data.policy : 'EVICT_OLDEST',
@@ -76,7 +76,7 @@ export const SettingsPage: React.FC = () => {
       };
       setInitialSessionCfg(norm);
       setSessionCfg(norm);
-    } catch (e) {
+    } catch {
       // 404等情况：采用默认
       const defVal: UserSessionLimitConfigData = { maxActiveIps: 2, policy: 'EVICT_OLDEST', banTtlDays: 0 };
       setInitialSessionCfg(defVal);
@@ -99,7 +99,7 @@ export const SettingsPage: React.FC = () => {
       await SystemConfigService.updateDefaultSubscriptionConfig(selectedPlanId);
       setInitialPlanId(selectedPlanId);
       showToast.success('默认套餐已更新');
-    } catch (e) {
+    } catch {
       // 错误由拦截器提示
     } finally {
       setSaving(false);
@@ -240,7 +240,7 @@ export const SettingsPage: React.FC = () => {
                   await SystemConfigService.updateUserSessionLimitConfig(sessionCfg);
                   setInitialSessionCfg(sessionCfg);
                   showToast.success('会话限制配置已更新');
-                } catch (e) {
+                } catch {
                   // 错误由拦截器提示
                 } finally {
                   setSavingSessionCfg(false);

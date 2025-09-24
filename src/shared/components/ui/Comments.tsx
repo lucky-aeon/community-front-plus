@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MessageSquare, Send, Loader2, MoreHorizontal, Trash2, CornerDownRight, LogIn, FileText, BookOpen, Book, Clock, ChevronRight, AtSign } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,8 @@ import { useAuth } from '@/context/AuthContext';
 import { CommentsService, ChaptersService } from '@shared/services/api';
 import type { BusinessType, CommentDTO, PageResponse, LatestCommentDTO } from '@shared/types';
 import { AuthModal } from '@shared/components/business/AuthModal';
-import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
+import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { useNavigate } from 'react-router-dom';
 import { routeUtils } from '@shared/routes/routes';
 
@@ -61,6 +62,12 @@ export const Comments: React.FC<CommentsProps> = ({
   const [replying, setReplying] = useState<Record<string, boolean>>({});
   const [openReply, setOpenReply] = useState<Record<string, boolean>>({});
 
+  // 资源库弹窗与编辑器引用
+  const [showResourcePicker, setShowResourcePicker] = useState(false);
+  const [pickerTarget, setPickerTarget] = useState<string | null>(null); // 'new' 或 commentId
+  const newEditorRef = useRef<MarkdownEditorHandle>(null);
+  const replyEditorRefs = useRef<Record<string, MarkdownEditorHandle | null>>({});
+
   const hasMore = flatComments.length < total;
 
   const loadComments = useCallback(async (reset = false) => {
@@ -87,9 +94,10 @@ export const Comments: React.FC<CommentsProps> = ({
         setPageNum(2);
       }
       onCountChange?.(resp.total);
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('加载评论失败', e);
-      toast({ title: '加载评论失败', description: e?.message ?? '请稍后重试', variant: 'destructive' as any });
+      const msg = e instanceof Error ? e.message : '请稍后重试';
+      toast({ title: '加载评论失败', description: msg, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -112,9 +120,10 @@ export const Comments: React.FC<CommentsProps> = ({
           setLoadingLatest(true);
           const data = await CommentsService.getLatestComments();
           setLatestComments(data);
-        } catch (e: any) {
+        } catch (e: unknown) {
           console.error('加载最新评论失败', e);
-          toast({ title: '加载最新评论失败', description: e?.message ?? '请稍后重试', variant: 'destructive' as any });
+          const msg = e instanceof Error ? e.message : '请稍后重试';
+          toast({ title: '加载最新评论失败', description: msg, variant: 'destructive' });
         } finally {
           setLoadingLatest(false);
         }
@@ -170,9 +179,10 @@ export const Comments: React.FC<CommentsProps> = ({
       // 直接刷新列表，保证与服务端一致（避免分页边界问题）
       await loadComments(true);
       toast({ title: '评论已发布' });
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('发布评论失败', e);
-      toast({ title: '发布失败', description: e?.message ?? '请稍后重试', variant: 'destructive' as any });
+      const msg = e instanceof Error ? e.message : '请稍后重试';
+      toast({ title: '发布失败', description: msg, variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -198,9 +208,10 @@ export const Comments: React.FC<CommentsProps> = ({
       setOpenReply(prev => ({ ...prev, [parent.id]: false }));
       await loadComments(true);
       toast({ title: '回复已发布' });
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('回复失败', e);
-      toast({ title: '回复失败', description: e?.message ?? '请稍后重试', variant: 'destructive' as any });
+      const msg = e instanceof Error ? e.message : '请稍后重试';
+      toast({ title: '回复失败', description: msg, variant: 'destructive' });
     } finally {
       setReplying(prev => ({ ...prev, [parent.id]: false }));
     }
@@ -213,9 +224,10 @@ export const Comments: React.FC<CommentsProps> = ({
       setTotal(prev => Math.max(0, prev - 1));
       onCountChange?.(Math.max(0, total - 1));
       toast({ title: '已删除评论' });
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('删除失败', e);
-      toast({ title: '删除失败', description: e?.message ?? '请稍后重试', variant: 'destructive' as any });
+      const msg = e instanceof Error ? e.message : '请稍后重试';
+      toast({ title: '删除失败', description: msg, variant: 'destructive' });
     }
   };
 
@@ -265,6 +277,7 @@ export const Comments: React.FC<CommentsProps> = ({
             {openReply[c.id] && (
               <div className="mt-2">
                 <MarkdownEditor
+                  ref={(inst) => { replyEditorRefs.current[c.id] = inst; }}
                   value={replyDraft[c.id] || ''}
                   onChange={(v) => setReplyDraft(prev => ({ ...prev, [c.id]: v }))}
                   height={160}
@@ -273,6 +286,7 @@ export const Comments: React.FC<CommentsProps> = ({
                   enableFullscreen={false}
                   enableToc={false}
                   className="!rounded-md"
+                  onOpenResourcePicker={() => { setPickerTarget(c.id); setShowResourcePicker(true); }}
                 />
                 <div className="mt-2 flex justify-end">
                   <Button size="sm" onClick={() => handleReply(c)} disabled={replying[c.id] || !replyDraft[c.id]?.trim()}>
@@ -387,6 +401,7 @@ export const Comments: React.FC<CommentsProps> = ({
         {user ? (
           <div>
             <MarkdownEditor
+              ref={newEditorRef}
               value={newContent}
               onChange={setNewContent}
               height={200}
@@ -395,6 +410,7 @@ export const Comments: React.FC<CommentsProps> = ({
               enableFullscreen={false}
               enableToc={false}
               className="!rounded-md"
+              onOpenResourcePicker={() => { setPickerTarget('new'); setShowResourcePicker(true); }}
             />
             <div className="mt-2 flex justify-end">
               <Button onClick={handleSubmit} disabled={submitting || !newContent.trim()}>
@@ -433,6 +449,20 @@ export const Comments: React.FC<CommentsProps> = ({
 
       {/* 登录弹窗 */}
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setAuthModalOpen(false)} />
+      {/* 资源库弹窗（用于新评论与各回复编辑器） */}
+      <ResourcePicker
+        open={showResourcePicker}
+        onClose={() => { setShowResourcePicker(false); setPickerTarget(null); }}
+        onInsert={(snippet) => {
+          if (pickerTarget === 'new') {
+            newEditorRef.current?.insertMarkdown(snippet);
+          } else if (pickerTarget) {
+            replyEditorRefs.current[pickerTarget]?.insertMarkdown(snippet);
+          }
+          setShowResourcePicker(false);
+          setPickerTarget(null);
+        }}
+      />
     </Card>
   );
 };

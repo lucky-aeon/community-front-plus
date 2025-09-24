@@ -74,7 +74,7 @@ export const MessageCenterPage: React.FC = () => {
         ...data,
         records: reset ? data.records : [...prev.records, ...data.records],
       }));
-      try { setUnreadCount(await NotificationsService.getUnreadCount()); } catch {}
+      try { setUnreadCount(await NotificationsService.getUnreadCount()); } catch { void 0; }
     } catch (e) {
       showToast.error('加载消息失败');
     } finally {

@@ -66,12 +66,7 @@ const TYPE_OPTIONS: { value: ActivityType; label: string }[] = [
   { value: 'ADMIN_UPDATE_COURSE', label: '管理员更新课程' },
 ];
 
-function toServerDateTimeString(localValue: string | undefined): string | undefined {
-  if (!localValue) return undefined;
-  // localValue 形如 "2025-09-20T12:34" 或 "2025-09-20T12:34:56"
-  const withSeconds = localValue.length === 16 ? `${localValue}:00` : localValue;
-  return withSeconds.replace('T', ' ');
-}
+// (移除未使用的日期转换函数)
 
 export const LogsPage: React.FC = () => {
   // 查询参数（表单）
@@ -118,7 +113,7 @@ export const LogsPage: React.FC = () => {
       const res: PageResponse<UserActivityLogDTO> = await AdminLogsService.getUserActivityLogs(params);
       setLogs(res.records);
       setPaging({ current: res.current, size: res.size, total: res.total, pages: res.pages });
-    } catch (e) {
+    } catch {
       // 错误提示由拦截器处理
     } finally {
       setLoading(false);
@@ -345,7 +340,7 @@ export const LogsPage: React.FC = () => {
                     try {
                       const data = contextDialog.log?.contextData ? JSON.parse(contextDialog.log.contextData) : null;
                       return JSON.stringify(data, null, 2);
-                    } catch (e) {
+                    } catch {
                       return contextDialog.log?.contextData || '—';
                     }
                   })()}

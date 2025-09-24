@@ -23,7 +23,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     confirmPassword: '',
     code: '',
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const emailInputRef = useRef<HTMLInputElement>(null);
   const [codeRequested, setCodeRequested] = useState(false);
   const [cooldown, setCooldown] = useState(0); // seconds left
@@ -40,7 +39,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setErrors({});
+    // 清理错误由 toast 提示，无需本地 error state
 
     try {
       // 基础邮箱校验（禁用原生校验后由我们负责提示）

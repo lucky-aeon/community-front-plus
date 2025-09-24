@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Save, Hash, FileText, HelpCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ImageUpload } from '@shared/components/common/ImageUpload';
 import { Badge } from '@/components/ui/badge';
-import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
+import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { CategorySelect } from '@shared/components/common/CategorySelect';
 import { PostsService } from '@shared/services/api/posts.service';
 import { PostDTO } from '@shared/types';
@@ -30,6 +31,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
   const [tagInput, setTagInput] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showResourcePicker, setShowResourcePicker] = useState(false);
+  const editorRef = useRef<MarkdownEditorHandle>(null);
   
   const isEditMode = !!initialData;
 
@@ -139,6 +142,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
   };
 
   return (
+    <>
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center space-x-4">
@@ -225,13 +229,21 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
                     <span className="text-sm text-red-600">{errors.content}</span>
                   )}
                 </div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-xs text-gray-500">支持图片/视频上传与资源库复用</div>
+                  <div className="space-x-2">
+                    <Button variant="secondary" size="sm" onClick={() => setShowResourcePicker(true)}>从资源库插入</Button>
+                  </div>
+                </div>
                 <MarkdownEditor
+                  ref={editorRef}
                   value={content}
                   onChange={setContent}
                   height={500}
                   placeholder={postType === 'article' ? '请输入文章内容...' : '请详细描述您的问题...'}
                   className="w-full"
                   enableFullscreen={true}
+                  onOpenResourcePicker={() => setShowResourcePicker(true)}
                 />
               </div>
             </div>
@@ -359,5 +371,14 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
         </div>
       </div>
     </div>
+    <ResourcePicker
+      open={showResourcePicker}
+      onClose={() => setShowResourcePicker(false)}
+      onInsert={(snippet) => {
+        editorRef.current?.insertMarkdown(snippet);
+        setShowResourcePicker(false);
+      }}
+    />
+    </>
   );
 };

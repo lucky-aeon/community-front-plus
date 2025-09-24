@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Copy, Package, User, Calendar, CreditCard, Gift } from 'lucide-react';
+import { Copy, Package, User, CreditCard, Gift } from 'lucide-react';
 import { AdminOrderService } from '@shared/services/api/admin-order.service';
 import { OrderDTO } from '@shared/types';
 import { showToast } from '@shared/utils/toast';

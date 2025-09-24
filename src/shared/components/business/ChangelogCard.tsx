@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, MessageSquare, ChevronDown, ChevronUp, User } from 'lucide-react';
+import { Calendar, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { VersionBadge } from './VersionBadge';
@@ -87,7 +87,7 @@ export const ChangelogCard: React.FC<ChangelogCardProps> = ({
               <div key={type} className="flex items-center space-x-2">
                 <ChangeTypeIcon type={type as ChangeType} size="sm" />
                 <span className="text-sm font-medium text-gray-700">
-                  {getChangeTypeLabel(type as any)}
+                  {getChangeTypeLabel(type as ChangeType)}
                 </span>
                 <Badge variant="secondary" size="sm">
                   {changes.length}项
@@ -108,7 +108,7 @@ export const ChangelogCard: React.FC<ChangelogCardProps> = ({
                 <div className="flex items-center space-x-3">
                   <ChangeTypeIcon type={type as ChangeType} />
                   <h4 className="text-lg font-semibold text-gray-800">
-                    {getChangeTypeLabel(type as any)}
+                    {getChangeTypeLabel(type as ChangeType)}
                   </h4>
                 </div>
                 <div className="space-y-2 ml-8">

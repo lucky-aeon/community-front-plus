@@ -96,9 +96,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const user = await AuthService.login({ email, password });
       setUser(user);
       try { await ResourceAccessService.ensureSession(); } catch { void 0; }
-    } catch (error) {
-      // 错误已经在 axios 拦截器中处理了，这里重新抛出
-      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -110,9 +107,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const user = await AuthService.register({ name, email, password });
       setUser(user);
       try { await ResourceAccessService.ensureSession(); } catch { void 0; }
-    } catch (error) {
-      // 错误已经在 axios 拦截器中处理了，这里重新抛出
-      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -122,8 +116,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       await AuthService.sendRegisterCode(email);
-    } catch (error) {
-      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -134,9 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const user = await AuthService.registerWithCode({ email, code, password });
       setUser(user);
-      try { await ResourceAccessService.ensureSession(); } catch {}
-    } catch (error) {
-      throw error;
+      try { await ResourceAccessService.ensureSession(); } catch { void 0; }
     } finally {
       setIsLoading(false);
     }

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Heart, MessageSquare, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
+import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { LoadingPage as LoadingSpinner } from '@shared/components/common/LoadingPage';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { CommentsService } from '@shared/services/api';
@@ -38,6 +39,10 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalComments, setTotalComments] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+  const [showResourcePicker, setShowResourcePicker] = useState(false);
+  const [pickerTarget, setPickerTarget] = useState<'new' | 'reply' | null>(null);
+  const newEditorRef = useRef<MarkdownEditorHandle>(null);
+  const replyEditorRef = useRef<MarkdownEditorHandle>(null);
 
   // 获取评论列表
   const fetchComments = async (page = 1, append = false) => {
@@ -177,6 +182,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                   <h4 className="font-medium text-gray-900">{currentUser.name}</h4>
                 </div>
                 <MarkdownEditor
+                  ref={newEditorRef}
                   value={newComment}
                   onChange={setNewComment}
                   height={200}
@@ -184,6 +190,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                   className="border rounded-xl"
                   enableFullscreen={false}
                   enableToc={false}
+                  onOpenResourcePicker={() => { setPickerTarget('new'); setShowResourcePicker(true); }}
                 />
               </div>
               <div className="flex justify-end">
@@ -320,6 +327,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                               回复 <span className="font-medium text-blue-600">@{comment.commentUserName}</span>：
                             </div>
                             <MarkdownEditor
+                              ref={replyEditorRef}
                               value={replyContent}
                               onChange={setReplyContent}
                               height={150}
@@ -327,6 +335,7 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                               className="border rounded-lg"
                               enableFullscreen={false}
                               enableToc={false}
+                              onOpenResourcePicker={() => { setPickerTarget('reply'); setShowResourcePicker(true); }}
                             />
                           </div>
                           <div className="flex justify-end space-x-2">
@@ -404,6 +413,16 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
         onCancel={() => {
           setDeleteConfirmOpen(false);
           setCommentToDelete(null);
+        }}
+      />
+      <ResourcePicker
+        open={showResourcePicker}
+        onClose={() => { setShowResourcePicker(false); setPickerTarget(null); }}
+        onInsert={(snippet) => {
+          if (pickerTarget === 'new') newEditorRef.current?.insertMarkdown(snippet);
+          if (pickerTarget === 'reply') replyEditorRef.current?.insertMarkdown(snippet);
+          setShowResourcePicker(false);
+          setPickerTarget(null);
         }}
       />
     </Card>

@@ -97,9 +97,9 @@ export const CategoriesPage: React.FC = () => {
     try {
       setEditDialog(prev => ({ ...prev, submitting: true }));
       if (mode === 'create') {
-        await CategoriesService.createCategory(payload as any);
+        await CategoriesService.createCategory(payload as unknown as import('@shared/types').CreateCategoryRequest);
       } else if (id) {
-        await CategoriesService.updateCategory(id, payload as any);
+        await CategoriesService.updateCategory(id, payload as unknown as import('@shared/types').UpdateCategoryRequest);
       }
       setEditDialog({ open: false, mode: 'create', submitting: false, form: { name: '', type: '', sortOrder: '1', description: '' } });
       await loadList();

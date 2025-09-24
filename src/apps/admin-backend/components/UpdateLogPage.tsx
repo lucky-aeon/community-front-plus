@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 // 描述使用共享的 Cherry Markdown 编辑器
-import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
+import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { RefreshCw, Plus, Pencil, Trash2, ArrowUpToLine, ArrowDownToLine, Search, XCircle } from 'lucide-react';
 import AdminPagination from '@shared/components/AdminPagination';
 import { showToast } from '@shared/utils/toast';
@@ -47,6 +48,8 @@ export const UpdateLogPage: React.FC = () => {
 
   // 删除
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; item?: UpdateLogDTO }>({ open: false });
+  const [showResourcePicker, setShowResourcePicker] = useState(false);
+  const editorRef = useRef<MarkdownEditorHandle>(null);
 
   const loadLogs = useCallback(async (pageNum?: number, pageSize?: number) => {
     try {
@@ -372,9 +375,11 @@ export const UpdateLogPage: React.FC = () => {
               <div className="md:col-span-2 space-y-2">
                 <Label>描述（Markdown）</Label>
                 <MarkdownEditor
+                  ref={editorRef}
                   value={editDialog.form.description}
                   onChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, description: v } }))}
                   height={200}
+                  onOpenResourcePicker={() => setShowResourcePicker(true)}
                 />
               </div>
               <div className="md:col-span-2 space-y-3">
@@ -458,6 +463,14 @@ export const UpdateLogPage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ResourcePicker
+        open={showResourcePicker}
+        onClose={() => setShowResourcePicker(false)}
+        onInsert={(snippet) => {
+          editorRef.current?.insertMarkdown(snippet);
+          setShowResourcePicker(false);
+        }}
+      />
     </div>
   );
 };

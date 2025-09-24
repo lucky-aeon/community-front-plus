@@ -1,5 +1,5 @@
 import React from 'react';
-import { TrendingUp, BookOpen, MessageSquare, Clock, Target, Award, Users, Zap } from 'lucide-react';
+import { BookOpen, MessageSquare, Clock, Target, Award, Users, Zap } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';

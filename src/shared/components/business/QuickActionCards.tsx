@@ -1,16 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Plus,
-  BookOpen,
-  MessageSquare,
-  Search,
-  TrendingUp,
-  Users,
-  Star,
-  ArrowRight
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Plus, BookOpen, MessageSquare, TrendingUp, ArrowRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ROUTES } from '@shared/routes/routes';
@@ -20,7 +10,7 @@ interface QuickAction {
   id: string;
   title: string;
   description: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ className?: string }>;
   action: () => void;
   color: string;
   badge?: string;

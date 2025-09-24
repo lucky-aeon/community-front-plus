@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Trash2, Search, FileText, GraduationCap, Reply, Send, X, BookOpen } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
+import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { LoadingPage as LoadingSpinner } from '@shared/components/common/LoadingPage';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { CommentsService } from '@shared/services/api/comments.service';
@@ -23,6 +24,8 @@ export const MyCommentsPage: React.FC = () => {
   const [replyingCommentId, setReplyingCommentId] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [replySubmitting, setReplySubmitting] = useState(false);
+  const [showResourcePicker, setShowResourcePicker] = useState(false);
+  const replyEditorRef = useRef<MarkdownEditorHandle>(null);
 
   // 获取当前用户信息
   const { user } = useAuth();
@@ -286,6 +289,7 @@ export const MyCommentsPage: React.FC = () => {
                         回复 @{comment.commentUserName}
                       </h4>
                       <MarkdownEditor
+                        ref={replyEditorRef}
                         value={replyContent}
                         onChange={setReplyContent}
                         height={200}
@@ -294,6 +298,7 @@ export const MyCommentsPage: React.FC = () => {
                         className="!border-gray-300"
                         enableFullscreen={false}
                         enableToc={false}
+                        onOpenResourcePicker={() => setShowResourcePicker(true)}
                       />
                     </div>
                     
@@ -383,6 +388,14 @@ export const MyCommentsPage: React.FC = () => {
         confirmText="确认删除"
         cancelText="取消"
         variant="danger"
+      />
+      <ResourcePicker
+        open={showResourcePicker}
+        onClose={() => setShowResourcePicker(false)}
+        onInsert={(snippet) => {
+          replyEditorRef.current?.insertMarkdown(snippet);
+          setShowResourcePicker(false);
+        }}
       />
     </div>
   );

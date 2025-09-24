@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RefreshCw, Plus, Pencil, Trash2, GripVertical, Search, XCircle } from 'lucide-react';
-import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
+import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { Rating } from '@/components/ui/rating';
 import { TagsInput } from '@/components/ui/tags-input';
 import { ChaptersService } from '@shared/services/api/chapters.service';
@@ -39,6 +40,11 @@ export const CoursesPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({ current: 1, size: 10, total: 0, pages: 0 });
   const [filters, setFilters] = useState<Filters>({ pageNum: 1, pageSize: 10, keyword: '' });
+  // 资源库弹窗与编辑器目标
+  const [showResourcePicker, setShowResourcePicker] = useState(false);
+  const [pickerTarget, setPickerTarget] = useState<'course' | 'chapter' | null>(null);
+  const courseDescRef = useRef<MarkdownEditorHandle>(null);
+  const chapterEditorRef = useRef<MarkdownEditorHandle>(null);
 
   // 创建/编辑
   const [editDialog, setEditDialog] = useState<{
@@ -101,7 +107,7 @@ export const CoursesPage: React.FC = () => {
   const handleQuery = () => { setFilters(prev => ({ ...prev, pageNum: 1 })); loadCourses(1, pagination.size); };
 
   // 打开创建/编辑
-  const openCreate = () => setEditDialog({ open: true, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '' } });
+  const openCreate = () => setEditDialog({ open: true, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '' } });
   const openEdit = (item: CourseDTO) => setEditDialog({
     open: true,
     mode: 'edit',
@@ -131,7 +137,7 @@ export const CoursesPage: React.FC = () => {
     // 校验
     if (!form.title.trim()) return;
     if (!form.status) return;
-    const payloadBase: any = {
+    const payloadBase: Partial<CreateCourseRequest & UpdateCourseRequest> = {
       title: form.title.trim(),
       ...(form.description && { description: form.description }),
       status: form.status as CourseStatus,
@@ -149,7 +155,7 @@ export const CoursesPage: React.FC = () => {
       } else if (id) {
         await CoursesService.updateCourse(id, payloadBase as UpdateCourseRequest);
       }
-      setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '' } });
+      setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '' } });
       await loadCourses();
     } catch (e) {
       console.error('保存课程失败', e);
@@ -441,7 +447,7 @@ export const CoursesPage: React.FC = () => {
       <Dialog open={editDialog.open} onOpenChange={(open) => {
         if (!editDialog.submitting) {
           setEditDialog(prev => ({ ...prev, open }));
-          if (!open) setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } });
+          if (!open) setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } });
         }
       }}>
         <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-5xl">
@@ -544,15 +550,17 @@ export const CoursesPage: React.FC = () => {
               <div className="space-y-2">
                 <Label>描述（Markdown）</Label>
                 <MarkdownEditor
+                  ref={courseDescRef}
                   value={editDialog.form.description}
                   onChange={(v) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, description: v } }))}
                   height={300}
+                  onOpenResourcePicker={() => { setPickerTarget('course'); setShowResourcePicker(true); }}
                 />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as any, price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } })} disabled={editDialog.submitting}>取消</Button>
+            <Button variant="outline" onClick={() => setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } })} disabled={editDialog.submitting}>取消</Button>
             <Button onClick={submitEdit} disabled={editDialog.submitting}>{editDialog.submitting ? '保存中...' : '保存'}</Button>
           </DialogFooter>
         </DialogContent>
@@ -631,9 +639,11 @@ export const CoursesPage: React.FC = () => {
                   <div className="space-y-1">
                     <Label>内容（Markdown）</Label>
                     <MarkdownEditor
+                      ref={chapterEditorRef}
                       value={chapterDialog.edit.data.content}
                       onChange={(v) => setChapterDialog(prev => ({ ...prev, edit: prev.edit && { ...prev.edit, data: { ...prev.edit.data, content: v } } }))}
                       height={260}
+                      onOpenResourcePicker={() => { setPickerTarget('chapter'); setShowResourcePicker(true); }}
                     />
                   </div>
                   <div className="flex justify-end gap-2">
@@ -668,6 +678,20 @@ export const CoursesPage: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <ResourcePicker
+        open={showResourcePicker}
+        onClose={() => { setShowResourcePicker(false); setPickerTarget(null); }}
+        onInsert={(snippet) => {
+          if (pickerTarget === 'course') {
+            courseDescRef.current?.insertMarkdown(snippet);
+          }
+          if (pickerTarget === 'chapter') {
+            chapterEditorRef.current?.insertMarkdown(snippet);
+          }
+          setShowResourcePicker(false);
+          setPickerTarget(null);
+        }}
+      />
     </div>
   );
 };
