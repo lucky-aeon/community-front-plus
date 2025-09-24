@@ -73,7 +73,7 @@ export const RecentContent: React.FC<RecentContentProps> = ({
       excerpt: post.summary,
       author: {
         name: post.authorName,
-        avatar: post.authorAvatar || '/api/placeholder/40/40',
+        avatar: post.authorAvatar || '',
         membershipTier: 'basic' as const
       },
       stats: {
@@ -224,10 +224,6 @@ export const RecentContent: React.FC<RecentContentProps> = ({
                         src={item.coverImage}
                         alt={item.title}
                         loading="lazy"
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          e.currentTarget.src = '/api/placeholder/192/144';
-                        }}
                         className="w-full h-full object-cover"
                       />
                       {item.isPremium && (
@@ -243,7 +239,7 @@ export const RecentContent: React.FC<RecentContentProps> = ({
                     {/* Author */}
                     <div className="flex items-center gap-3">
                       <img
-                        src={item.author.avatar}
+                        src={item.author.avatar || undefined}
                         alt={item.author.name}
                         className="h-8 w-8 rounded-full object-cover"
                       />

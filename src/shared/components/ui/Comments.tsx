@@ -393,7 +393,7 @@ export const Comments: React.FC<CommentsProps> = ({
             return (
               <div key={item.id} className="p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-purple-100" onClick={() => jumpToCommentTarget(item)}>
                 <div className="flex items-start gap-2">
-                  <img src={item.commentUserAvatar || '/api/placeholder/24/24'} alt={item.commentUserName} className="h-6 w-6 rounded-full object-cover" />
+                  <img src={item.commentUserAvatar || undefined} alt={item.commentUserName} className="h-6 w-6 rounded-full object-cover" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 min-w-0">

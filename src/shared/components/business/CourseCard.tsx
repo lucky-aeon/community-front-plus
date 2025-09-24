@@ -72,10 +72,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
               alt={course.title}
               className="absolute inset-0 w-full h-full object-cover"
               loading="lazy"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = '/api/placeholder/600/320';
-              }}
             />
           )}
           <div className="absolute inset-0 bg-grid-pattern opacity-10" />

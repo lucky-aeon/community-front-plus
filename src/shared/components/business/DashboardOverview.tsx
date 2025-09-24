@@ -107,7 +107,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className 
     excerpt: post.summary,
     author: {
       name: post.authorName,
-      avatar: post.authorAvatar || '/api/placeholder/40/40',
+      avatar: post.authorAvatar || '',
       membershipTier: 'basic' as const
     },
     stats: {
