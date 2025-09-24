@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Label } from '@/components/ui/label';
 import { showToast } from '@shared/utils/toast';
 import { AuthService } from '@shared/services/api/auth.service';
+import { ROUTES } from '@shared/routes/routes';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -14,6 +16,7 @@ interface AuthModalProps {
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -79,8 +82,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           return;
         }
         await registerWithCode(formData.email, formData.code, formData.password);
-        // 注册成功后也仅在确认写入后再关闭
+        // 注册成功：确认写入后导航至首页
         if (!AuthService.isLoggedIn()) return;
+        navigate(ROUTES.DASHBOARD_HOME);
       }
       onClose();
       setFormData({ email: '', password: '', confirmPassword: '', code: '' });

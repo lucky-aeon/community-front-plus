@@ -44,7 +44,7 @@ export interface RegisterRequest {
 // 使用邮箱验证码注册请求参数
 export interface RegisterWithCodeRequest {
   email: string;
-  code: string;
+  emailVerificationCode: string;
   password: string;
 }
 
@@ -98,14 +98,15 @@ export class AuthService {
    * 发送注册验证码到邮箱
    */
   static async sendRegisterCode(email: string): Promise<void> {
-    await apiClient.post<ApiResponse<void>>('/auth/register/send-code', { email });
+    await apiClient.post<ApiResponse<void>>('/auth/register/email-code', { email });
   }
 
   /**
    * 使用邮箱验证码注册
    */
   static async registerWithCode(params: RegisterWithCodeRequest): Promise<User> {
-    const response = await apiClient.post<ApiResponse<LoginResponse>>('/auth/register/with-code', params);
+    // 后端将验证码注册也统一在 /auth/register
+    const response = await apiClient.post<ApiResponse<LoginResponse>>('/auth/register', params);
 
     const { token, user: backendUser } = response.data.data;
 

@@ -124,7 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const registerWithCode = async (email: string, code: string, password: string) => {
     setIsLoading(true);
     try {
-      const user = await AuthService.registerWithCode({ email, code, password });
+      const user = await AuthService.registerWithCode({ email, emailVerificationCode: code, password });
       setUser(user);
       try { await ResourceAccessService.ensureSession(); } catch { void 0; }
     } finally {

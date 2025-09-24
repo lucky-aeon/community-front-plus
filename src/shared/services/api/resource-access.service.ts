@@ -60,7 +60,11 @@ export class ResourceAccessService {
    */
   static async ensureSession(): Promise<void> {
     try {
-      await apiClient.post('/user/resource/access-session', {}, { withCredentials: true });
+      await apiClient.post('/user/resource/access-session', {}, {
+        withCredentials: true,
+        // 某些环境可能尚未开放该端点，避免因401导致全局登出
+        headers: { 'X-Skip-Auth-Logout': 'true' },
+      });
     } catch {
       // 静默失败即可；真实访问时若 401，再重试或提示
     }

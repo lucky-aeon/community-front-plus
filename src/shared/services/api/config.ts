@@ -55,13 +55,19 @@ apiClient.interceptors.response.use(
     // 处理不同类型的错误
     if (error.response) {
       const { status, data } = error.response;
+      const cfg = error.config || {};
+      const headers = (cfg.headers || {}) as Record<string, string>;
+      const skipAuthLogout = headers['X-Skip-Auth-Logout'] === 'true' || (cfg as any).__skipAuthLogout === true;
       
       switch (status) {
         case 401:
-          // 未授权，清除本地存储的认证信息
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user');
-          showToast.error('登录已过期，请重新登录');
+          // 未授权
+          if (!skipAuthLogout) {
+            // 仅在未跳过时清除会话并提示
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user');
+            showToast.error('登录已过期，请重新登录');
+          }
           break;
         case 403:
           showToast.error('权限不足');
