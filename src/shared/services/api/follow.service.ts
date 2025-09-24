@@ -21,12 +21,8 @@ export class FollowService {
    * @returns Promise<FollowToggleResponse> 切换后的关注状态
    */
   static async toggleFollow(params: FollowToggleRequest): Promise<FollowToggleResponse> {
-    console.log('[FollowService] 开始切换关注状态:', params);
-
     try {
       const response = await apiClient.post<ApiResponse<FollowToggleResponse>>('/app/follows/toggle', params);
-      console.log('[FollowService] 切换关注状态响应:', response.data);
-
       if (!response.data?.data) {
         throw new Error('API响应格式错误：缺少data字段');
       }
@@ -47,15 +43,9 @@ export class FollowService {
    * @returns Promise<FollowStatusResponse> 关注状态信息
    */
   static async checkFollowStatus(params: FollowStatusRequest): Promise<FollowStatusResponse> {
-    console.log('[FollowService] 开始检查关注状态:', params);
-
     try {
       const url = `/app/follows/check/${params.targetType}/${params.targetId}`;
-      console.log('[FollowService] 请求URL:', url);
-
       const response = await apiClient.get<ApiResponse<FollowStatusResponse>>(url);
-      console.log('[FollowService] 检查关注状态响应:', response.data);
-
       if (!response.data?.data) {
         throw new Error('API响应格式错误：缺少data字段');
       }

@@ -22,12 +22,8 @@ export class SubscribeService {
    * @returns Promise<SubscribeToggleResponse> 切换后的订阅状态
    */
   static async toggleSubscribe(params: SubscribeToggleRequest): Promise<SubscribeToggleResponse> {
-    console.log('[SubscribeService] 开始切换订阅状态:', params);
-
     try {
       const response = await apiClient.post<ApiResponse<SubscribeToggleResponse>>('/app/follows/toggle', params);
-      console.log('[SubscribeService] 切换订阅状态响应:', response.data);
-
       if (!response.data?.data) {
         throw new Error('API响应格式错误：缺少data字段');
       }
@@ -48,15 +44,9 @@ export class SubscribeService {
    * @returns Promise<SubscribeStatusResponse> 订阅状态信息
    */
   static async checkSubscribeStatus(params: SubscribeStatusRequest): Promise<SubscribeStatusResponse> {
-    console.log('[SubscribeService] 开始检查订阅状态:', params);
-
     try {
       const url = `/app/follows/check/${params.targetType}/${params.targetId}`;
-      console.log('[SubscribeService] 请求URL:', url);
-
       const response = await apiClient.get<ApiResponse<SubscribeStatusResponse>>(url);
-      console.log('[SubscribeService] 检查订阅状态响应:', response.data);
-
       if (!response.data?.data) {
         throw new Error('API响应格式错误：缺少data字段');
       }
