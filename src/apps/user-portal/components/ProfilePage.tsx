@@ -106,7 +106,7 @@ export const ProfilePage: React.FC = () => {
 
             <div className="flex items-center space-x-6 mb-6">
               <div className="relative">
-                <Avatar className="h-20 w-20">
+                <Avatar size={96} shape="rounded" framed>
                   <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
                   <AvatarFallback>{(user?.name || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
                 </Avatar>

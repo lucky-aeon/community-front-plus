@@ -149,9 +149,8 @@ export const PostDetailPage: React.FC = () => {
         <div className="lg:col-span-3 space-y-6">
           {/* Author Info */}
           <Card className="p-4">
-            <h3 className="font-semibold text-gray-900 mb-3">作者信息</h3>
             <div className="flex flex-col items-center text-center space-y-3">
-              <Avatar className="h-16 w-16">
+              <Avatar size={96} shape="rounded" framed>
                 <AvatarImage src={post.authorAvatar || undefined} alt={post.authorName} />
                 <AvatarFallback>{(post.authorName || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
               </Avatar>
@@ -201,25 +200,6 @@ export const PostDetailPage: React.FC = () => {
         {/* Main Content */}
         <div className="lg:col-span-9 space-y-6">
           <Card className="p-6">
-            {/* Post Header */}
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex items-center space-x-4">
-                <Avatar className="h-12 w-12">
-                  <AvatarImage src={post.authorAvatar || undefined} alt={post.authorName} />
-                  <AvatarFallback>{(post.authorName || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div className="space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <h3 className="font-semibold text-gray-900">{post.authorName}</h3>
-                  </div>
-                  <p className="text-sm text-gray-500">{formatDate(post.publishTime)}</p>
-                  {post.authorDescription && (
-                    <p className="text-sm text-gray-600 line-clamp-2 max-w-md">{post.authorDescription}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
             {/* Post Title */}
             <h1 className="text-3xl font-bold text-gray-900 mb-6">{post.title}</h1>
 
