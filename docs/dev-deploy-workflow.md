@@ -23,7 +23,7 @@
 - `SSH_PORT`：SSH 端口（默认 22，可不设）
 - `SSH_PRIVATE_KEY`：部署用私钥（对应公钥已加入服务器 `~/.ssh/authorized_keys`）
 - `DEPLOY_BASE_DIR`：部署根目录，例如 `/var/www/qiaoya-community-frontend`
-- `DEPLOY_PUBLIC_URL`：（可选）对外访问地址，用于 Actions environment 显示
+- `DEPLOY_PUBLIC_URL`：（可选）对外访问地址，用于 Actions environment 显示。建议放在 Actions Variables（非 Secrets）：Settings → Secrets and variables → Actions → Variables。
 
 Node 版本如无特殊要求，使用 Node 20。若有 `.nvmrc` 可在工作流中读取。
 
@@ -87,7 +87,7 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     environment:
       name: dev
-      url: ${{ secrets.DEPLOY_PUBLIC_URL }}
+      url: ${{ vars.DEPLOY_PUBLIC_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -206,7 +206,7 @@ jobs:
 - [ ] `SSH_PRIVATE_KEY`：将私钥文件的完整内容原样粘贴（包含 `-----BEGIN OPENSSH PRIVATE KEY-----` 到 `-----END...`）
 - [ ] `SSH_PORT`：端口号（默认 22，可不填）
 - [ ] `DEPLOY_BASE_DIR`：如 `/var/www/qiaoya-community-frontend`
-- [ ] `DEPLOY_PUBLIC_URL`：（可选）对外访问地址，Actions 环境页展示用
+- [ ] `DEPLOY_PUBLIC_URL`：（可选）对外访问地址，Actions 环境页展示用（建议设为 Actions Variables，而非 Secrets）
 
   查看并复制私钥内容（用于粘贴到 `SSH_PRIVATE_KEY`）
   - 默认路径（按上文示例）：`~/.ssh/qy-frontend-deploy`

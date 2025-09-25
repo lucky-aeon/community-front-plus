@@ -19,7 +19,7 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     environment:
       name: dev
-      url: ${{ secrets.DEPLOY_PUBLIC_URL }}
+      url: ${{ vars.DEPLOY_PUBLIC_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
