@@ -6,9 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { SystemConfigService } from '@shared/services/api/system-config.service';
 import { SubscriptionPlanCoursesService } from '@shared/services/api/subscription-plan-courses.service';
 import type { SimpleSubscriptionPlanDTO, SystemConfigDTO, UserSessionLimitConfigData } from '@shared/types';
-import { RefreshCw, Save } from 'lucide-react';
+import { RefreshCw, Save, Eye, EyeOff } from 'lucide-react';
 import { showToast } from '@shared/utils/toast';
 import { Input } from '@/components/ui/input';
+import type { GithubOAuthConfig } from '@shared/types/system';
 
 export const SettingsPage: React.FC = () => {
   // 默认套餐配置 - 数据与状态
@@ -92,6 +93,10 @@ export const SettingsPage: React.FC = () => {
     fetchSessionLimitConfig();
   }, []);
 
+  useEffect(() => {
+    fetchGithubOAuthConfig();
+  }, []);
+
   const handleSave = async () => {
     if (!selectedPlanId) return showToast.error('请选择一个默认套餐');
     try {
@@ -108,6 +113,49 @@ export const SettingsPage: React.FC = () => {
 
   const loading = loadingPlans || loadingConfig;
   const sessionLoading = loadingSessionCfg;
+
+  // ============== GitHub OAuth 配置 ==============
+  const [ghCfg, setGhCfg] = useState<GithubOAuthConfig | null>(null);
+  const [initialGhCfg, setInitialGhCfg] = useState<GithubOAuthConfig | null>(null);
+  const [ghLoading, setGhLoading] = useState(false);
+  const [ghSaving, setGhSaving] = useState(false);
+  const [showSecret, setShowSecret] = useState(false);
+
+  const ghDefault: GithubOAuthConfig = {
+    clientId: '',
+    clientSecret: '',
+    redirectUri: '',
+    scopes: ['read:user', 'user:email'],
+    authorizeBaseUri: 'https://github.com/login/oauth/authorize',
+    tokenUri: 'https://github.com/login/oauth/access_token',
+    userApi: 'https://api.github.com/user',
+    emailApi: 'https://api.github.com/user/emails',
+    requireVerifiedEmailForMerge: true,
+    fetchEmailFromApi: true,
+    updateUserProfileIfEmpty: true,
+  };
+
+  const fetchGithubOAuthConfig = async () => {
+    try {
+      setGhLoading(true);
+      const cfg: SystemConfigDTO = await SystemConfigService.getGithubOAuthConfig();
+      const raw = (cfg?.data as Partial<GithubOAuthConfig> | undefined) || {};
+      const normalized: GithubOAuthConfig = {
+        ...ghDefault,
+        ...raw,
+        scopes: Array.isArray(raw.scopes) ? raw.scopes : ghDefault.scopes,
+      };
+      setGhCfg(normalized);
+      setInitialGhCfg(normalized);
+    } catch {
+      setGhCfg(ghDefault);
+      setInitialGhCfg(ghDefault);
+    } finally {
+      setGhLoading(false);
+    }
+  };
+
+  const ghDirty = useMemo(() => JSON.stringify(ghCfg) !== JSON.stringify(initialGhCfg), [ghCfg, initialGhCfg]);
 
   return (
     <div className="space-y-6">
@@ -259,6 +307,157 @@ export const SettingsPage: React.FC = () => {
             <div>封禁阈值：10个IP</div>
             <div>续活间隔：60秒</div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* GitHub OAuth 配置 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>GitHub OAuth 配置</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!ghCfg ? (
+            <div className="text-sm text-muted-foreground">加载中...</div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="gh-client-id">Client ID</Label>
+                  <Input
+                    id="gh-client-id"
+                    value={ghCfg.clientId}
+                    onChange={(e) => setGhCfg(prev => prev && ({ ...prev, clientId: e.target.value }))}
+                    disabled={ghLoading || ghSaving}
+                    placeholder="GitHub OAuth App Client ID"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gh-client-secret">Client Secret</Label>
+                  <div className="relative">
+                    <Input
+                      id="gh-client-secret"
+                      type={showSecret ? 'text' : 'password'}
+                      value={ghCfg.clientSecret}
+                      onChange={(e) => setGhCfg(prev => prev && ({ ...prev, clientSecret: e.target.value }))}
+                      disabled={ghLoading || ghSaving}
+                      placeholder="GitHub OAuth App Client Secret"
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                      onClick={() => setShowSecret(s => !s)}
+                      aria-label={showSecret ? '隐藏' : '显示'}
+                    >
+                      {showSecret ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="gh-redirect-uri">Redirect URI</Label>
+                  <Input
+                    id="gh-redirect-uri"
+                    value={ghCfg.redirectUri}
+                    onChange={(e) => setGhCfg(prev => prev && ({ ...prev, redirectUri: e.target.value }))}
+                    disabled={ghLoading || ghSaving}
+                    placeholder="例如：http://localhost:5173/oauth/github/callback"
+                  />
+                </div>
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="gh-scopes">Scopes（以空格或逗号分隔）</Label>
+                  <Input
+                    id="gh-scopes"
+                    value={ghCfg.scopes.join(' ')}
+                    onChange={(e) => {
+                      const v = e.target.value.trim();
+                      const arr = v.split(/[\s,]+/).filter(Boolean);
+                      setGhCfg(prev => prev && ({ ...prev, scopes: arr.length ? arr : [] }));
+                    }}
+                    disabled={ghLoading || ghSaving}
+                  />
+                </div>
+              </div>
+
+              <details className="p-3 rounded border bg-muted/30">
+                <summary className="cursor-pointer text-sm text-muted-foreground">高级参数</summary>
+                <div className="grid gap-3 mt-3 md:grid-cols-2">
+                  <div className="space-y-1">
+                    <Label htmlFor="gh-authorize-base">Authorize Base URI</Label>
+                    <Input id="gh-authorize-base" value={ghCfg.authorizeBaseUri} onChange={(e) => setGhCfg(prev => prev && ({ ...prev, authorizeBaseUri: e.target.value }))} disabled={ghLoading || ghSaving} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="gh-token-uri">Token URI</Label>
+                    <Input id="gh-token-uri" value={ghCfg.tokenUri} onChange={(e) => setGhCfg(prev => prev && ({ ...prev, tokenUri: e.target.value }))} disabled={ghLoading || ghSaving} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="gh-user-api">User API</Label>
+                    <Input id="gh-user-api" value={ghCfg.userApi} onChange={(e) => setGhCfg(prev => prev && ({ ...prev, userApi: e.target.value }))} disabled={ghLoading || ghSaving} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="gh-email-api">Email API</Label>
+                    <Input id="gh-email-api" value={ghCfg.emailApi} onChange={(e) => setGhCfg(prev => prev && ({ ...prev, emailApi: e.target.value }))} disabled={ghLoading || ghSaving} />
+                  </div>
+                </div>
+
+                <div className="grid gap-3 mt-3 md:grid-cols-3">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={ghCfg.requireVerifiedEmailForMerge}
+                      onChange={(e) => setGhCfg(prev => prev && ({ ...prev, requireVerifiedEmailForMerge: e.target.checked }))}
+                      disabled={ghLoading || ghSaving}
+                    />
+                    仅验证邮箱时允许合并
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={ghCfg.fetchEmailFromApi}
+                      onChange={(e) => setGhCfg(prev => prev && ({ ...prev, fetchEmailFromApi: e.target.checked }))}
+                      disabled={ghLoading || ghSaving}
+                    />
+                    从Email API拉取邮箱
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={ghCfg.updateUserProfileIfEmpty}
+                      onChange={(e) => setGhCfg(prev => prev && ({ ...prev, updateUserProfileIfEmpty: e.target.checked }))}
+                      disabled={ghLoading || ghSaving}
+                    />
+                    资料为空时用GitHub资料填充
+                  </label>
+                </div>
+              </details>
+
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={fetchGithubOAuthConfig} disabled={ghLoading}>
+                  <RefreshCw className="mr-2 h-4 w-4" />刷新
+                </Button>
+                <Button
+                  onClick={async () => {
+                    if (!ghCfg.clientId || !ghCfg.clientSecret || !ghCfg.redirectUri) {
+                      return showToast.error('请完整填写 Client ID、Client Secret 与 Redirect URI');
+                    }
+                    try {
+                      setGhSaving(true);
+                      await SystemConfigService.updateGithubOAuthConfig(ghCfg);
+                      setInitialGhCfg(ghCfg);
+                    } catch {
+                      // 错误由拦截器提示
+                    } finally {
+                      setGhSaving(false);
+                    }
+                  }}
+                  disabled={!ghDirty || ghSaving}
+                >
+                  <Save className="mr-2 h-4 w-4" />保存配置
+                </Button>
+              </div>
+
+              <p className="text-xs text-muted-foreground">提示：Redirect URI 应填写前端回调地址，如 http://localhost:5173/oauth/github/callback</p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

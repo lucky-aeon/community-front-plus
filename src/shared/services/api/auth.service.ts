@@ -1,6 +1,7 @@
 import { apiClient, ApiResponse } from './config';
 import { ResourceAccessService } from './resource-access.service';
 import { User } from '@shared/types';
+import type { OAuthAuthDTO } from '@shared/types/oauth';
 
 // 登录请求参数接口
 export interface LoginRequest {
@@ -216,6 +217,20 @@ export class AuthService {
       console.error('刷新用户信息失败:', error);
       return null;
     }
+  }
+
+  /**
+   * 处理 OAuth 登录回调返回（AuthDTO）
+   * 持久化 token 与用户信息，并返回映射后的前端 User
+   */
+  static async processOAuthLogin(auth: OAuthAuthDTO): Promise<User> {
+    const { token, user: backendUser } = auth;
+    localStorage.setItem('auth_token', token);
+
+    let user: User = this.mapBackendUserToFrontendUser(backendUser as unknown as BackendUser);
+    user = await this.enrichPlanLevel(user);
+    localStorage.setItem('user', JSON.stringify(user));
+    return user;
   }
 
   /**

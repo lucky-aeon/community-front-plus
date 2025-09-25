@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, Loader2, Github } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,6 +11,7 @@ import { AuthService } from '@shared/services/api/auth.service';
 import { ROUTES } from '@shared/routes/routes';
 import { Checkbox } from '@/components/ui/checkbox';
 import { TermsModal, PrivacyModal } from '@shared/components/common/LegalModals';
+import { GithubOAuthService } from '@shared/services/api/oauth-github.service';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -357,6 +358,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               {isLogin ? '立即注册' : '立即登录'}
             </button>
           </p>
+        </div>
+
+        {/* 第三方登录 */}
+        <div className="mt-4">
+          <div className="relative my-3">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t"></span>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-2 text-gray-500">或</span>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={async () => {
+              try {
+                await GithubOAuthService.startAuthorizeRedirect();
+              } catch (e) {
+                showToast.error('获取 GitHub 授权地址失败，请稍后再试');
+              }
+            }}
+          >
+            <Github className="mr-2 h-5 w-5" /> 使用 GitHub {isLogin ? '登录' : '注册'}
+          </Button>
         </div>
       </DialogContent>
       {/* 条款/隐私弹窗 */}

@@ -7,10 +7,16 @@ import { MarketingPage } from '@apps/marketing/components/MarketingPage';
 import { Dashboard } from '@apps/user-portal/components/Dashboard';
 import { AdminBackend } from '@admin-backend/components/AdminBackend';
 import { Toaster } from '@/components/ui/toaster';
+import GithubOAuthCallbackPage from '@shared/components/business/GithubOAuthCallbackPage';
 
 const AppContent: React.FC = () => {
   return (
     <Routes>
+      {/* GitHub OAuth 回调路由（公开） */}
+      <Route 
+        path="/oauth/github/callback" 
+        element={<GithubOAuthCallbackPage />} 
+      />
       {/* 公开路由 - 营销首页 */}
       <Route 
         path="/" 

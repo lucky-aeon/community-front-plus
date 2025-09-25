@@ -1196,7 +1196,7 @@ export interface CDKQueryRequest {
 // ================ 系统配置管理相关接口定义 ================
 
 // 系统配置类型枚举
-export type SystemConfigType = 'DEFAULT_SUBSCRIPTION_PLAN' | 'EMAIL_TEMPLATE' | 'SYSTEM_MAINTENANCE' | 'USER_SESSION_LIMIT';
+export type SystemConfigType = 'DEFAULT_SUBSCRIPTION_PLAN' | 'EMAIL_TEMPLATE' | 'SYSTEM_MAINTENANCE' | 'USER_SESSION_LIMIT' | 'OAUTH_GITHUB';
 
 // 默认套餐配置数据结构
 export interface DefaultSubscriptionConfig {

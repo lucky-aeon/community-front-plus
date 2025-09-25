@@ -5,6 +5,7 @@ import {
   UpdateSystemConfigRequest,
   UserSessionLimitConfigData
 } from '@shared/types';
+import type { GithubOAuthConfig } from '@shared/types/system';
 
 /**
  * 系统配置管理API服务
@@ -69,5 +70,19 @@ export class SystemConfigService {
    */
   static async updateUserSessionLimitConfig(data: UserSessionLimitConfigData): Promise<SystemConfigDTO> {
     return this.updateConfigByType('USER_SESSION_LIMIT', data);
+  }
+
+  /**
+   * 获取 GitHub OAuth 配置（OAUTH_GITHUB）
+   */
+  static async getGithubOAuthConfig(): Promise<SystemConfigDTO> {
+    return this.getConfigByType('OAUTH_GITHUB');
+  }
+
+  /**
+   * 更新 GitHub OAuth 配置（OAUTH_GITHUB）
+   */
+  static async updateGithubOAuthConfig(data: GithubOAuthConfig): Promise<SystemConfigDTO> {
+    return this.updateConfigByType('OAUTH_GITHUB', data);
   }
 }

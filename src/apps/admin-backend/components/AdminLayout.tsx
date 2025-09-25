@@ -66,6 +66,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         { id: 'users', name: '用户列表', icon: Users, path: '/dashboard/admin/users' },
         { id: 'sessions', name: '会话管理', icon: Smartphone, path: '/dashboard/admin/sessions' },
         { id: 'ip-ban', name: 'IP封禁', icon: Shield, path: '/dashboard/admin/ip-ban' },
+        { id: 'social-accounts', name: '三方账号', icon: Key, path: '/dashboard/admin/social-accounts' },
         { id: 'permissions', name: '权限管理', icon: ShieldCheck, path: '/dashboard/admin/permissions' },
         { id: 'orders', name: '订单管理', icon: Receipt, path: '/dashboard/admin/orders' },
         { id: 'subscription-plans', name: '套餐管理', icon: Package, path: '/dashboard/admin/subscription-plans' },

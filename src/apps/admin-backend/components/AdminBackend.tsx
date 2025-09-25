@@ -16,6 +16,7 @@ import { SettingsPage } from './SettingsPage';
 import { TestimonialsPage } from './TestimonialsPage';
 import { OrdersPage } from './OrdersPage';
 import { ResourcesPage } from './ResourcesPage';
+import { SocialAccountsPage } from './SocialAccountsPage';
 
 // 临时的占位页面组件
 const ComingSoonPage: React.FC<{ title: string }> = ({ title }) => (
@@ -41,6 +42,7 @@ export const AdminBackend: React.FC = () => {
         <Route path="/users" element={<UsersPage />} />
         <Route path="/sessions" element={<SessionsPage />} />
         <Route path="/ip-ban" element={<IpBanPage />} />
+        <Route path="/social-accounts" element={<SocialAccountsPage />} />
         <Route path="/permissions" element={<ComingSoonPage title="权限管理" />} />
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/subscription-plans" element={<SubscriptionPlansPage />} />
