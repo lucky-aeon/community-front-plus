@@ -37,7 +37,7 @@ export const RedeemCDKPage: React.FC = () => {
               onKeyDown={(e) => e.key === 'Enter' && handleRedeem()}
             />
           </div>
-          <Button onClick={handleRedeem} disabled={loading} className="w-full sm:w-auto">
+          <Button variant="honeySoft" onClick={handleRedeem} disabled={loading} className="w-full sm:w-auto">
             {loading ? '激活中...' : '立即激活'}
           </Button>
           <p className="text-xs text-warm-gray-500">提示：演示环境未接入接口，当前为前端示例流程</p>
@@ -46,4 +46,3 @@ export const RedeemCDKPage: React.FC = () => {
     </div>
   );
 };
-

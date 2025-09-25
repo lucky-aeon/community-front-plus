@@ -7,8 +7,15 @@ import { AppSubscriptionPlansService } from '@shared/services/api';
 import { PricingCard } from '@shared/components/business/PricingCard';
 import { PaymentModal } from '@shared/components/business/PaymentModal';
 import { cn } from '@shared/utils/cn';
+import { useAuth } from '@/context/AuthContext';
+import { MembershipBadge, type MembershipTier } from '@shared/components/ui/MembershipBadge';
+import { Button } from '@/components/ui/button';
+import { ROUTES } from '@shared/routes/routes';
+import { useNavigate } from 'react-router-dom';
 
 export const MembershipPage: React.FC = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [plans, setPlans] = useState<SubscriptionPlanDTO[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
@@ -64,6 +71,37 @@ export const MembershipPage: React.FC = () => {
         <h1 className="text-3xl font-bold text-gray-900">会员与套餐</h1>
         <p className="text-gray-600 mt-2">选择适合你的学习套餐，解锁更多专属内容</p>
       </div>
+
+      {/* 当前套餐概览 */}
+      {user?.currentSubscriptionPlanName && (
+        <Card className="p-5 mb-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <img src={user.avatar} alt={user.name} className="h-10 w-10 rounded-full object-cover" />
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">当前套餐</span>
+                  <MembershipBadge
+                    tier={(user.membershipTier || 'basic') as MembershipTier}
+                    size="sm"
+                    text={user.currentSubscriptionPlanName || undefined}
+                    level={user.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}
+                  />
+                </div>
+                <div className="text-xs text-gray-600 mt-1">
+                  生效：{user.currentSubscriptionStartTime ? new Date(user.currentSubscriptionStartTime as any).toLocaleString('zh-CN') : '-'}
+                  <span className="mx-2">|</span>
+                  到期：{user.currentSubscriptionEndTime ? new Date(user.currentSubscriptionEndTime as any).toLocaleString('zh-CN') : '-'}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button size="sm" onClick={() => navigate(ROUTES.USER_BACKEND_PROFILE)}>管理套餐</Button>
+              <Button size="sm" variant="honeySoft" onClick={() => navigate(ROUTES.REDEEM_CDK)}>兑换码兑换</Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">

@@ -41,7 +41,7 @@ export const RedeemCDKDialog: React.FC<RedeemCDKDialogProps> = ({ open, onOpenCh
             onChange={(e) => setCode(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
           />
-          <Button onClick={handleSubmit} disabled={loading}>
+          <Button variant="honeySoft" onClick={handleSubmit} disabled={loading}>
             {loading ? '激活中...' : '激活'}
           </Button>
         </div>
@@ -50,4 +50,3 @@ export const RedeemCDKDialog: React.FC<RedeemCDKDialogProps> = ({ open, onOpenCh
     </Dialog>
   );
 };
-

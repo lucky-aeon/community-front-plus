@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Eye, EyeOff, Bell, BellOff } from 'lucide-react';
+import { Save, Eye, EyeOff, Bell, BellOff, Crown, Calendar, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UserService } from '@shared/services/api';
@@ -8,9 +8,12 @@ import { UserDTO } from '@shared/types';
 import { useAuth } from '@/context/AuthContext';
 import { showToast } from '@shared/utils/toast';
 import { AvatarUpload } from '@shared/components/common/AvatarUpload';
+import { ROUTES } from '@shared/routes/routes';
+import { useNavigate } from 'react-router-dom';
 
 export const ProfileSettingsPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -360,6 +363,61 @@ export const ProfileSettingsPage: React.FC = () => {
                   : '您将不会收到邮箱通知'}
               </p>
             </div>
+          </Card>
+
+          {/* 会员与套餐 */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">会员与套餐</h3>
+            {(() => {
+              const planName = currentUserData?.currentSubscriptionPlanName || user?.currentSubscriptionPlanName;
+              const startRaw = currentUserData?.currentSubscriptionStartTime || (user?.currentSubscriptionStartTime as string | undefined);
+              const endRaw = currentUserData?.currentSubscriptionEndTime || (user?.currentSubscriptionEndTime as string | undefined);
+              const format = (v?: string | Date) => {
+                if (!v) return '-';
+                const d = typeof v === 'string' ? new Date(v) : v;
+                const t = d instanceof Date && !isNaN(d.getTime()) ? d : undefined;
+                return t ? t.toLocaleString('zh-CN') : String(v);
+              };
+              const now = Date.now();
+              const endMs = endRaw ? new Date(endRaw).getTime() : undefined;
+              const daysLeft = typeof endMs === 'number' ? Math.max(0, Math.floor((endMs - now) / 86400000)) : undefined;
+              const isActive = typeof endMs === 'number' ? endMs > now : false;
+              const level = (currentUserData?.currentSubscriptionPlanLevel || user?.currentSubscriptionPlanLevel) as number | undefined;
+              return (
+                <div className="space-y-4">
+                  <div className={`p-4 rounded-xl border ${isActive ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <Crown className={`h-5 w-5 ${isActive ? 'text-yellow-500' : 'text-gray-400'}`} />
+                        <span className="font-medium text-gray-900">{planName || '未订阅套餐'}</span>
+                        {level ? (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 border border-yellow-200">Lv.{level}</span>
+                        ) : null}
+                      </div>
+                      <span className={`text-xs px-2 py-0.5 rounded-full border ${isActive ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                        {isActive ? '活跃' : '已过期'}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-1 gap-2">
+                      <div className="flex items-center text-sm text-gray-700">
+                        <Calendar className="h-4 w-4 mr-2 text-gray-500" /> 生效时间：<span className="ml-1 font-medium">{format(startRaw)}</span>
+                      </div>
+                      <div className="flex items-center text-sm text-gray-700">
+                        <Calendar className="h-4 w-4 mr-2 text-gray-500" /> 到期时间：<span className="ml-1 font-medium">{format(endRaw)}</span>
+                      </div>
+                      <div className="flex items-center text-sm text-gray-700">
+                        <Clock className={`h-4 w-4 mr-2 ${!isActive ? 'text-gray-400' : daysLeft !== undefined && daysLeft <= 7 ? 'text-orange-500' : 'text-gray-500'}`} />
+                        剩余天数：<span className={`ml-1 font-medium ${!isActive ? 'text-gray-500' : daysLeft !== undefined && daysLeft <= 7 ? 'text-orange-600' : 'text-gray-900'}`}>{daysLeft !== undefined ? `${daysLeft} 天` : '-'}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button size="sm" variant="honeySoft" className="flex-1" onClick={() => navigate(ROUTES.MEMBERSHIP)}>续费 / 升级</Button>
+                    <Button size="sm" variant="honeySoft" className="flex-1" onClick={() => navigate(ROUTES.REDEEM_CDK)}>兑换码兑换</Button>
+                  </div>
+                </div>
+              );
+            })()}
           </Card>
 
           {/* 账户状态 */}

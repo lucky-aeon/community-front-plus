@@ -14,6 +14,7 @@ export const buttonVariants = cva(
         // 扩展变体
         primary: "bg-honey-500 text-white shadow hover:bg-honey-600",
         neutral: "border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50",
+        honeySoft: "bg-honey-100 text-honey-800 border border-honey-200 shadow-sm hover:bg-honey-200",
       },
       size: {
         default: "h-9 px-4 py-2",
@@ -28,4 +29,3 @@ export const buttonVariants = cva(
     },
   }
 );
-

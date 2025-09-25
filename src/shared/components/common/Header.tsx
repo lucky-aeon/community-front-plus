@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { User, Menu, X, LogOut } from 'lucide-react';
+import { User, Menu, X, LogOut, Crown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { MembershipBadge, type MembershipTier } from '@shared/components/ui/MembershipBadge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface HeaderProps {
   onAuthClick: () => void;
@@ -20,13 +21,45 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
 
   const getMembershipBadge = () => {
     if (!user || user.membershipTier === 'guest') return null;
+    const format = (v?: string | Date) => {
+      if (!v) return '-';
+      const d = typeof v === 'string' ? new Date(v) : v;
+      const t = d instanceof Date && !isNaN(d.getTime()) ? d : undefined;
+      return t ? t.toLocaleString('zh-CN') : String(v);
+    };
+    const end = user.currentSubscriptionEndTime as string | Date | undefined;
+    const endMs = end ? new Date(end as any).getTime() : undefined;
+    const daysLeft = typeof endMs === 'number' ? Math.max(0, Math.floor((endMs - Date.now()) / 86400000)) : undefined;
+    const isActive = typeof endMs === 'number' ? endMs > Date.now() : false;
     return (
-      <MembershipBadge
-        tier={user.membershipTier as MembershipTier}
-        size="sm"
-        text={user.currentSubscriptionPlanName || undefined}
-        level={user.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}
-      />
+      <Popover>
+        <PopoverTrigger asChild>
+          <div className="inline-flex">
+            <MembershipBadge
+              tier={user.membershipTier as MembershipTier}
+              size="sm"
+              text={user.currentSubscriptionPlanName || undefined}
+              level={user.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}
+            />
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-64">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Crown className="h-4 w-4 text-yellow-500" />
+                <span className="text-sm font-medium">{user.currentSubscriptionPlanName || '未订阅套餐'}</span>
+              </div>
+              <span className={`text-xs px-2 py-0.5 rounded-full border ${isActive ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                {isActive ? '活跃' : '已过期'}
+              </span>
+            </div>
+            <div className="text-xs text-gray-600">生效时间：<span className="font-medium">{format(user.currentSubscriptionStartTime as any)}</span></div>
+            <div className="text-xs text-gray-600">到期时间：<span className="font-medium">{format(end as any)}</span></div>
+            <div className="text-xs text-gray-600">剩余天数：<span className={`font-medium ${daysLeft !== undefined && daysLeft <= 7 ? 'text-orange-600' : ''}`}>{daysLeft !== undefined ? `${daysLeft} 天` : '-'}</span></div>
+          </div>
+        </PopoverContent>
+      </Popover>
     );
   };
 
