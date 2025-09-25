@@ -108,6 +108,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: ${{ secrets.SSH_PORT || 22 }}
           source: "dist/*"
           target: "${{ secrets.DEPLOY_BASE_DIR }}/releases/${{ github.run_id }}-${{ github.run_number }}"
@@ -118,6 +119,7 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
           port: ${{ secrets.SSH_PORT || 22 }}
           script: |
             set -euo pipefail
@@ -190,9 +192,9 @@ jobs:
 - [ ] 验证并重载：`sudo nginx -t && sudo systemctl reload nginx`
 
 4) 创建部署专用 SSH 凭据
-- [ ] 在本地或安全环境生成专用密钥对（推荐 Ed25519）：
+- [ ] 在本地或安全环境生成专用密钥对（推荐 Ed25519，CI 建议无口令）：
   ```bash
-  ssh-keygen -t ed25519 -C "github-actions qy-frontend" -f ~/.ssh/qy-frontend-deploy
+  ssh-keygen -t ed25519 -C "github-actions qy-frontend" -f ~/.ssh/qy-frontend-deploy -N ""
   ```
 - [ ] 将生成的公钥内容（`~/.ssh/qy-frontend-deploy.pub`）追加到服务器目标用户的 `~/.ssh/authorized_keys`。
 - [ ] 使用私钥本地测试连通性：
@@ -207,6 +209,8 @@ jobs:
 - [ ] `SSH_PORT`：端口号（默认 22，可不填）
 - [ ] `DEPLOY_BASE_DIR`：如 `/var/www/qiaoya-community-frontend`
 - [ ] `DEPLOY_PUBLIC_URL`：（可选）对外访问地址，Actions 环境页展示用（建议设为 Actions Variables，而非 Secrets）
+
+  说明：如果按上一步生成的是“无口令”部署私钥，则不需要配置 `SSH_PASSPHRASE`。若你坚持使用带口令密钥，请额外新增一个 Secret：`SSH_PASSPHRASE`（值为你的私钥口令），并在工作流中为 scp/ssh 步骤添加 `passphrase` 字段（见文末“带口令密钥（可选）”）。
 
   查看并复制私钥内容（用于粘贴到 `SSH_PRIVATE_KEY`）
   - 默认路径（按上文示例）：`~/.ssh/qy-frontend-deploy`
@@ -224,7 +228,31 @@ jobs:
       ```
   - 注意：
     - 粘贴的是私钥本体（无 `.pub` 后缀），第一行应为 `-----BEGIN OPENSSH PRIVATE KEY-----`。
-    - 若私钥设置了口令，需额外添加一个 Secret（如 `SSH_PASSPHRASE`），并在工作流的 `appleboy/*` 步骤里配置 `passphrase: ${{ secrets.SSH_PASSPHRASE }}`。
+    - 推荐 CI 使用“无口令”的专用私钥；如选择带口令，需额外添加 Secret（`SSH_PASSPHRASE`）并在工作流 scp/ssh 步骤里配置 `passphrase`。
+
+### 带口令密钥（可选）
+如你的私钥设置了口令，请：
+- 新增 Secret：`SSH_PASSPHRASE`
+- 在工作流相应步骤增加 `passphrase`（默认示例未包含）：
+```yaml
+      - name: Upload dist to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          # ...
+
+      - name: Activate release and cleanup
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          # ...
+```
 
 6) 校验工作流配置
 - [ ] 确认仓库存在文件：`.github/workflows/deploy-dev.yml`
