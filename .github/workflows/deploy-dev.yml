@@ -42,17 +42,7 @@ jobs:
           chmod 700 ~/.ssh
           ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Upload dist to server
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          source: "dist/*"
-          target: "${{ secrets.DEPLOY_BASE_DIR }}/releases/${{ github.run_id }}-${{ github.run_number }}"
-
-      - name: Activate release and cleanup
+      - name: Prepare target dir (dev)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -62,14 +52,16 @@ jobs:
           script: |
             set -euo pipefail
             BASE_DIR="${{ secrets.DEPLOY_BASE_DIR }}"
-            RELEASES_DIR="$BASE_DIR/releases"
-            CURRENT_LINK="$BASE_DIR/current"
-            NEW_RELEASE="$RELEASES_DIR/${{ github.run_id }}-${{ github.run_number }}"
-            mkdir -p "$RELEASES_DIR"
-            # 如果 dist 被上传为子目录，提取到发布根
-            if [ -d "$NEW_RELEASE/dist" ]; then mv "$NEW_RELEASE/dist"/* "$NEW_RELEASE" && rmdir "$NEW_RELEASE/dist" || true; fi
-            ln -sfn "$NEW_RELEASE" "$CURRENT_LINK"
-            # 保留最近 5 个版本
-            cd "$RELEASES_DIR"
-            ls -1t | tail -n +6 | xargs -r rm -rf
-            # 静态资源无需重启；如有后端或网关，可在此 reload/notify
+            mkdir -p "$BASE_DIR"
+            # 仅确保父目录存在，具体清理由 scp 动作的 rm 参数完成
+
+      - name: Upload dist to dev (overwrite)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          source: "dist/**"
+          target: "${{ secrets.DEPLOY_BASE_DIR }}/dev"
+          rm: true
