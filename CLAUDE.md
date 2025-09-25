@@ -60,7 +60,7 @@ npx tsc --noEmit
 ## 开发指南
 
 ### API 配置
-- 后端 API 代理：`/api` → `http://127.0.0.1:8080`
+- 后端 API 代理：`/api` → `http://127.0.0.1:8520`
 - API 客户端配置在：`src/shared/services/api/config.ts`
 - 自动处理 JWT token 认证和错误响应
 

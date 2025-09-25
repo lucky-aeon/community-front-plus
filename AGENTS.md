@@ -36,7 +36,6 @@
 - Keep changes focused; update docs when changing public APIs or routes.
 
 ## Security & Configuration Tips
-- API base is `/api`; Vite proxies to `http://127.0.0.1:8080` (edit `vite.config.ts`).
+- API base is `/api`; Vite proxies to `http://127.0.0.1:8520` (edit `vite.config.ts`).
 - Do not commit secrets; prefer `.env` files and configure the proxy target per environment.
 - Auth token is read from `localStorage`; avoid logging sensitive data.
-
