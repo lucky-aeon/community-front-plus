@@ -15,6 +15,7 @@ import { AdminUserService } from '@shared/services/api/admin-user.service';
 import { AdminUserDTO, AdminUserQueryRequest, PageResponse } from '@shared/types';
 import { showToast } from '@shared/utils/toast';
 import AdminPagination from '@shared/components/AdminPagination';
+import { getAvatarUrl } from '@shared/utils/avatar';
 
 export const UsersPage: React.FC = () => {
   const [users, setUsers] = useState<AdminUserDTO[]>([]);
@@ -255,7 +256,7 @@ export const UsersPage: React.FC = () => {
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <Avatar>
-                            <AvatarImage src={user.avatar} alt={user.name} />
+                            <AvatarImage src={getAvatarUrl(user.avatar)} alt={user.name} onError={(e) => { (e.target as HTMLImageElement).src = getAvatarUrl('/avatars/avatar_1.png'); }} />
                             <AvatarFallback>
                               {user.name.charAt(0).toUpperCase()}
                             </AvatarFallback>

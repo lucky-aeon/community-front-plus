@@ -3,6 +3,7 @@ import { User, Menu, X, LogOut, Crown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
 import { MembershipBadge, type MembershipTier } from '@shared/components/ui/MembershipBadge';
+import { getAvatarUrl } from '@shared/utils/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 interface HeaderProps {
@@ -94,9 +95,10 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
                   <img
-                    src={user.avatar}
+                    src={getAvatarUrl(user.avatar)}
                     alt={user.name}
                     className="h-8 w-8 rounded-full object-cover"
+                    onError={(e) => { e.currentTarget.src = getAvatarUrl('/avatars/avatar_1.png'); }}
                   />
                   <div className="hidden sm:block">
                     <p className="text-sm font-medium text-gray-900">{user.name}</p>

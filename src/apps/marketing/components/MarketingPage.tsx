@@ -9,11 +9,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { ExternalLink, Copy, CheckCircle2, MessageSquare, PlayCircle } from 'lucide-react';
 import { PaymentModal } from '@shared/components/business/PaymentModal';
+import { TermsModal, PrivacyModal } from '@shared/components/common/LegalModals';
 
 export const MarketingPage: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isTermsOpen, setIsTermsOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const year = new Date().getFullYear();
 
@@ -88,8 +91,12 @@ export const MarketingPage: React.FC = () => {
                     联系我们
                   </button>
                 </li>
-                <li><a href="#" className="hover:text-white transition-colors">条款</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">隐私</a></li>
+                <li>
+                  <button type="button" onClick={() => setIsTermsOpen(true)} className="hover:text-white transition-colors">条款</button>
+                </li>
+                <li>
+                  <button type="button" onClick={() => setIsPrivacyOpen(true)} className="hover:text-white transition-colors">隐私</button>
+                </li>
               </ul>
             </div>
           </div>
@@ -173,6 +180,8 @@ export const MarketingPage: React.FC = () => {
       />
 
       <PaymentModal open={isPaymentOpen} onOpenChange={setIsPaymentOpen} />
+      <TermsModal open={isTermsOpen} onOpenChange={setIsTermsOpen} />
+      <PrivacyModal open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen} />
     </div>
   );
 };

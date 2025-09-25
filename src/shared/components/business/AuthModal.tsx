@@ -9,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import { showToast } from '@shared/utils/toast';
 import { AuthService } from '@shared/services/api/auth.service';
 import { ROUTES } from '@shared/routes/routes';
+import { Checkbox } from '@/components/ui/checkbox';
+import { TermsModal, PrivacyModal } from '@shared/components/common/LegalModals';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -30,6 +32,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [cooldown, setCooldown] = useState(0); // seconds left
 
   const { login, registerWithCode, sendRegisterCode, isLoading } = useAuth();
+  const [agree, setAgree] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen && emailInputRef.current) {
@@ -65,6 +70,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         // 仅当确认已登录成功（token 与 user 已写入）时才关闭弹窗
         if (!AuthService.isLoggedIn()) return;
       } else {
+        if (!agree) {
+          showToast.error('请先阅读并同意《服务条款》和《隐私政策》');
+          return;
+        }
         if (!formData.code) {
           showToast.error('请输入邮箱验证码');
           return;
@@ -295,6 +304,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </>
           )}
 
+          {/* 条款勾选（注册态） */}
+          {!isLogin && (
+            <div className="flex items-start gap-2 text-sm text-gray-600">
+              <Checkbox id="agree-terms" checked={agree} onCheckedChange={(v) => setAgree(Boolean(v))} />
+              <label htmlFor="agree-terms" className="select-none">
+                我已阅读并同意
+                <button type="button" onClick={() => setTermsOpen(true)} className="text-honey-600 hover:underline mx-1">《服务条款》</button>
+                和
+                <button type="button" onClick={() => setPrivacyOpen(true)} className="text-honey-600 hover:underline mx-1">《隐私政策》</button>
+              </label>
+            </div>
+          )}
+
           <Button
             type="submit"
             className="w-full bg-gradient-to-r from-honey-500 to-honey-600 hover:from-honey-600 hover:to-honey-700 text-white shadow-lg"
@@ -305,6 +327,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             {isLogin ? '登录' : '创建账户'}
           </Button>
         </form>
+
+        {/* 登录态的条款提示 */}
+        {isLogin && (
+          <div className="mt-3 text-center text-xs text-gray-500">
+            登录即表示你已阅读并同意
+            <button type="button" onClick={() => setTermsOpen(true)} className="text-honey-600 hover:underline mx-1">《服务条款》</button>
+            和
+            <button type="button" onClick={() => setPrivacyOpen(true)} className="text-honey-600 hover:underline mx-1">《隐私政策》</button>
+          </div>
+        )}
 
         <div className="mt-4 text-center">
           <p className="text-sm text-gray-600">
@@ -318,6 +350,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           </p>
         </div>
       </DialogContent>
+      {/* 条款/隐私弹窗 */}
+      <TermsModal open={termsOpen} onOpenChange={setTermsOpen} />
+      <PrivacyModal open={privacyOpen} onOpenChange={setPrivacyOpen} />
     </Dialog>
   );
 };

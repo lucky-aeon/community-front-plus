@@ -22,6 +22,7 @@ import { MembershipBadge, type MembershipTier } from '@shared/components/ui/Memb
 import { UserService } from '@shared/services/api';
 import type { UserDTO } from '@shared/types';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
+import { getAvatarUrl } from '@shared/utils/avatar';
 
 interface UserBackendLayoutProps {
   children: React.ReactNode;
@@ -136,9 +137,10 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <img
-              src={user?.avatar}
-              alt={user?.name}
+              src={getAvatarUrl(user?.avatar)}
+              alt={user?.name || ''}
               className="h-12 w-12 rounded-full object-cover"
+              onError={(e) => { e.currentTarget.src = getAvatarUrl('/avatars/avatar_1.png'); }}
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">

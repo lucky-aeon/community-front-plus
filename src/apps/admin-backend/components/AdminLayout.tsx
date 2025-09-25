@@ -33,6 +33,7 @@ import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarSection, 
 // ScrollArea is not used currently
 // import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@shared/utils/cn';
+import { getAvatarUrl } from '@shared/utils/avatar';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -119,7 +120,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
             {/* User */}
             <div className={`px-2 pb-3 ${isCollapsed ? 'text-center' : ''}`}>
               <div className="flex items-center gap-3">
-                <img src={user?.avatar} alt={user?.name} className={`rounded-full object-cover shrink-0 ${isCollapsed ? 'h-8 w-8 mx-auto' : 'h-10 w-10'}`} />
+                <img src={getAvatarUrl(user?.avatar)} alt={user?.name || ''} className={`rounded-full object-cover shrink-0 ${isCollapsed ? 'h-8 w-8 mx-auto' : 'h-10 w-10'}`} onError={(e) => { e.currentTarget.src = getAvatarUrl('/avatars/avatar_1.png'); }} />
                 {!isCollapsed && (
                   <div className="min-w-0">
                     <div className="text-sm font-medium truncate">{user?.name}</div>
