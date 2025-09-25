@@ -15,8 +15,8 @@ concurrency:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    # PR 必须处于 merged 状态才会部署；push 到 dev 也会部署
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
+    # 支持 push、PR merged 以及手动触发（workflow_dispatch）
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     environment:
       name: dev
       url: ${{ secrets.DEPLOY_PUBLIC_URL }}
