@@ -214,6 +214,7 @@ export const UsersPage: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="min-w-[100px]">用户ID</TableHead>
                   <TableHead className="min-w-[250px]">用户信息</TableHead>
                   <TableHead className="min-w-[80px]">状态</TableHead>
                   <TableHead className="min-w-[80px]">设备数</TableHead>
@@ -226,6 +227,7 @@ export const UsersPage: React.FC = () => {
                   // 加载状态骨架屏
                   Array.from({ length: 5 }).map((_, index) => (
                     <TableRow key={index}>
+                      <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <Skeleton className="h-10 w-10 rounded-full" />
@@ -244,7 +246,7 @@ export const UsersPage: React.FC = () => {
                 ) : users.length === 0 ? (
                   // 空数据状态
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                       暂无用户数据
                     </TableCell>
                   </TableRow>
@@ -252,6 +254,11 @@ export const UsersPage: React.FC = () => {
                   // 用户数据行
                   users.map((user) => (
                     <TableRow key={user.id}>
+                      <TableCell>
+                        <span className="font-mono text-sm text-muted-foreground">
+                          {user.id}
+                        </span>
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
                           <Avatar>
