@@ -31,7 +31,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const emailInputRef = useRef<HTMLInputElement>(null);
   const [cooldown, setCooldown] = useState(0); // seconds left
 
-  const { login, registerWithCode, sendRegisterCode, isLoading } = useAuth();
+  const { login, registerOnly, sendRegisterCode, isLoading } = useAuth();
   const [agree, setAgree] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
@@ -67,8 +67,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           return;
         }
         await login(formData.email, formData.password);
-        // 仅当确认已登录成功（token 与 user 已写入）时才关闭弹窗
+        // 仅当确认已登录成功（token 与 user 已写入）时才导航
         if (!AuthService.isLoggedIn()) return;
+        navigate(ROUTES.DASHBOARD_HOME);
       } else {
         if (!agree) {
           showToast.error('请先阅读并同意《服务条款》和《隐私政策》');
@@ -90,10 +91,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           showToast.error('两次输入的密码不一致');
           return;
         }
-        await registerWithCode(formData.email, formData.code, formData.password);
-        // 注册成功：确认写入后导航至首页
-        if (!AuthService.isLoggedIn()) return;
-        navigate(ROUTES.DASHBOARD_HOME);
+        await registerOnly(formData.email, formData.code, formData.password);
+        showToast.success('注册成功，请使用邮箱与密码登录');
+        // 切换到登录表单并回填邮箱，不关闭弹窗
+        setIsLogin(true);
+        setFormData(prev => ({ email: prev.email, password: '', confirmPassword: '', code: '' }));
+        setCooldown(0);
+        return; // 保持弹窗打开，等待用户登录
       }
       onClose();
       setFormData({ email: '', password: '', confirmPassword: '', code: '' });
@@ -307,7 +311,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           {/* 条款勾选（注册态） */}
           {!isLogin && (
             <div className="flex items-start gap-2 text-sm text-gray-600">
-              <Checkbox id="agree-terms" checked={agree} onCheckedChange={(v) => setAgree(Boolean(v))} />
+              <Checkbox
+                id="agree-terms"
+                checked={agree}
+                onCheckedChange={(v) => setAgree(Boolean(v))}
+                className="mt-0.5 h-4 w-4 rounded border-gray-300 data-[state=checked]:bg-honey-500 data-[state=checked]:border-honey-500 data-[state=checked]:text-white"
+              />
               <label htmlFor="agree-terms" className="select-none">
                 我已阅读并同意
                 <button type="button" onClick={() => setTermsOpen(true)} className="text-honey-600 hover:underline mx-1">《服务条款》</button>

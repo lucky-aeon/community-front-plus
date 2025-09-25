@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, MessageSquare, CheckCircle } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -150,11 +151,10 @@ export const PostDetailPage: React.FC = () => {
           <Card className="p-4">
             <h3 className="font-semibold text-gray-900 mb-3">作者信息</h3>
             <div className="flex flex-col items-center text-center space-y-3">
-              <img
-                src={post.authorAvatar || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`}
-                alt={post.authorName}
-                className="h-16 w-16 rounded-full object-cover"
-              />
+              <Avatar className="h-16 w-16">
+                <AvatarImage src={post.authorAvatar || undefined} alt={post.authorName} />
+                <AvatarFallback>{(post.authorName || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
+              </Avatar>
               <div className="space-y-2">
                 <h4 className="font-medium text-gray-900">{post.authorName}</h4>
                 {post.authorDescription && (
@@ -204,11 +204,10 @@ export const PostDetailPage: React.FC = () => {
             {/* Post Header */}
             <div className="flex items-start justify-between mb-6">
               <div className="flex items-center space-x-4">
-                <img
-                  src={post.authorAvatar || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`}
-                  alt={post.authorName}
-                  className="h-12 w-12 rounded-full object-cover"
-                />
+                <Avatar className="h-12 w-12">
+                  <AvatarImage src={post.authorAvatar || undefined} alt={post.authorName} />
+                  <AvatarFallback>{(post.authorName || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
+                </Avatar>
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
                     <h3 className="font-semibold text-gray-900">{post.authorName}</h3>

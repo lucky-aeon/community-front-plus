@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarSection, SidebarSectionTitle } from '@/components/ui/sidebar';
 import { MembershipBadge, type MembershipTier } from '@shared/components/ui/MembershipBadge';
-import { getAvatarUrl } from '@shared/utils/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -58,7 +58,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             {/* User card */}
             <div className={`px-2 pb-3 ${isCollapsed ? 'text-center' : ''}`}>
               <div className="flex items-center gap-3">
-                <img src={getAvatarUrl(user?.avatar)} alt={user?.name || ''} className={`rounded-full object-cover shrink-0 ${isCollapsed ? 'h-8 w-8 mx-auto' : 'h-10 w-10'}`} onError={(e) => { e.currentTarget.src = getAvatarUrl('/avatars/avatar_1.png'); }} />
+                <Avatar className={`${isCollapsed ? 'h-8 w-8 mx-auto' : 'h-10 w-10'} shrink-0`}>
+                  <AvatarImage src={user?.avatar || undefined} alt={user?.name || ''} />
+                  <AvatarFallback>{(user?.name || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
+                </Avatar>
                 {!isCollapsed && (
                   <div className="min-w-0">
                     <div className="text-sm font-medium truncate">{user?.name}</div>

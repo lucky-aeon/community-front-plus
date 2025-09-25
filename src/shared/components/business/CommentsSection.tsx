@@ -9,6 +9,7 @@ import { LoadingPage as LoadingSpinner } from '@shared/components/common/Loading
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { CommentsService } from '@shared/services/api';
 import { CommentDTO, User, BusinessType } from '@shared/types';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface CommentsSectionProps {
   businessId: string;
@@ -226,11 +227,10 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
           {comments.map((comment) => (
             <div key={comment.id} className="border-b border-gray-100 pb-6 last:border-b-0">
               <div className="flex items-start space-x-4">
-                <img
-                  src={comment.commentUserAvatar || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`}
-                  alt={comment.commentUserName}
-                  className="h-10 w-10 rounded-full object-cover flex-shrink-0"
-                />
+                <Avatar className="h-10 w-10 flex-shrink-0">
+                  <AvatarImage src={comment.commentUserAvatar || undefined} alt={comment.commentUserName} />
+                  <AvatarFallback>{(comment.commentUserName || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
+                </Avatar>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-2">
@@ -316,11 +316,10 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
                   {replyingTo === comment.id && currentUser && (
                     <div className="mt-4 ml-4 pl-4 border-l-2 border-gray-200">
                       <div className="flex items-start space-x-3">
-                        <img
-                          src={currentUser.avatar || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`}
-                          alt={currentUser.name}
-                          className="h-8 w-8 rounded-full object-cover flex-shrink-0 mt-1"
-                        />
+                        <Avatar className="h-8 w-8 flex-shrink-0 mt-1">
+                          <AvatarImage src={currentUser.avatar || undefined} alt={currentUser.name} />
+                          <AvatarFallback>{(currentUser.name || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
+                        </Avatar>
                         <div className="flex-1">
                           <div className="mb-2">
                             <div className="text-sm text-gray-600 mb-2">

@@ -32,7 +32,7 @@ import { ROUTES } from '@shared/routes/routes';
 import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
 import { UserService } from '@shared/services/api';
 import type { UserDTO } from '@shared/types';
-import { getAvatarUrl } from '@shared/utils/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 interface TopNavigationProps {
   className?: string;
@@ -203,12 +203,10 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                         isUserMenuOpen && "bg-honey-50"
                       )}
                     >
-                      <img
-                        src={getAvatarUrl(user.avatar)}
-                        alt={user.name}
-                        className="h-8 w-8 rounded-full object-cover ring-2 ring-white shadow-sm"
-                        onError={(e) => { e.currentTarget.src = getAvatarUrl('/avatars/avatar_1.png'); }}
-                      />
+                      <Avatar className="h-8 w-8 ring-2 ring-white shadow-sm">
+                        <AvatarImage src={user.avatar || undefined} alt={user.name} />
+                        <AvatarFallback>{(user.name || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
+                      </Avatar>
                       {/* 顶部导航不再展示会员徽章，避免与下拉菜单重复 */}
                       <div className="hidden sm:block text-left">
                         <p className="text-sm font-medium text-gray-900 leading-tight">{user.name}</p>
@@ -220,7 +218,10 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                     {/* 用户卡片（信息展示） */}
                     <div className="px-4 py-3 bg-white">
                       <div className="flex items-center gap-3">
-                        <img src={getAvatarUrl(user.avatar)} alt={user.name} className="h-10 w-10 rounded-full object-cover" onError={(e) => { e.currentTarget.src = getAvatarUrl('/avatars/avatar_1.png'); }} />
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={user.avatar || undefined} alt={user.name} />
+                          <AvatarFallback>{(user.name || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
+                        </Avatar>
                         <div className="min-w-0">
                           <div className="text-sm font-medium text-gray-900 truncate">{user.name}</div>
                           <div className="text-xs text-warm-gray-500 truncate">{user.email}</div>

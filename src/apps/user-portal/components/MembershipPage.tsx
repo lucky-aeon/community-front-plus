@@ -12,7 +12,7 @@ import { MembershipBadge, type MembershipTier } from '@shared/components/ui/Memb
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@shared/routes/routes';
 import { useNavigate } from 'react-router-dom';
-import { getAvatarUrl } from '@shared/utils/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 export const MembershipPage: React.FC = () => {
   const { user } = useAuth();
@@ -78,7 +78,10 @@ export const MembershipPage: React.FC = () => {
         <Card className="p-5 mb-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex items-center gap-3">
-              <img src={getAvatarUrl(user.avatar)} alt={user.name} className="h-10 w-10 rounded-full object-cover" onError={(e) => { e.currentTarget.src = getAvatarUrl('/avatars/avatar_1.png'); }} />
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={user.avatar || undefined} alt={user.name} />
+                <AvatarFallback>{(user.name || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
+              </Avatar>
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500">当前套餐</span>

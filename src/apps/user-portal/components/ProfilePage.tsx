@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/context/AuthContext';
 import { membershipPlans } from '@shared/constants/mockData';
-import { getAvatarUrl } from '@shared/utils/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 export const ProfilePage: React.FC = () => {
   const { user } = useAuth();
@@ -106,12 +106,10 @@ export const ProfilePage: React.FC = () => {
 
             <div className="flex items-center space-x-6 mb-6">
               <div className="relative">
-                <img
-                  src={getAvatarUrl(user?.avatar)}
-                  alt={user?.name}
-                  className="h-20 w-20 rounded-full object-cover"
-                  onError={(e) => { e.currentTarget.src = getAvatarUrl('/avatars/avatar_1.png'); }}
-                />
+                <Avatar className="h-20 w-20">
+                  <AvatarImage src={user?.avatar || undefined} alt={user?.name} />
+                  <AvatarFallback>{(user?.name || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
+                </Avatar>
                 <div className="absolute -bottom-1 -right-1">
                   <MembershipBadge
                     tier={(user?.membershipTier || 'basic') as MembershipTier}

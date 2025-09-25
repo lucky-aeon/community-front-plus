@@ -15,6 +15,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@shared/utils/cn';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { FrontPostDTO, PageResponse } from '@shared/types';
 
 interface ContentItem {
@@ -238,11 +239,10 @@ export const RecentContent: React.FC<RecentContentProps> = ({
                   <div className="sm:col-span-2 flex items-center justify-between pt-4 mt-2 border-t border-gray-100">
                     {/* Author */}
                     <div className="flex items-center gap-3">
-                      <img
-                        src={item.author.avatar || undefined}
-                        alt={item.author.name}
-                        className="h-8 w-8 rounded-full object-cover"
-                      />
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={item.author.avatar || undefined} alt={item.author.name} />
+                        <AvatarFallback>{(item.author.name || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
+                      </Avatar>
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-gray-900">
                           {item.author.name}
