@@ -1,8 +1,8 @@
 # 前端项目 CI/CD 技术方案（Dev 单目录、Prod Tag 部署）
 
 本文档描述：
-- Dev：当 `dev` 分支 push 或合并 PR 后，自动构建并“覆盖式”发布到服务器 `dev` 目录（单目录，不做回滚）。
-- Prod：当推送 Tag（如 `v1.0.0`）或手动指定 Tag 时，自动构建并覆盖发布到 `prod` 目录；回滚=重新部署旧 Tag。
+- Dev：当 `dev` 分支 push 或合并 PR 后，自动构建并“覆盖式”发布到服务器 `dev` 目录（单目录，不做回滚）。采用 rsync 同步、排除 `.user.ini`。
+- Prod：当推送 Tag（如 `v1.0.0`）或手动指定 Tag 时，自动构建并覆盖发布到 `prod` 目录；回滚=重新部署旧 Tag。采用 rsync 同步、排除 `.user.ini`。
 方案基于 GitHub Actions + SSH（scp）上传 + Nginx 静态托管。
 
 ## 目标与边界
@@ -80,7 +80,7 @@ server {
 仓库文件：`.github/workflows/deploy-dev.yml`
 
 主要步骤：
-- checkout → setup-node → npm ci → npm run build → 覆盖上传到 `${DEPLOY_BASE_DIR}/dev`
+- checkout → setup-node → npm ci → npm run build → 上传至临时目录 → rsync 到 `${DEPLOY_BASE_DIR}/dev`（`--exclude='.user.ini'`）
 
 关键片段（预览）：
 ```yaml
@@ -119,7 +119,7 @@ jobs:
         run: |
           ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Prepare target dir (dev)
+      - name: Prepare tmp dir (dev)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -129,9 +129,8 @@ jobs:
           script: |
             set -euo pipefail
             BASE_DIR="${{ secrets.DEPLOY_BASE_DIR }}"
-            TARGET_DIR="$BASE_DIR/dev"
-            mkdir -p "$BASE_DIR"
-            rm -rf "$TARGET_DIR" && mkdir -p "$TARGET_DIR"
+            TMP_DIR="$BASE_DIR/.tmp_dev_${{ github.run_id }}_${{ github.run_number }}"
+            mkdir -p "$TMP_DIR"
 
       - name: Upload dist to tmp (dev)
         uses: appleboy/scp-action@v0.1.7
@@ -144,7 +143,7 @@ jobs:
           target: "${{ secrets.DEPLOY_BASE_DIR }}/.tmp_dev_${{ github.run_id }}_${{ github.run_number }}"
           rm: false
 
-      - name: Activate new version (safe swap)
+      - name: Sync tmp to target (rsync, keep .user.ini)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -156,16 +155,21 @@ jobs:
             BASE_DIR="${{ secrets.DEPLOY_BASE_DIR }}"
             TARGET_DIR="$BASE_DIR/dev"
             TMP_DIR="$BASE_DIR/.tmp_dev_${{ github.run_id }}_${{ github.run_number }}"
-            BAK_DIR="$BASE_DIR/.bak_dev_${{ github.run_id }}_${{ github.run_number }}"
             case "$TARGET_DIR" in
               "$BASE_DIR"/dev) ;;
               *) echo "Refuse to touch unexpected target: $TARGET_DIR" >&2; exit 1;;
             esac
             test -d "$TMP_DIR" || { echo "tmp missing: $TMP_DIR" >&2; exit 1; }
             if [ -d "$TMP_DIR/dist" ]; then mv "$TMP_DIR/dist"/* "$TMP_DIR" && rmdir "$TMP_DIR/dist" || true; fi
-            if [ -d "$TARGET_DIR" ]; then mv "$TARGET_DIR" "$BAK_DIR"; fi
-            mv "$TMP_DIR" "$TARGET_DIR"
-            rm -rf "$BAK_DIR"
+            mkdir -p "$TARGET_DIR"
+            if command -v rsync >/dev/null 2>&1; then
+              rsync -a --delete --exclude='.user.ini' "$TMP_DIR"/ "$TARGET_DIR"/
+            else
+              echo "WARN: rsync not found, fallback to copy" >&2
+              find "$TARGET_DIR" -mindepth 1 -not -name '.user.ini' -exec rm -rf {} +
+              cp -a "$TMP_DIR"/. "$TARGET_DIR"/
+            fi
+            rm -rf "$TMP_DIR"
 ```
 
 ## 生产部署（按 Tag 单目录覆盖）
@@ -301,7 +305,7 @@ jobs:
 7) 首次手动执行部署（验证全链路，Dev）
 - [ ] 打开 GitHub 仓库 → Actions → 选择 "Deploy Dev" → "Run workflow"。
 - [ ] 在 Branch 下拉选择 `dev`（默认多为 `main`，需手动改为 `dev`）。
-- [ ] 观察日志：应依次完成 `Install deps`、`Build`、`Add known_hosts`、`Prepare tmp dir (dev)`、`Upload dist to tmp (dev)`、`Activate new version (safe swap)`。
+- [ ] 观察日志：应依次完成 `Install deps`、`Build`、`Add known_hosts`、`Prepare tmp dir (dev)`、`Upload dist to tmp (dev)`、`Sync tmp to target (rsync, keep .user.ini)`。
 - [ ] 服务器检查：
   ```bash
   ls -l /var/www/qiaoya-community-frontend/dev | head
@@ -330,3 +334,6 @@ jobs:
 - 使用自托管 Runner（私有网络部署、更快依赖下载）。
 - 以 `rsync` 方式上传（仅增量变更），可替换为 `appleboy/ssh-action` + `rsync` 命令。
 - 调整保留版本数（默认 5 个）：修改工作流中清理命令 `tail -n +6`。
+- 服务器需安装 rsync（若无，脚本会回退到删除非 `.user.ini` 内容后复制，但推荐安装 rsync）：
+  - Ubuntu/Debian：`sudo apt-get update && sudo apt-get install -y rsync`
+  - CentOS/RHEL：`sudo yum install -y rsync`
