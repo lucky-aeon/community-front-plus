@@ -76,8 +76,6 @@ export const ProfileSettingsPage: React.FC = () => {
 
       // 如果用户服务支持单独更新头像，可以调用
       // await UserService.updateAvatar(avatarAccessUrl);
-
-      showToast.success('头像上传成功');
     } catch (error) {
       console.error('更新头像失败:', error);
       showToast.error('头像上传成功，但更新失败，请刷新页面');

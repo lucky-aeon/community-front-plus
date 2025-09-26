@@ -401,7 +401,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
                   <span>
                     {isSubmitting
                       ? (isEditMode ? '保存中...' : '保存中...')
-                      : (isEditMode ? '保存更新' : '保存草稿')
+                      : (isEditMode ? '保存更新' : '发布文章')
                     }
                   </span>
                 </Button>
