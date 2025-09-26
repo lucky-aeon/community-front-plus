@@ -1192,6 +1192,9 @@ export type CDKType = 'SUBSCRIPTION_PLAN' | 'COURSE';
 // CDK状态枚举
 export type CDKStatus = 'ACTIVE' | 'USED' | 'DISABLED';
 
+// CDK获取方式枚举
+export type CDKAcquisitionType = 'PURCHASE' | 'GIFT';
+
 // CDK数据传输对象
 export interface CDKDTO {
   id: string;                          // CDK ID
@@ -1203,6 +1206,8 @@ export interface CDKDTO {
   status: CDKStatus;                   // CDK状态
   usedByUserId?: string;               // 使用者用户ID（已使用时才有值）
   usedTime?: string;                   // 使用时间（已使用时才有值）
+  acquisitionType: CDKAcquisitionType; // 获取方式
+  remark?: string;                     // 备注（可选）
   createTime: string;                  // 创建时间
   updateTime: string;                  // 更新时间
 }
@@ -1212,6 +1217,8 @@ export interface CreateCDKRequest {
   cdkType: CDKType;                    // CDK类型，必填
   targetId: string;                    // 目标ID，必填
   quantity: number;                    // 生成数量，必填，1-100
+  acquisitionType: CDKAcquisitionType; // 获取方式，必填
+  remark?: string;                     // 备注，可选，最多500字符
 }
 
 // CDK查询请求参数
@@ -1221,6 +1228,7 @@ export interface CDKQueryRequest {
   cdkType?: CDKType;                   // CDK类型筛选，可选
   targetId?: string;                   // 目标ID筛选，可选
   status?: CDKStatus;                  // 状态筛选，可选
+  acquisitionType?: CDKAcquisitionType; // 获取方式筛选，可选
 }
 
 // ================ 系统配置管理相关接口定义 ================

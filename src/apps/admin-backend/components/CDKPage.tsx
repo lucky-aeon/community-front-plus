@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { RefreshCw, Plus, Trash2, Copy, Search, XCircle } from 'lucide-react';
 
@@ -20,6 +21,7 @@ import type {
   CreateCDKRequest,
   CDKType,
   CDKStatus,
+  CDKAcquisitionType,
   PageResponse,
   SimpleSubscriptionPlanDTO,
   SimpleCourseDTO,
@@ -32,6 +34,7 @@ type FilterState = {
   cdkType?: CDKType;
   status?: CDKStatus;
   targetId?: string;
+  acquisitionType?: CDKAcquisitionType;
 };
 
 export const CDKPage: React.FC = () => {
@@ -53,9 +56,19 @@ export const CDKPage: React.FC = () => {
     cdkType: CDKType | '';
     targetId: string;
     quantity: string;
+    acquisitionType: CDKAcquisitionType | '';
+    remark: string;
     result?: CDKDTO[];
     copyingBatch?: boolean;
-  }>({ open: false, submitting: false, cdkType: '', targetId: '', quantity: '1' });
+  }>({
+    open: false,
+    submitting: false,
+    cdkType: '',
+    targetId: '',
+    quantity: '1',
+    acquisitionType: 'PURCHASE',
+    remark: ''
+  });
 
   const loadTargets = useCallback(async (type: CDKType) => {
     try {
@@ -83,6 +96,7 @@ export const CDKPage: React.FC = () => {
         ...(filters.cdkType && { cdkType: filters.cdkType }),
         ...(filters.status && { status: filters.status }),
         ...(filters.targetId && { targetId: filters.targetId }),
+        ...(filters.acquisitionType && { acquisitionType: filters.acquisitionType }),
       };
       const res: PageResponse<CDKDTO> = await CDKService.getPagedCDKs(req);
       setCdks(res.records);
@@ -96,7 +110,7 @@ export const CDKPage: React.FC = () => {
 
   useEffect(() => {
     loadCdks();
-  }, [filters.pageNum, filters.pageSize, filters.cdkType, filters.status, filters.targetId, loadCdks]);
+  }, [filters.pageNum, filters.pageSize, filters.cdkType, filters.status, filters.targetId, filters.acquisitionType, loadCdks]);
 
   const handleReset = () => setFilters({ pageNum: 1, pageSize: 10 });
   const handlePageChange = (page: number) => setFilters(prev => ({ ...prev, pageNum: page }));
@@ -119,16 +133,38 @@ export const CDKPage: React.FC = () => {
 
   // 创建
   const openCreate = () => {
-    setCreateDialog({ open: true, submitting: false, cdkType: '', targetId: '', quantity: '1', result: undefined });
+    setCreateDialog({
+      open: true,
+      submitting: false,
+      cdkType: '',
+      targetId: '',
+      quantity: '1',
+      acquisitionType: 'PURCHASE',
+      remark: '',
+      result: undefined
+    });
   };
   const submitCreate = async () => {
-    const { cdkType, targetId, quantity } = createDialog;
+    const { cdkType, targetId, quantity, acquisitionType, remark } = createDialog;
+
     if (!cdkType) return showToast.error('请选择CDK类型');
     if (!targetId) return showToast.error('请选择绑定目标');
+    if (!acquisitionType) return showToast.error('请选择获取方式');
+
     const qty = parseInt(quantity || '0', 10);
     if (!Number.isInteger(qty) || qty < 1 || qty > 100) return showToast.error('数量取值范围 1-100');
 
-    const payload: CreateCDKRequest = { cdkType, targetId, quantity: qty };
+    // 备注长度验证
+    if (remark && remark.length > 500) return showToast.error('备注长度不能超过500字符');
+
+    const payload: CreateCDKRequest = {
+      cdkType,
+      targetId,
+      quantity: qty,
+      acquisitionType,
+      ...(remark.trim() && { remark: remark.trim() })
+    };
+
     try {
       setCreateDialog(prev => ({ ...prev, submitting: true }));
       const created = await CDKService.createCDK(payload);
@@ -155,12 +191,18 @@ export const CDKPage: React.FC = () => {
     return <Badge variant={variant}>{text}</Badge>;
   };
 
+  const acquisitionTypeBadge = (type: CDKAcquisitionType) => {
+    const variant: 'default' | 'secondary' = type === 'PURCHASE' ? 'default' : 'secondary';
+    const text = type === 'PURCHASE' ? '购买' : '赠送';
+    return <Badge variant={variant}>{text}</Badge>;
+  };
+
   return (
     <div className="h-full flex flex-col">
       <Card>
         <CardContent className="pt-6">
           {/* 筛选行 */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 mb-3 min-w-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 mb-3 min-w-0">
             <Select
                 value={filters.cdkType || 'all'}
                 onValueChange={(v) => {
@@ -203,6 +245,17 @@ export const CDKPage: React.FC = () => {
                   <SelectItem value="DISABLED">已禁用</SelectItem>
                 </SelectContent>
               </Select>
+            <Select
+                value={filters.acquisitionType || 'all'}
+                onValueChange={(v) => setFilters(prev => ({ ...prev, acquisitionType: v === 'all' ? undefined : (v as CDKAcquisitionType), pageNum: 1 }))}
+              >
+                <SelectTrigger><SelectValue placeholder="获取方式" /></SelectTrigger>
+                <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+                  <SelectItem value="all">全部</SelectItem>
+                  <SelectItem value="PURCHASE">购买</SelectItem>
+                  <SelectItem value="GIFT">赠送</SelectItem>
+                </SelectContent>
+              </Select>
           </div>
           {/* 操作按钮行：左生成，右重置/刷新/查询 */}
           <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
@@ -231,9 +284,11 @@ export const CDKPage: React.FC = () => {
                   <TableHead className="min-w-[80px]">类型</TableHead>
                   <TableHead className="min-w-[160px]">目标</TableHead>
                   <TableHead className="min-w-[100px]">状态</TableHead>
+                  <TableHead className="min-w-[100px]">获取方式</TableHead>
                   <TableHead className="min-w-[140px]">使用者</TableHead>
                   <TableHead className="min-w-[160px]">使用时间</TableHead>
                   <TableHead className="min-w-[160px]">创建时间</TableHead>
+                  <TableHead className="min-w-[120px]">备注</TableHead>
                   <TableHead className="text-right min-w-[140px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
@@ -241,14 +296,14 @@ export const CDKPage: React.FC = () => {
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      {Array.from({ length: 8 }).map((__, j) => (
+                      {Array.from({ length: 10 }).map((__, j) => (
                         <TableCell key={j}><Skeleton className="h-4 w-[120px]" /></TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : cdks.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center text-muted-foreground py-8">暂无数据</TableCell>
+                    <TableCell colSpan={10} className="text-center text-muted-foreground py-8">暂无数据</TableCell>
                   </TableRow>
                 ) : (
                   cdks.map(item => (
@@ -257,9 +312,11 @@ export const CDKPage: React.FC = () => {
                       <TableCell>{item.cdkType === 'SUBSCRIPTION_PLAN' ? '套餐' : '课程'}</TableCell>
                       <TableCell>{item.targetName}</TableCell>
                       <TableCell>{statusBadge(item.status)}</TableCell>
+                      <TableCell>{acquisitionTypeBadge(item.acquisitionType)}</TableCell>
                       <TableCell className="text-xs">{item.usedByUserId || '-'}</TableCell>
                       <TableCell className="text-xs">{item.usedTime ? new Date(item.usedTime).toLocaleString('zh-CN') : '-'}</TableCell>
                       <TableCell className="text-xs">{new Date(item.createTime).toLocaleString('zh-CN')}</TableCell>
+                      <TableCell className="text-xs max-w-[120px] truncate" title={item.remark || ''}>{item.remark || '-'}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="outline" size="sm" onClick={() => copyCodes([item.code])}>
@@ -321,7 +378,16 @@ export const CDKPage: React.FC = () => {
       {/* 创建对话框 */}
       <Dialog open={createDialog.open} onOpenChange={(open) => {
         if (!createDialog.submitting) {
-          setCreateDialog(() => ({ open, submitting: false, cdkType: '', targetId: '', quantity: '1', result: undefined }));
+          setCreateDialog(() => ({
+            open,
+            submitting: false,
+            cdkType: '',
+            targetId: '',
+            quantity: '1',
+            acquisitionType: 'PURCHASE',
+            remark: '',
+            result: undefined
+          }));
         }
       }}>
         <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-2xl">
@@ -365,6 +431,19 @@ export const CDKPage: React.FC = () => {
               </Select>
             </div>
             <div className="space-y-2">
+              <Label>获取方式</Label>
+              <Select
+                value={createDialog.acquisitionType || ''}
+                onValueChange={(v) => setCreateDialog(prev => ({ ...prev, acquisitionType: v as CDKAcquisitionType }))}
+              >
+                <SelectTrigger><SelectValue placeholder="选择获取方式" /></SelectTrigger>
+                <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+                  <SelectItem value="PURCHASE">购买</SelectItem>
+                  <SelectItem value="GIFT">赠送</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label>数量</Label>
               <Input
                 type="number"
@@ -373,6 +452,16 @@ export const CDKPage: React.FC = () => {
                 value={createDialog.quantity}
                 onChange={(e) => setCreateDialog(prev => ({ ...prev, quantity: e.target.value }))}
                 placeholder="1-100"
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label>备注（可选）</Label>
+              <Textarea
+                value={createDialog.remark}
+                onChange={(e) => setCreateDialog(prev => ({ ...prev, remark: e.target.value }))}
+                placeholder="最多500字符"
+                maxLength={500}
+                rows={3}
               />
             </div>
           </div>
@@ -397,7 +486,16 @@ export const CDKPage: React.FC = () => {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialog({ open: false, submitting: false, cdkType: '', targetId: '', quantity: '1', result: undefined })} disabled={createDialog.submitting}>取消</Button>
+            <Button variant="outline" onClick={() => setCreateDialog({
+              open: false,
+              submitting: false,
+              cdkType: '',
+              targetId: '',
+              quantity: '1',
+              acquisitionType: 'PURCHASE',
+              remark: '',
+              result: undefined
+            })} disabled={createDialog.submitting}>取消</Button>
             <Button onClick={submitCreate} disabled={createDialog.submitting}>{createDialog.submitting ? '生成中...' : '生成'}</Button>
           </DialogFooter>
         </DialogContent>
