@@ -8,6 +8,7 @@ import { Dashboard } from '@apps/user-portal/components/Dashboard';
 import { AdminBackend } from '@admin-backend/components/AdminBackend';
 import { Toaster } from '@/components/ui/toaster';
 import GithubOAuthCallbackPage from '@shared/components/business/GithubOAuthCallbackPage';
+import { MenuGuard } from '@shared/routes/MenuGuard';
 
 const AppContent: React.FC = () => {
   return (
@@ -37,12 +38,14 @@ const AppContent: React.FC = () => {
         } 
       />
 
-      {/* 受保护路由 - 用户Dashboard */}
+      {/* 受保护路由 - 用户Dashboard（含用户中心）。加入菜单权限守卫 */}
       <Route 
         path="/dashboard/*" 
         element={
           <ProtectedRoute>
-            <Dashboard />
+            <MenuGuard>
+              <Dashboard />
+            </MenuGuard>
           </ProtectedRoute>
         } 
       />

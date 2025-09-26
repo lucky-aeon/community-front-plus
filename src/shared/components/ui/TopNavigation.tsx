@@ -33,6 +33,8 @@ import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
 import { UserService } from '@shared/services/api';
 import type { UserDTO } from '@shared/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useUserMenuCodes } from '@/hooks/useUserMenuCodes';
+import { MENU_CODE } from '@shared/constants/menu-codes';
 
 interface TopNavigationProps {
   className?: string;
@@ -45,28 +47,34 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  // Navigation items
+  // 用户菜单码
+  const { isAllowed } = useUserMenuCodes();
+
+  // Navigation items（附带菜单码）
   const navigationItems = [
     {
       id: 'home',
       name: '首页',
       path: '/dashboard/home',
       icon: Home,
-      description: '社区动态和推荐内容'
+      description: '社区动态和推荐内容',
+      code: MENU_CODE.DASHBOARD_HOME
     },
     {
       id: 'courses',
       name: '课程',
       path: '/dashboard/courses',
       icon: BookOpen,
-      description: '专业技术课程'
+      description: '专业技术课程',
+      code: MENU_CODE.DASHBOARD_COURSES
     },
     {
       id: 'discussions',
       name: '讨论',
       path: '/dashboard/discussions',
       icon: MessageSquare,
-      description: '技术讨论和问答'
+      description: '技术讨论和问答',
+      code: MENU_CODE.DASHBOARD_DISCUSSIONS
     }
   ];
 
@@ -148,7 +156,25 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center space-x-1">
               {navigationItems.map((item) => {
+                const disabled = !isAllowed(item.code);
                 const isActive = isActiveRoute(item.path);
+                if (disabled) {
+                  return (
+                    <div
+                      key={item.id}
+                      className={cn(
+                        "relative px-4 py-2 rounded-xl font-medium text-sm",
+                        "text-warm-gray-400 bg-transparent opacity-60 cursor-not-allowed"
+                      )}
+                      title="暂无菜单权限"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <item.icon className="h-4 w-4 text-warm-gray-400" />
+                        <span>{item.name}</span>
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <NavLink
                     key={item.id}
@@ -239,15 +265,27 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
 
                     <DropdownMenuSeparator />
                     <div className="py-1">
-                      <DropdownMenuItem onClick={() => navigate(ROUTES.USER_BACKEND)} className="cursor-pointer">
+                      <DropdownMenuItem
+                        onClick={() => { if (isAllowed(MENU_CODE.USER_BACKEND)) navigate(ROUTES.USER_BACKEND); }}
+                        className={cn("cursor-pointer", !isAllowed(MENU_CODE.USER_BACKEND) && "opacity-60 pointer-events-none")}
+                        aria-disabled={!isAllowed(MENU_CODE.USER_BACKEND)}
+                      >
                         <LayoutDashboard className="h-4 w-4" />
                         <span>后台管理</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate(ROUTES.MEMBERSHIP)} className="cursor-pointer">
+                      <DropdownMenuItem
+                        onClick={() => { if (isAllowed(MENU_CODE.MEMBERSHIP)) navigate(ROUTES.MEMBERSHIP); }}
+                        className={cn("cursor-pointer", !isAllowed(MENU_CODE.MEMBERSHIP) && "opacity-60 pointer-events-none")}
+                        aria-disabled={!isAllowed(MENU_CODE.MEMBERSHIP)}
+                      >
                         <Crown className="h-4 w-4" />
                         <span>套餐升级</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setIsRedeemOpen(true)} className="cursor-pointer">
+                      <DropdownMenuItem
+                        onClick={() => { if (isAllowed(MENU_CODE.REDEEM_CDK)) setIsRedeemOpen(true); }}
+                        className={cn("cursor-pointer", !isAllowed(MENU_CODE.REDEEM_CDK) && "opacity-60 pointer-events-none")}
+                        aria-disabled={!isAllowed(MENU_CODE.REDEEM_CDK)}
+                      >
                         <Key className="h-4 w-4" />
                         <span>CDK 激活</span>
                       </DropdownMenuItem>
@@ -316,7 +354,26 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
               <div className="flex-1 overflow-auto">
                 <nav className="py-2 space-y-1">
                   {navigationItems.map((item) => {
+                    const disabled = !isAllowed(item.code);
                     const isActive = isActiveRoute(item.path);
+                    if (disabled) {
+                      return (
+                        <div
+                          key={item.id}
+                          className={cn(
+                            "flex items-center space-x-3 px-4 py-3 rounded-xl font-medium",
+                            "text-warm-gray-400 opacity-60 cursor-not-allowed"
+                          )}
+                          title="暂无菜单权限"
+                        >
+                          <item.icon className="h-5 w-5" />
+                          <div>
+                            <div className="text-sm font-medium">{item.name}</div>
+                            <div className="text-xs text-warm-gray-500">{item.description}</div>
+                          </div>
+                        </div>
+                      );
+                    }
                     return (
                       <NavLink
                         key={item.id}
@@ -346,9 +403,12 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                     <button
                       className="w-full flex items-center gap-3 px-4 py-3 text-warm-gray-600 hover:text-honey-600 hover:bg-honey-50 rounded-xl transition-colors"
                       onClick={() => {
-                        navigate(ROUTES.USER_BACKEND);
-                        setIsMobileMenuOpen(false);
+                        if (isAllowed(MENU_CODE.USER_BACKEND)) {
+                          navigate(ROUTES.USER_BACKEND);
+                          setIsMobileMenuOpen(false);
+                        }
                       }}
+                      disabled={!isAllowed(MENU_CODE.USER_BACKEND)}
                     >
                       <LayoutDashboard className="h-5 w-5" />
                       <span className="text-sm font-medium">后台管理</span>
@@ -357,9 +417,12 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                     <button
                       className="w-full flex items-center gap-3 px-4 py-3 text-warm-gray-600 hover:text-honey-600 hover:bg-honey-50 rounded-xl transition-colors"
                       onClick={() => {
-                        navigate(ROUTES.MEMBERSHIP);
-                        setIsMobileMenuOpen(false);
+                        if (isAllowed(MENU_CODE.MEMBERSHIP)) {
+                          navigate(ROUTES.MEMBERSHIP);
+                          setIsMobileMenuOpen(false);
+                        }
                       }}
+                      disabled={!isAllowed(MENU_CODE.MEMBERSHIP)}
                     >
                       <Crown className="h-5 w-5" />
                       <span className="text-sm font-medium">套餐升级</span>
@@ -368,9 +431,12 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                     <button
                       className="w-full flex items-center gap-3 px-4 py-3 text-warm-gray-600 hover:text-honey-600 hover:bg-honey-50 rounded-xl transition-colors"
                       onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        setTimeout(() => setIsRedeemOpen(true), 50);
+                        if (isAllowed(MENU_CODE.REDEEM_CDK)) {
+                          setIsMobileMenuOpen(false);
+                          setTimeout(() => setIsRedeemOpen(true), 50);
+                        }
                       }}
+                      disabled={!isAllowed(MENU_CODE.REDEEM_CDK)}
                     >
                       <Key className="h-5 w-5" />
                       <span className="text-sm font-medium">CDK 激活</span>

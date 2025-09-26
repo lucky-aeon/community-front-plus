@@ -9,6 +9,8 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarSection, SidebarSectionTitle } from '@/components/ui/sidebar';
 import { MembershipBadge, type MembershipTier } from '@shared/components/ui/MembershipBadge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useUserMenuCodes } from '@/hooks/useUserMenuCodes';
+import { MENU_CODE, getMenuCodeByNavId } from '@shared/constants/menu-codes';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -21,12 +23,17 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const { isAllowed } = useUserMenuCodes();
 
   // 图标映射
   const iconMap = { Home, MessageSquare, BookOpen, FileText } as const;
   const navigation = navigationConfig.map((item) => ({ ...item, icon: iconMap[item.icon as keyof typeof iconMap] }));
 
-  const handleUserBackendClick = () => navigate('/dashboard/user-backend');
+  const handleUserBackendClick = () => {
+    if (isAllowed(MENU_CODE.USER_BACKEND)) {
+      navigate('/dashboard/user-backend');
+    }
+  };
   const handleLogout = () => setShowLogoutConfirm(true);
   const confirmLogout = () => logout();
 
@@ -76,7 +83,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               </div>
               {!isCollapsed && (
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                  <Button variant="secondary" size="sm" onClick={handleUserBackendClick}><Settings className="h-4 w-4 mr-2" />用户中心</Button>
+                  <Button variant="secondary" size="sm" onClick={handleUserBackendClick} disabled={!isAllowed(MENU_CODE.USER_BACKEND)} title={!isAllowed(MENU_CODE.USER_BACKEND) ? '暂无菜单权限' : undefined}>
+                    <Settings className="h-4 w-4 mr-2" />用户中心
+                  </Button>
                   <Button variant="outline" size="sm" className="text-red-600" onClick={handleLogout}><LogOut className="h-4 w-4 mr-2" />退出</Button>
                 </div>
               )}
@@ -87,6 +96,18 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               <div className="space-y-1">
                 {navigation.map((item) => {
                   const active = location.pathname.startsWith(item.path);
+                  const code = getMenuCodeByNavId(item.id) || '';
+                  const disabled = code ? !isAllowed(code) : false;
+                  if (disabled) {
+                    return (
+                      <Button key={item.id} variant="ghost" disabled className={`w-full justify-start ${isCollapsed ? 'px-2' : 'px-3'} opacity-60`} title="暂无菜单权限">
+                        <span className="inline-flex items-center gap-3">
+                          <item.icon className="h-5 w-5" />
+                          {!isCollapsed && <span>{item.name}</span>}
+                        </span>
+                      </Button>
+                    );
+                  }
                   return (
                     <Button key={item.id} variant="ghost" className={`w-full justify-start ${isCollapsed ? 'px-2' : 'px-3'} ${active ? 'bg-accent text-accent-foreground' : ''}`} asChild>
                       <NavLink to={item.path} title={isCollapsed ? item.name : undefined}>
@@ -140,6 +161,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
                   <div className="space-y-1">
                     {navigation.map((item) => {
                       const active = location.pathname.startsWith(item.path);
+                      const code = getMenuCodeByNavId(item.id) || '';
+                      const disabled = code ? !isAllowed(code) : false;
+                      if (disabled) {
+                        return (
+                          <Button key={item.id} variant="ghost" disabled className={`w-full justify-start opacity-60`}>
+                            <span className="inline-flex items-center gap-3"><item.icon className="h-5 w-5" /><span>{item.name}</span></span>
+                          </Button>
+                        );
+                      }
                       return (
                         <Button key={item.id} variant="ghost" className={`w-full justify-start ${active ? 'bg-accent text-accent-foreground' : ''}`} asChild>
                           <NavLink to={item.path} onClick={() => setIsSidebarOpen(false)}>

@@ -9,13 +9,15 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { RefreshCw, Plus, Pencil, Link2, Trash2, GripVertical, Search, XCircle } from 'lucide-react';
+import { RefreshCw, Plus, Pencil, Link2, Trash2, GripVertical, Search, XCircle, ListChecks, ShieldCheck } from 'lucide-react';
 import AdminPagination from '@shared/components/AdminPagination';
 import { DndContext, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { SubscriptionPlansService } from '@shared/services/api/subscription-plans.service';
 import { SubscriptionPlanCoursesService } from '@shared/services/api/subscription-plan-courses.service';
+import { SubscriptionPlanMenusService } from '@shared/services/api/subscription-plan-menus.service';
+import { SubscriptionPlanPermissionsService } from '@shared/services/api/subscription-plan-permissions.service';
 import { Transfer, type TransferItem } from '@/components/ui/transfer';
 import type {
   SubscriptionPlanDTO,
@@ -23,7 +25,11 @@ import type {
   UpdateSubscriptionPlanRequest,
   SubscriptionPlanQueryRequest,
   PageResponse,
-  SimpleCourseDTO
+  SimpleCourseDTO,
+  MenuOptionDTO,
+  PermissionOptionDTO,
+  UpdateSubscriptionPlanMenusRequest,
+  UpdateSubscriptionPlanPermissionsRequest
 } from '@shared/types';
 import { showToast } from '@shared/utils/toast';
 
@@ -61,6 +67,26 @@ export const SubscriptionPlansPage: React.FC = () => {
 
   // 绑定课程对话框
   const [bindDialog, setBindDialog] = useState<{
+    open: boolean;
+    plan?: SubscriptionPlanDTO;
+    loading: boolean;
+    saving: boolean;
+    items: TransferItem[];
+    selected: string[];
+  }>({ open: false, loading: false, saving: false, items: [], selected: [] });
+
+  // 绑定菜单对话框
+  const [bindMenusDialog, setBindMenusDialog] = useState<{
+    open: boolean;
+    plan?: SubscriptionPlanDTO;
+    loading: boolean;
+    saving: boolean;
+    items: TransferItem[];
+    selected: string[];
+  }>({ open: false, loading: false, saving: false, items: [], selected: [] });
+
+  // 绑定权限对话框
+  const [bindPermsDialog, setBindPermsDialog] = useState<{
     open: boolean;
     plan?: SubscriptionPlanDTO;
     loading: boolean;
@@ -225,6 +251,70 @@ export const SubscriptionPlansPage: React.FC = () => {
     }
   };
 
+  // 绑定菜单
+  const openBindMenusDialog = async (plan: SubscriptionPlanDTO) => {
+    try {
+      setBindMenusDialog({ open: true, plan, loading: true, saving: false, items: [], selected: [] });
+      const [options, selectedCodes] = await Promise.all<[
+        MenuOptionDTO[],
+        string[]
+      ]>([
+        SubscriptionPlanMenusService.getMenuOptions(),
+        SubscriptionPlanMenusService.getSubscriptionPlanMenuCodes(plan.id)
+      ]);
+      const items: TransferItem[] = options.map(o => ({ key: o.code, label: `${o.label}` }));
+      setBindMenusDialog({ open: true, plan, loading: false, saving: false, items, selected: selectedCodes });
+    } catch (e) {
+      console.error('加载菜单绑定数据失败', e);
+      setBindMenusDialog({ open: false, loading: false, saving: false, items: [], selected: [] });
+    }
+  };
+
+  const handleSaveBindMenus = async () => {
+    if (!bindMenusDialog.plan) return;
+    try {
+      setBindMenusDialog(prev => ({ ...prev, saving: true }));
+      const payload: UpdateSubscriptionPlanMenusRequest = { menus: bindMenusDialog.selected };
+      await SubscriptionPlanMenusService.updateSubscriptionPlanMenus(bindMenusDialog.plan.id, payload);
+      setBindMenusDialog({ open: false, loading: false, saving: false, plan: undefined, items: [], selected: [] });
+    } catch (e) {
+      console.error('更新菜单绑定失败', e);
+      setBindMenusDialog(prev => ({ ...prev, saving: false }));
+    }
+  };
+
+  // 绑定权限
+  const openBindPermissionsDialog = async (plan: SubscriptionPlanDTO) => {
+    try {
+      setBindPermsDialog({ open: true, plan, loading: true, saving: false, items: [], selected: [] });
+      const [options, selectedCodes] = await Promise.all<[
+        PermissionOptionDTO[],
+        string[]
+      ]>([
+        SubscriptionPlanPermissionsService.getPermissionOptions(),
+        SubscriptionPlanPermissionsService.getSubscriptionPlanPermissionCodes(plan.id)
+      ]);
+      const items: TransferItem[] = options.map(o => ({ key: o.code, label: `${o.label}` }));
+      setBindPermsDialog({ open: true, plan, loading: false, saving: false, items, selected: selectedCodes });
+    } catch (e) {
+      console.error('加载权限绑定数据失败', e);
+      setBindPermsDialog({ open: false, loading: false, saving: false, items: [], selected: [] });
+    }
+  };
+
+  const handleSaveBindPermissions = async () => {
+    if (!bindPermsDialog.plan) return;
+    try {
+      setBindPermsDialog(prev => ({ ...prev, saving: true }));
+      const payload: UpdateSubscriptionPlanPermissionsRequest = { permissions: bindPermsDialog.selected };
+      await SubscriptionPlanPermissionsService.updateSubscriptionPlanPermissions(bindPermsDialog.plan.id, payload);
+      setBindPermsDialog({ open: false, loading: false, saving: false, plan: undefined, items: [], selected: [] });
+    } catch (e) {
+      console.error('更新权限绑定失败', e);
+      setBindPermsDialog(prev => ({ ...prev, saving: false }));
+    }
+  };
+
   const statusBadge = (status: 'ACTIVE' | 'INACTIVE') => (
     <Badge variant={status === 'ACTIVE' ? 'default' : 'secondary'}>
       {status === 'ACTIVE' ? '激活' : '禁用'}
@@ -352,7 +442,7 @@ export const SubscriptionPlansPage: React.FC = () => {
                   <TableHead className="min-w-[100px]">原价</TableHead>
                   <TableHead className="min-w-[80px]">推荐</TableHead>
                   <TableHead className="min-w-[80px]">状态</TableHead>
-                  <TableHead className="text-right min-w-[220px]">操作</TableHead>
+                  <TableHead className="text-right min-w-[360px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -378,9 +468,15 @@ export const SubscriptionPlansPage: React.FC = () => {
                       <TableCell>{plan.recommended ? <Badge>推荐</Badge> : '否'}</TableCell>
                       <TableCell>{statusBadge(plan.status)}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex justify-end gap-2 flex-wrap">
                           <Button variant="outline" size="sm" onClick={() => openBindCoursesDialog(plan)}>
                             <Link2 className="w-4 h-4 mr-2" /> 绑定课程
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => openBindMenusDialog(plan)}>
+                            <ListChecks className="w-4 h-4 mr-2" /> 绑定菜单
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => openBindPermissionsDialog(plan)}>
+                            <ShieldCheck className="w-4 h-4 mr-2" /> 绑定权限
                           </Button>
                           <Button variant="outline" size="sm" onClick={() => openEditDialog(plan)}>
                             <Pencil className="w-4 h-4 mr-2" /> 编辑
@@ -539,6 +635,76 @@ export const SubscriptionPlansPage: React.FC = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setBindDialog({ open: false, loading: false, saving: false, items: [], selected: [] })} disabled={bindDialog.saving}>取消</Button>
             <Button onClick={handleSaveBindCourses} disabled={bindDialog.saving || bindDialog.loading}>{bindDialog.saving ? '保存中...' : '保存绑定'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 绑定菜单对话框 */}
+      <Dialog open={bindMenusDialog.open} onOpenChange={(open) => {
+        if (!bindMenusDialog.saving) {
+          setBindMenusDialog(prev => ({ ...prev, open }));
+          if (!open) setBindMenusDialog({ open: false, loading: false, saving: false, items: [], selected: [] });
+        }
+      }}>
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>绑定菜单 - {bindMenusDialog.plan?.name}</DialogTitle>
+            <DialogDescription>从左侧选择菜单并移动到右侧以绑定到该套餐</DialogDescription>
+          </DialogHeader>
+          {bindMenusDialog.loading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-80 w-full" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <Transfer
+                dataSource={bindMenusDialog.items}
+                targetKeys={bindMenusDialog.selected}
+                onChange={(next) => setBindMenusDialog(prev => ({ ...prev, selected: next }))}
+                height={360}
+                titles={["所有菜单", "已绑定菜单"]}
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBindMenusDialog({ open: false, loading: false, saving: false, items: [], selected: [] })} disabled={bindMenusDialog.saving}>取消</Button>
+            <Button onClick={handleSaveBindMenus} disabled={bindMenusDialog.saving || bindMenusDialog.loading}>{bindMenusDialog.saving ? '保存中...' : '保存绑定'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 绑定权限对话框 */}
+      <Dialog open={bindPermsDialog.open} onOpenChange={(open) => {
+        if (!bindPermsDialog.saving) {
+          setBindPermsDialog(prev => ({ ...prev, open }));
+          if (!open) setBindPermsDialog({ open: false, loading: false, saving: false, items: [], selected: [] });
+        }
+      }}>
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>绑定权限 - {bindPermsDialog.plan?.name}</DialogTitle>
+            <DialogDescription>从左侧选择权限并移动到右侧以绑定到该套餐</DialogDescription>
+          </DialogHeader>
+          {bindPermsDialog.loading ? (
+            <div className="space-y-3">
+              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="h-80 w-full" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <Transfer
+                dataSource={bindPermsDialog.items}
+                targetKeys={bindPermsDialog.selected}
+                onChange={(next) => setBindPermsDialog(prev => ({ ...prev, selected: next }))}
+                height={360}
+                titles={["所有权限", "已绑定权限"]}
+              />
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBindPermsDialog({ open: false, loading: false, saving: false, items: [], selected: [] })} disabled={bindPermsDialog.saving}>取消</Button>
+            <Button onClick={handleSaveBindPermissions} disabled={bindPermsDialog.saving || bindPermsDialog.loading}>{bindPermsDialog.saving ? '保存中...' : '保存绑定'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

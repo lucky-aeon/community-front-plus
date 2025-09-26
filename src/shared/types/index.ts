@@ -1154,6 +1154,33 @@ export interface UpdateSubscriptionPlanCoursesRequest {
   courseIds: string[];                 // 课程ID列表，可为空数组表示清空绑定
 }
 
+// ================ 套餐菜单/权限绑定相关接口定义 ================
+
+// 菜单选项（来自管理端选项接口）
+export interface MenuOptionDTO {
+  code: string;    // 菜单码，如 MENU_DASHBOARD_HOME
+  label: string;   // 显示名称，如 首页
+  group: string;   // 分组，如 导航/用户中心/公开入口
+  path: string;    // 关联前端路径
+}
+
+// 权限选项（来自管理端选项接口）
+export interface PermissionOptionDTO {
+  code: string;    // 权限码，如 RESOURCE_DOWNLOAD
+  label: string;   // 显示名称
+  group: string;   // 分组
+}
+
+// 更新套餐-菜单绑定请求
+export interface UpdateSubscriptionPlanMenusRequest {
+  menus: string[]; // 菜单码列表
+}
+
+// 更新套餐-权限绑定请求
+export interface UpdateSubscriptionPlanPermissionsRequest {
+  permissions: string[]; // 权限码列表
+}
+
 // ================ CDK管理相关接口定义 ================
 
 // CDK类型枚举

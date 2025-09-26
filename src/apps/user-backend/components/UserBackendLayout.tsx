@@ -23,6 +23,8 @@ import { UserService } from '@shared/services/api';
 import type { UserDTO } from '@shared/types';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { useUserMenuCodes } from '@/hooks/useUserMenuCodes';
+import { getMenuCodeByNavId } from '@shared/constants/menu-codes';
 
 interface UserBackendLayoutProps {
   children: React.ReactNode;
@@ -36,6 +38,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const { isAllowed } = useUserMenuCodes();
 
   const handleBackToFrontend = () => {
     navigate('/dashboard');
@@ -165,32 +168,53 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
                 <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
                   {section.title}
                 </h3>
-                {section.items.map((item) => (
-                  <NavLink
-                    key={item.id}
-                    to={item.path}
-                    onClick={() => setIsSidebarOpen(false)}
-                    className={({ isActive }) => `
-                      w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 mb-1
-                      ${isActive
-                        ? 'bg-yellow-50 text-yellow-800 border-l-4 border-yellow-400'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                      }
-                    `}
-                  >
-                    {({ isActive }) => (
-                      <>
+                {section.items.map((item) => {
+                  const code = getMenuCodeByNavId(item.id) || '';
+                  const disabled = code ? !isAllowed(code) : false;
+                  if (disabled) {
+                    return (
+                      <div
+                        key={item.id}
+                        className={`
+                          w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg mb-1 opacity-60 cursor-not-allowed
+                          text-gray-400
+                        `}
+                        title="暂无菜单权限"
+                      >
                         <div className="flex items-center">
                           <item.icon className="h-5 w-5 mr-3" />
                           <span>{item.name}</span>
                         </div>
-                        {isActive && (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
-                      </>
-                    )}
-                  </NavLink>
-                ))}
+                      </div>
+                    );
+                  }
+                  return (
+                    <NavLink
+                      key={item.id}
+                      to={item.path}
+                      onClick={() => setIsSidebarOpen(false)}
+                      className={({ isActive }) => `
+                        w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 mb-1
+                        ${isActive
+                          ? 'bg-yellow-50 text-yellow-800 border-l-4 border-yellow-400'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        }
+                      `}
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <div className="flex items-center">
+                            <item.icon className="h-5 w-5 mr-3" />
+                            <span>{item.name}</span>
+                          </div>
+                          {isActive && (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </>
+                      )}
+                    </NavLink>
+                  );
+                })}
               </div>
             ))}
           </div>
