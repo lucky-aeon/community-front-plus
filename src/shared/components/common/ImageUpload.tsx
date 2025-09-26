@@ -113,8 +113,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         // 调用回调函数
         onChange(response.url);
         onUploadSuccess?.(newResourceId);
-
-        showToast.success('图片上传成功');
       } else {
         throw new Error('上传失败：无法获取文件URL');
       }

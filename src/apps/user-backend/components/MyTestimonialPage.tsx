@@ -130,7 +130,6 @@ export const MyTestimonialPage: React.FC = () => {
       setTestimonial(result);
       resetForm();
       setConfirmDialog({ open: false, type: 'create', title: '', message: '' });
-      showToast.success('评价提交成功！正在等待审核');
     } catch (error) {
       console.error('提交评价失败:', error);
       showToast.error('提交评价失败');
@@ -155,7 +154,6 @@ export const MyTestimonialPage: React.FC = () => {
       setTestimonial(result);
       resetForm();
       setConfirmDialog({ open: false, type: 'update', title: '', message: '' });
-      showToast.success('评价更新成功！');
     } catch (error) {
       console.error('更新评价失败:', error);
       showToast.error('更新评价失败');

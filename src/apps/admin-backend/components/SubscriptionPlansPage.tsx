@@ -31,7 +31,7 @@ import type {
   UpdateSubscriptionPlanMenusRequest,
   UpdateSubscriptionPlanPermissionsRequest
 } from '@shared/types';
-import { showToast } from '@shared/utils/toast';
+// 成功类提示交由响应拦截器统一处理
 
 export const SubscriptionPlansPage: React.FC = () => {
   // 列表与分页
@@ -244,7 +244,6 @@ export const SubscriptionPlansPage: React.FC = () => {
       setBindDialog(prev => ({ ...prev, saving: true }));
       await SubscriptionPlanCoursesService.updateSubscriptionPlanCourses(bindDialog.plan.id, { courseIds: bindDialog.selected });
       setBindDialog({ open: false, loading: false, saving: false, plan: undefined, items: [], selected: [] });
-      showToast.success('已更新套餐课程绑定');
     } catch (e) {
       console.error('更新绑定失败', e);
       setBindDialog(prev => ({ ...prev, saving: false }));

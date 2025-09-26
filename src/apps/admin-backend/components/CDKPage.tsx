@@ -133,7 +133,6 @@ export const CDKPage: React.FC = () => {
       setCreateDialog(prev => ({ ...prev, submitting: true }));
       const created = await CDKService.createCDK(payload);
       setCreateDialog(prev => ({ ...prev, submitting: false, result: created }));
-      showToast.success(`成功生成 ${created.length} 个CDK`);
       await loadCdks();
     } catch (e) {
       console.error('创建CDK失败', e);

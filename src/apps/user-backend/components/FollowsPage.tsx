@@ -90,7 +90,6 @@ export const FollowsPage: React.FC = () => {
       if (!resp.isFollowing) {
         setAllFollows(prev => prev.filter(x => x.targetId !== u.targetId));
         setUserFollows(prev => prev.filter(x => x.targetId !== u.targetId));
-        showToast.success('已取消关注');
       }
     } catch (e) {
       console.error('取消关注失败:', e);
@@ -103,7 +102,6 @@ export const FollowsPage: React.FC = () => {
       if (!resp.isFollowing) {
         setAllFollows(prev => prev.filter(x => x.targetId !== c.targetId));
         setCourseFollows(prev => prev.filter(x => x.targetId !== c.targetId));
-        showToast.success('已取消订阅');
       }
     } catch (e) {
       console.error('取消订阅失败:', e);

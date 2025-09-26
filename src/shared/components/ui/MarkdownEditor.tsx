@@ -223,7 +223,6 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
       }
 
       setUploadTasks((prev) => prev.map(t => t.id === taskId ? { ...t, status: 'success', progress: 100 } : t));
-      showToast.success(`${isImage ? '图片' : '视频'}上传成功`);
     } catch (error) {
       const message = error instanceof Error ? error.message : '上传失败，请稍后重试';
       console.error('文件上传失败:', error);

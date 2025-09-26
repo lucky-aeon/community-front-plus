@@ -60,7 +60,6 @@ export const IpBanPage: React.FC = () => {
   const handleUnbanIp = async (ip: string) => {
     try {
       await AdminIpService.unbanIp(ip);
-      showToast('IP解封成功', 'success');
       // 直接从本地状态中移除该IP，避免重新请求接口
       setBannedIps(prev => prev.filter(item => item.ip !== ip));
     } catch (error) {

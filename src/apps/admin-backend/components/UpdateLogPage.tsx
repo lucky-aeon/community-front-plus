@@ -153,10 +153,8 @@ export const UpdateLogPage: React.FC = () => {
 
       if (mode === 'create') {
         await UpdateLogService.createUpdateLog(payload as CreateUpdateLogRequest);
-        showToast.success('更新日志创建成功');
       } else if (id) {
         await UpdateLogService.updateUpdateLog(id, payload as UpdateUpdateLogRequest);
-        showToast.success('更新日志修改成功');
       }
 
       setEditDialog({
@@ -176,7 +174,6 @@ export const UpdateLogPage: React.FC = () => {
     try {
       await UpdateLogService.toggleUpdateLogStatus(item.id);
       const action = item.status === 'PUBLISHED' ? '撤回' : '发布';
-      showToast.success(`${action}成功`);
       await loadLogs();
     } catch (error) {
       console.error('切换状态失败', error);
@@ -189,7 +186,6 @@ export const UpdateLogPage: React.FC = () => {
     try {
       await UpdateLogService.deleteUpdateLog(deleteDialog.item.id);
       setDeleteDialog({ open: false });
-      showToast.success('更新日志删除成功');
       await loadLogs();
     } catch (error) {
       console.error('删除更新日志失败', error);

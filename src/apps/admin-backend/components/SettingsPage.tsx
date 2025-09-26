@@ -103,7 +103,6 @@ export const SettingsPage: React.FC = () => {
       setSaving(true);
       await SystemConfigService.updateDefaultSubscriptionConfig(selectedPlanId);
       setInitialPlanId(selectedPlanId);
-      showToast.success('默认套餐已更新');
     } catch {
       // 错误由拦截器提示
     } finally {
@@ -287,7 +286,6 @@ export const SettingsPage: React.FC = () => {
                   setSavingSessionCfg(true);
                   await SystemConfigService.updateUserSessionLimitConfig(sessionCfg);
                   setInitialSessionCfg(sessionCfg);
-                  showToast.success('会话限制配置已更新');
                 } catch {
                   // 错误由拦截器提示
                 } finally {

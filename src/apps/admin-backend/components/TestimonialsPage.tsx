@@ -121,7 +121,6 @@ export const TestimonialsPage: React.FC = () => {
       );
 
       setStatusDialog({ open: false, testimonial: null, targetStatus: null });
-      showToast.success('状态修改成功');
     } catch (error) {
       console.error('修改状态失败:', error);
       showToast.error('状态修改失败');
@@ -145,7 +144,6 @@ export const TestimonialsPage: React.FC = () => {
       );
 
       setDeleteDialog({ open: false, testimonial: null });
-      showToast.success('删除成功');
 
       // 如果当前页没有数据了，跳转到前一页
       if (testimonials.length === 1 && pagination.current > 1) {
@@ -196,7 +194,7 @@ export const TestimonialsPage: React.FC = () => {
         newSortOrder: '',
         submitting: false
       });
-      showToast.success('排序权重设置成功');
+      
     } catch (error) {
       console.error('设置排序权重失败:', error);
       showToast.error('设置失败');

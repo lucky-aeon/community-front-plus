@@ -27,12 +27,10 @@ export const GithubOAuthCallbackPage: React.FC = () => {
       try {
         if (isBinding) {
           await GithubOAuthService.bindGithub(code, state);
-          showToast.success('GitHub 账号绑定成功');
           navigate('/dashboard', { replace: true });
         } else {
           const auth = await GithubOAuthService.publicCallback(code, state);
           const user = await AuthService.processOAuthLogin(auth);
-          showToast.success('GitHub 登录成功');
           const level = (user as any)?.currentSubscriptionLevel;
           if (Number(level) === 1) {
             navigate('/dashboard/courses', { replace: true });

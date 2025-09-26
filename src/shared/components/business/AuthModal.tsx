@@ -99,7 +99,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           return;
         }
         await registerOnly(formData.email, formData.code, formData.password);
-        showToast.success('注册成功，请使用邮箱与密码登录');
         // 切换到登录表单并回填邮箱，不关闭弹窗
         setIsLogin(true);
         setFormData(prev => ({ email: prev.email, password: '', confirmPassword: '', code: '' }));

@@ -9,7 +9,6 @@ import { RefreshCw, Power, Smartphone, ShieldCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { UserDeviceSessionService } from '@shared/services/api/user-device-session.service';
 import type { ActiveSessionDTO } from '@shared/types';
-import { showToast } from '@shared/utils/toast';
 
 export const DeviceManagementPage: React.FC = () => {
   const { user } = useAuth();
@@ -49,7 +48,6 @@ export const DeviceManagementPage: React.FC = () => {
   const onRemoveIp = async (ip: string) => {
     try {
       await UserDeviceSessionService.removeByIp(ip);
-      showToast.success('已移除该设备会话');
       await loadData();
     } catch {
       // 错误提示由拦截器处理
@@ -59,7 +57,6 @@ export const DeviceManagementPage: React.FC = () => {
   const onRemoveOthers = async () => {
     try {
       await UserDeviceSessionService.removeOthers();
-      showToast.success('已移除其他设备会话');
       setConfirmAll(false);
       await loadData();
     } catch {

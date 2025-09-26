@@ -127,7 +127,6 @@ export const MessageCenterPage: React.FC = () => {
             onClick={async () => {
               try {
                 await NotificationsService.markAllAsRead();
-                showToast.success('已全部标记为已读');
                 fetchList();
               } catch {
                 showToast.error('操作失败');
@@ -142,7 +141,6 @@ export const MessageCenterPage: React.FC = () => {
             onClick={async () => {
               try {
                 await NotificationsService.clearRead();
-                showToast.success('已清空已读消息');
                 fetchList();
               } catch {
                 showToast.error('清空失败');

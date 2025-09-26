@@ -186,7 +186,6 @@ export const Comments: React.FC<CommentsProps> = ({
       setNewContent('');
       // 直接刷新列表，保证与服务端一致（避免分页边界问题）
       await loadComments(true);
-      toast({ title: '评论已发布' });
     } catch (e: unknown) {
       console.error('发布评论失败', e);
       const msg = e instanceof Error ? e.message : '请稍后重试';
@@ -215,7 +214,6 @@ export const Comments: React.FC<CommentsProps> = ({
       setReplyDraft(prev => ({ ...prev, [parent.id]: '' }));
       setOpenReply(prev => ({ ...prev, [parent.id]: false }));
       await loadComments(true);
-      toast({ title: '回复已发布' });
     } catch (e: unknown) {
       console.error('回复失败', e);
       const msg = e instanceof Error ? e.message : '请稍后重试';
@@ -231,7 +229,6 @@ export const Comments: React.FC<CommentsProps> = ({
       setFlatComments(prev => prev.filter(c => c.id !== comment.id && c.parentCommentId !== comment.id));
       setTotal(prev => Math.max(0, prev - 1));
       onCountChange?.(Math.max(0, total - 1));
-      toast({ title: '已删除评论' });
     } catch (e: unknown) {
       console.error('删除失败', e);
       const msg = e instanceof Error ? e.message : '请稍后重试';

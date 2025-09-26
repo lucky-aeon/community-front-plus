@@ -113,7 +113,6 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
         try { await ResourceAccessService.ensureSession(); } catch { /* 忽略会话检查错误 */ }
         onChange(response.url);
         onUploadSuccess?.(response.resourceId || '');
-        showToast.success('头像上传成功');
       } else {
         throw new Error('上传失败：无法获取头像URL');
       }
