@@ -129,9 +129,11 @@ jobs:
           script: |
             set -euo pipefail
             BASE_DIR="${{ secrets.DEPLOY_BASE_DIR }}"
+            TARGET_DIR="$BASE_DIR/dev"
             mkdir -p "$BASE_DIR"
+            rm -rf "$TARGET_DIR" && mkdir -p "$TARGET_DIR"
 
-      - name: Upload dist to dev (overwrite)
+      - name: Upload dist to tmp (dev)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -139,8 +141,31 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
           source: "dist/**"
-          target: "${{ secrets.DEPLOY_BASE_DIR }}/dev"
-          rm: true
+          target: "${{ secrets.DEPLOY_BASE_DIR }}/.tmp_dev_${{ github.run_id }}_${{ github.run_number }}"
+          rm: false
+
+      - name: Activate new version (safe swap)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -euo pipefail
+            BASE_DIR="${{ secrets.DEPLOY_BASE_DIR }}"
+            TARGET_DIR="$BASE_DIR/dev"
+            TMP_DIR="$BASE_DIR/.tmp_dev_${{ github.run_id }}_${{ github.run_number }}"
+            BAK_DIR="$BASE_DIR/.bak_dev_${{ github.run_id }}_${{ github.run_number }}"
+            case "$TARGET_DIR" in
+              "$BASE_DIR"/dev) ;;
+              *) echo "Refuse to touch unexpected target: $TARGET_DIR" >&2; exit 1;;
+            esac
+            test -d "$TMP_DIR" || { echo "tmp missing: $TMP_DIR" >&2; exit 1; }
+            if [ -d "$TMP_DIR/dist" ]; then mv "$TMP_DIR/dist"/* "$TMP_DIR" && rmdir "$TMP_DIR/dist" || true; fi
+            if [ -d "$TARGET_DIR" ]; then mv "$TARGET_DIR" "$BAK_DIR"; fi
+            mv "$TMP_DIR" "$TARGET_DIR"
+            rm -rf "$BAK_DIR"
 ```
 
 ## 生产部署（按 Tag 单目录覆盖）
@@ -276,7 +301,7 @@ jobs:
 7) 首次手动执行部署（验证全链路，Dev）
 - [ ] 打开 GitHub 仓库 → Actions → 选择 "Deploy Dev" → "Run workflow"。
 - [ ] 在 Branch 下拉选择 `dev`（默认多为 `main`，需手动改为 `dev`）。
-- [ ] 观察日志：应依次完成 `Install deps`、`Build`、`Add known_hosts`、`Prepare target dir (dev)`、`Upload dist to dev (overwrite)`。
+- [ ] 观察日志：应依次完成 `Install deps`、`Build`、`Add known_hosts`、`Prepare tmp dir (dev)`、`Upload dist to tmp (dev)`、`Activate new version (safe swap)`。
 - [ ] 服务器检查：
   ```bash
   ls -l /var/www/qiaoya-community-frontend/dev | head
