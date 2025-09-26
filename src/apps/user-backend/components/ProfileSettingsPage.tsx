@@ -98,6 +98,11 @@ export const ProfileSettingsPage: React.FC = () => {
   };
 
   const handleSave = async () => {
+    if (!formData.name.trim()) {
+      showToast.error('请输入用户名');
+      return;
+    }
+
     if (!formData.bio.trim()) {
       showToast.error('请输入个人简介');
       return;
@@ -110,11 +115,14 @@ export const ProfileSettingsPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const payload: { description?: string; avatar?: string } = { description: formData.bio };
+      const payload: { name?: string; description?: string; avatar?: string } = {
+        name: formData.name,
+        description: formData.bio
+      };
       if (avatarResourceId) payload.avatar = avatarResourceId;
 
       const updatedUser = await UserService.updateProfile(payload);
-      
+
       setCurrentUserData(updatedUser);
       // 如果后端返回了新的头像URL，优先使用；否则继续使用本地预览
       if (updatedUser?.avatar) {

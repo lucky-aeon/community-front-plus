@@ -70,7 +70,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         await login(formData.email, formData.password);
         // 仅当确认已登录成功（token 与 user 已写入）时才导航
         if (!AuthService.isLoggedIn()) return;
-        navigate(ROUTES.DASHBOARD_HOME);
+        const stored = AuthService.getStoredUser();
+        const level = (stored as any)?.currentSubscriptionLevel;
+        if (Number(level) === 1) {
+          navigate(ROUTES.DASHBOARD_COURSES, { replace: true });
+        } else {
+          navigate(ROUTES.DASHBOARD_HOME, { replace: true });
+        }
       } else {
         if (!agree) {
           showToast.error('请先阅读并同意《服务条款》和《隐私政策》');

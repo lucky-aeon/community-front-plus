@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { ImageUpload } from '@shared/components/common/ImageUpload';
 import { TagsInput } from '@/components/ui/tags-input';
 import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
@@ -33,6 +34,10 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showResourcePicker, setShowResourcePicker] = useState(false);
   const editorRef = useRef<MarkdownEditorHandle>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const contentSectionRef = useRef<HTMLDivElement>(null);
+  const categoryCardRef = useRef<HTMLDivElement>(null);
+  const summaryCardRef = useRef<HTMLDivElement>(null);
   
   const isEditMode = !!initialData;
 
@@ -80,7 +85,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
 
   // 由 TagsInput 控件管理增删，这里不再需要单独的删除函数
 
-  // 表单验证
+  // 表单验证（返回更详细信息用于提示与定位）
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -111,12 +116,48 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    const order: Array<keyof typeof newErrors> = ['title', 'content', 'categoryId', 'summary'];
+    const messages: string[] = order
+      .map((k) => newErrors[k])
+      .filter((m): m is string => Boolean(m));
+    const firstKey = order.find((k) => newErrors[k]);
+
+    return {
+      ok: Object.keys(newErrors).length === 0,
+      messages,
+      firstKey,
+      newErrors,
+    } as const;
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) {
-      showToast.error('请检查表单信息');
+    const result = validateForm();
+    if (!result.ok) {
+      const msg = result.messages.length > 0
+        ? `请完善表单：${result.messages.join('；')}`
+        : '请完善表单信息';
+      showToast.error(msg);
+
+      // 将视图滚动/聚焦到第一个错误位置
+      switch (result.firstKey) {
+        case 'title':
+          titleInputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          titleInputRef.current?.focus();
+          break;
+        case 'content':
+          contentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          editorRef.current?.focus();
+          break;
+        case 'categoryId':
+          categoryCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          break;
+        case 'summary':
+          summaryCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          break;
+        default:
+          break;
+      }
       return;
     }
 
@@ -225,15 +266,21 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
 
               {/* Title */}
               <div>
+                <Label className="text-sm font-medium text-gray-700">
+                  {postType === 'article' ? '文章标题' : '问题标题'}
+                  <span className="text-red-500 ml-1">*</span>
+                </Label>
                 <Input
-                  label={postType === 'article' ? '文章标题' : '问题标题'}
+                  ref={titleInputRef}
                   placeholder={postType === 'article' ? '请输入文章标题...' : '请输入您的问题...'}
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="text-lg"
-                  error={errors.title}
+                  className="text-lg mt-1"
                   required
                 />
+                {errors.title && (
+                  <p className="text-sm text-red-600 mt-1">{errors.title}</p>
+                )}
               </div>
 
               {/* Content */}
@@ -253,7 +300,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
                     <Button variant="secondary" size="sm" onClick={() => setShowResourcePicker(true)}>从资源库插入</Button>
                   </div>
                 </div>
-                <MarkdownEditor
+                <div ref={contentSectionRef}>
+                  <MarkdownEditor
                   ref={editorRef}
                   value={content}
                   onChange={setContent}
@@ -262,7 +310,8 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
                   className="w-full"
                   enableFullscreen={true}
                   onOpenResourcePicker={() => setShowResourcePicker(true)}
-                />
+                  />
+                </div>
               </div>
             </div>
           </Card>
@@ -272,7 +321,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
         <div className="lg:col-span-1">
           <div className="sticky top-6 space-y-4">
             {/* 文章分类 */}
-            <Card className="p-4">
+            <Card className="p-4" ref={categoryCardRef}>
               <CategorySelect
                 label="文章分类"
                 value={categoryId}
@@ -305,19 +354,18 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
             </Card>
 
             {/* 文章概要 */}
-            <Card className="p-4">
+            <Card className="p-4" ref={summaryCardRef}>
+              <Label className="text-sm font-medium text-gray-700">文章概要</Label>
               <Textarea
-                label="文章概要"
                 placeholder="请输入文章概要（可选，用于文章列表展示）..."
                 value={summary}
                 onChange={(e) => setSummary(e.target.value)}
-                error={errors.summary}
+                className="mt-1"
                 maxLength={500}
-                showCharCount={true}
-                autoResize={true}
-                minRows={2}
-                maxRows={4}
               />
+              {errors.summary && (
+                <p className="text-sm text-red-600 mt-1">{errors.summary}</p>
+              )}
             </Card>
 
             {/* 封面图片 */}

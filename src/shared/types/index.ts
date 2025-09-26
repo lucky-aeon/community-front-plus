@@ -13,6 +13,8 @@ export interface User {
   currentSubscriptionStartTime?: string | Date;
   currentSubscriptionEndTime?: string | Date;
   currentSubscriptionPlanLevel?: number; // 1/2/3 用于样式层级
+  // 业务判断使用：后端用户信息返回的当前套餐等级（仅此字段，按你的后端为准）
+  currentSubscriptionLevel?: number;
 }
 
 export interface Course {
@@ -390,6 +392,7 @@ export interface CreatePostResponse {
 
 // 更新用户个人简介请求参数
 export interface UpdateProfileRequest {
+  name?: string;             // 用户昵称，用于修改用户昵称
   description?: string;      // 个人简介，最大500个字符，可为空
   avatar?: string;           // 头像资源ID（保存ID，由后端解析为可访问URL）
 }

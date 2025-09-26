@@ -31,9 +31,14 @@ export const GithubOAuthCallbackPage: React.FC = () => {
           navigate('/dashboard', { replace: true });
         } else {
           const auth = await GithubOAuthService.publicCallback(code, state);
-          await AuthService.processOAuthLogin(auth);
+          const user = await AuthService.processOAuthLogin(auth);
           showToast.success('GitHub 登录成功');
-          navigate('/dashboard', { replace: true });
+          const level = (user as any)?.currentSubscriptionLevel;
+          if (Number(level) === 1) {
+            navigate('/dashboard/courses', { replace: true });
+          } else {
+            navigate('/dashboard/home', { replace: true });
+          }
         }
       } catch (e) {
         // 错误提示已由拦截器兜底，但这里再给一层保障
@@ -57,4 +62,3 @@ export const GithubOAuthCallbackPage: React.FC = () => {
 };
 
 export default GithubOAuthCallbackPage;
-

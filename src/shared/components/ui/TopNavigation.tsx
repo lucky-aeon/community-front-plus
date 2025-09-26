@@ -133,7 +133,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="relative flex items-center justify-between h-16">
           {/* Left section: Logo + Brand + Membership */}
           <div className="flex items-center space-x-6">
             {/* Logo */}
@@ -153,53 +153,54 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
               </div>
             </button>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center space-x-1">
-              {navigationItems.map((item) => {
-                const disabled = !isAllowed(item.code);
-                const isActive = isActiveRoute(item.path);
-                if (disabled) {
-                  return (
-                    <div
-                      key={item.id}
-                      className={cn(
-                        "relative px-4 py-2 rounded-xl font-medium text-sm",
-                        "text-warm-gray-400 bg-transparent opacity-60 cursor-not-allowed"
-                      )}
-                      title="暂无菜单权限"
-                    >
-                      <div className="flex items-center space-x-2">
-                        <item.icon className="h-4 w-4 text-warm-gray-400" />
-                        <span>{item.name}</span>
-                      </div>
-                    </div>
-                  );
-                }
+          </div>
+
+          {/* Center section: Desktop Navigation 绝对居中 */}
+          <nav className="hidden lg:flex items-center space-x-1 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            {navigationItems.map((item) => {
+              const disabled = !isAllowed(item.code);
+              const isActive = isActiveRoute(item.path);
+              if (disabled) {
                 return (
-                  <NavLink
+                  <div
                     key={item.id}
-                    to={item.path}
                     className={cn(
-                      "relative px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 group",
-                      "hover:bg-honey-50 hover:text-honey-600",
-                      isActive
-                        ? "text-honey-600 bg-honey-100 shadow-sm"
-                        : "text-warm-gray-600"
+                      "relative px-4 py-2 rounded-xl font-medium text-sm",
+                      "text-warm-gray-400 bg-transparent opacity-60 cursor-not-allowed"
                     )}
-                    title={item.description}
+                    title="暂无菜单权限"
                   >
                     <div className="flex items-center space-x-2">
-                      <item.icon className={cn(
-                        "h-4 w-4 transition-colors",
-                        isActive ? "text-honey-600" : "text-warm-gray-500 group-hover:text-honey-500"
-                      )} />
+                      <item.icon className="h-4 w-4 text-warm-gray-400" />
                       <span>{item.name}</span>
                     </div>
-                  </NavLink>
+                  </div>
                 );
-              })}
-            </nav>
-          </div>
+              }
+              return (
+                <NavLink
+                  key={item.id}
+                  to={item.path}
+                  className={cn(
+                    "relative px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 group",
+                    "hover:bg-honey-50 hover:text-honey-600",
+                    isActive
+                      ? "text-honey-600 bg-honey-100 shadow-sm"
+                      : "text-warm-gray-600"
+                  )}
+                  title={item.description}
+                >
+                  <div className="flex items-center space-x-2">
+                    <item.icon className={cn(
+                      "h-4 w-4 transition-colors",
+                      isActive ? "text-honey-600" : "text-warm-gray-500 group-hover:text-honey-500"
+                    )} />
+                    <span>{item.name}</span>
+                  </div>
+                </NavLink>
+              );
+            })}
+          </nav>
 
           {/* Right section: Actions + User */}
           <div className="flex items-center space-x-3">

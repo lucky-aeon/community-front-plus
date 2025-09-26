@@ -43,7 +43,7 @@ const AppContent: React.FC = () => {
         path="/dashboard/*" 
         element={
           <ProtectedRoute>
-            <MenuGuard>
+            <MenuGuard fallback="blocked">
               <Dashboard />
             </MenuGuard>
           </ProtectedRoute>

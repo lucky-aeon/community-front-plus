@@ -47,7 +47,7 @@ export const Hero: React.FC = () => {
   const stats = [
     { icon: Users, value: userCountDisplay, label: '活跃学员' },
     { icon: Award, value: courseCountDisplay, label: '专业课程' },
-    { icon: TrendingUp, value: '95%', label: '成功率' }
+    { icon: TrendingUp, value: '95%', label: '就业率' }
   ];
 
   return (

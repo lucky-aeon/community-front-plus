@@ -59,10 +59,6 @@ export const RecentComments: React.FC<RecentCommentsProps> = ({ isLoading = fals
               <BookOpen className="h-5 w-5 text-white" />
             </div>
             <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-1">
-                <Quote className="h-4 w-4 text-honey-600" />
-                <span className="text-xs text-honey-600 font-medium tracking-wide">每日一言</span>
-              </div>
               <p className="text-lg font-bold text-gray-900 leading-relaxed">
                 技术需要沉淀
               </p>
