@@ -73,15 +73,32 @@ export const ResourcePicker: React.FC<ResourcePickerProps> = ({ open, onClose, o
     const url = ResourceAccessService.getResourceAccessUrl(r.id);
     const name = r.originalName || 'resource';
     const type = r.resourceType;
+
+    // 自定义语法规范：
+    // 图片：![image#S #R #100% #auto](url)
+    // 视频：!video[filename#100% #auto](url){poster=posterUrl}
     if (type === 'IMAGE') {
-      return `![${name}](${url})`;
+      return `![image#S #R #100% #auto](${url})`;
     }
+
     if (type === 'VIDEO') {
-      return `<video src="${url}" controls style="max-width:100%;height:auto;"></video>`;
+      // 从当前页数据里尝试寻找可能的poster（同名且包含poster/封面/cover关键字的图片）
+      const base = name.replace(/\.[^.]+$/, '').toLowerCase();
+      const posterCandidate = data.records.find(x => (
+        x.resourceType === 'IMAGE' &&
+        (
+          x.originalName.toLowerCase().includes(`${base}`) ||
+          x.originalName.toLowerCase().startsWith(base)
+        ) && /poster|封面|cover/i.test(x.originalName)
+      ));
+      const posterUrl = posterCandidate ? ResourceAccessService.getResourceAccessUrl(posterCandidate.id) : '';
+      const posterPart = posterUrl ? `{poster=${posterUrl}}` : '';
+      return `!video[${name}#100% #auto](${url})${posterPart}`;
     }
+
     // 文档/其他
     return `[${name}](${url})`;
-  }, []);
+  }, [data.records]);
 
   const handleInsertSelected = useCallback(() => {
     if (selectedIds.size === 0) return;
