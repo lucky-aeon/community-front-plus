@@ -25,6 +25,7 @@ import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useUserMenuCodes } from '@/hooks/useUserMenuCodes';
 import { getMenuCodeByNavId } from '@shared/constants/menu-codes';
+import { NotificationsService } from '@shared/services/api';
 
 interface UserBackendLayoutProps {
   children: React.ReactNode;
@@ -38,6 +39,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
   const { isAllowed } = useUserMenuCodes();
 
   const handleBackToFrontend = () => {
@@ -71,6 +73,36 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
     };
     fetchRole();
     return () => { cancelled = true; };
+  }, [user?.id]);
+
+  // 轮询未读数量，用于导航栏小红点
+  useEffect(() => {
+    let cancelled = false;
+    let timer: number | undefined;
+
+    const fetchUnread = async () => {
+      try {
+        if (!user) return;
+        const count = await NotificationsService.getUnreadCount();
+        if (!cancelled) setUnreadCount(Math.max(0, count));
+      } catch {
+        // 静默失败
+      }
+    };
+
+    // 首次加载 + 轮询
+    fetchUnread();
+    timer = window.setInterval(fetchUnread, 60_000);
+
+    // 监听通知变更事件（标记已读/清空等后立即刷新）
+    const onChanged = () => { void fetchUnread(); };
+    window.addEventListener('notifications:changed', onChanged as EventListener);
+
+    return () => {
+      cancelled = true;
+      if (timer) window.clearInterval(timer);
+      window.removeEventListener('notifications:changed', onChanged as EventListener);
+    };
   }, [user?.id]);
 
   const navigationSections = [
@@ -128,12 +160,30 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
             </button>
             <h1 className="text-lg font-semibold text-gray-900">用户中心</h1>
           </div>
-          <button
-            onClick={() => setIsSidebarOpen(false)}
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* 消息铃铛 */}
+            <button
+              onClick={() => navigate('/dashboard/user-backend/messages')}
+              className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              title="消息中心"
+            >
+              <Bell className="h-5 w-5 text-gray-700" />
+              {unreadCount > 0 && (
+                <span
+                  className="absolute -top-0.5 -right-0.5 bg-red-500 text-white rounded-full h-4 min-w-[1rem] px-1 text-[10px] leading-4 text-center"
+                >
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+            {/* 抽屉关闭（仅移动端显示） */}
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
         </div>
 
         {/* User info */}
@@ -257,7 +307,18 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
               <Menu className="h-6 w-6" />
             </button>
             <h2 className="text-lg font-semibold text-gray-900">用户中心</h2>
-            <div className="w-10"></div>
+            <button
+              onClick={() => navigate('/dashboard/user-backend/messages')}
+              className="relative p-2 rounded-lg hover:bg-gray-100"
+              title="消息中心"
+            >
+              <Bell className="h-5 w-5 text-gray-700" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white rounded-full h-4 min-w-[1rem] px-1 text-[10px] leading-4 text-center">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 

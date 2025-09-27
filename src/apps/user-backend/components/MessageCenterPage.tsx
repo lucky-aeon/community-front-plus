@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { NotificationsService } from '@shared/services/api';
-import type { NotificationType, NotificationQueryRequest, UserNotificationDTO, PageResponse } from '@shared/types';
+import type { NotificationQueryRequest, UserNotificationDTO, PageResponse } from '@shared/types';
 import { showToast } from '@shared/utils/toast';
 
 export const MessageCenterPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'comment' | 'like' | 'system'>('all');
   const [loading, setLoading] = useState(false);
   const [pageNum, setPageNum] = useState(1);
   const [pageSize] = useState(10);
@@ -25,14 +24,6 @@ export const MessageCenterPage: React.FC = () => {
     pages: 0,
   });
   const [unreadCount, setUnreadCount] = useState<number>(0);
-
-  const tabs = [
-    { id: 'all', name: '全部', count: pageData.total },
-    { id: 'unread', name: '未读', count: unreadCount },
-    { id: 'comment', name: '评论', count: undefined },
-    { id: 'like', name: '点赞', count: undefined },
-    { id: 'system', name: '系统', count: undefined }
-  ] as const;
 
   const getMessageIcon = (type: string) => {
     switch (type) {
@@ -50,20 +41,8 @@ export const MessageCenterPage: React.FC = () => {
     }
   };
 
-  const mapTabToQuery = (): { type?: NotificationType; read?: boolean } => {
-    switch (activeTab) {
-      case 'unread':
-        return { read: false };
-      case 'comment':
-        return { type: 'COMMENT' };
-      case 'like':
-        return { type: 'LIKE' };
-      case 'system':
-        return { type: 'SYSTEM' };
-      default:
-        return {};
-    }
-  };
+  // 当前后端未支持按标签筛选，这里仅请求分页数据
+  const mapTabToQuery = (): Record<string, never> => ({});
 
   const fetchList = async (reset = true) => {
     setLoading(true);
@@ -82,8 +61,7 @@ export const MessageCenterPage: React.FC = () => {
     }
   };
 
-  useEffect(() => { setPageNum(1); }, [activeTab]);
-  useEffect(() => { fetchList(true); }, [pageNum, activeTab]);
+  useEffect(() => { fetchList(true); }, [pageNum]);
 
   const markAsRead = async (messageId: string) => {
     try {
@@ -152,7 +130,7 @@ export const MessageCenterPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="p-6">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-blue-100">
@@ -161,17 +139,6 @@ export const MessageCenterPage: React.FC = () => {
             <div className="ml-4">
               <div className="text-2xl font-bold text-gray-900">{pageData.total}</div>
               <div className="text-sm text-gray-600">总消息数</div>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-6">
-          <div className="flex items-center">
-            <div className="p-3 rounded-full bg-green-100">
-              <CheckCircle className="h-6 w-6 text-green-600" />
-            </div>
-            <div className="ml-4">
-              <div className="text-2xl font-bold text-gray-900">{Math.max(0, pageData.total - unreadCount)}</div>
-              <div className="text-sm text-gray-600">已读消息</div>
             </div>
           </div>
         </Card>
@@ -199,28 +166,7 @@ export const MessageCenterPage: React.FC = () => {
         </Card>
       </div>
 
-      <Card className="p-4">
-        <div className="flex flex-wrap gap-2">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`
-                flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors
-                ${activeTab === tab.id
-                  ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                }
-              `}
-            >
-              <span>{tab.name}</span>
-              {typeof tab.count === 'number' && tab.count > 0 && (
-                <Badge variant="secondary" size="sm">{tab.count}</Badge>
-              )}
-            </button>
-          ))}
-        </div>
-      </Card>
+      {/* 标签筛选暂不支持，移除Tab */}
 
       <div className="space-y-3">
         {pageData.records.map((message) => (

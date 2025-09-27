@@ -4,6 +4,7 @@ import type {
   NotificationQueryRequest,
   PageResponse,
   UnreadCountResponse,
+  NotificationType,
 } from '@shared/types';
 
 /**
@@ -15,30 +16,39 @@ export class NotificationsService {
 
   /** 获取通知列表（分页） */
   static async getNotifications(params: NotificationQueryRequest = {}): Promise<PageResponse<UserNotificationDTO>> {
-    const resp = await apiClient.get<ApiResponse<PageResponse<UserNotificationDTO>>>(this.BASE_PATH, { params });
-    return resp.data.data;
+    // 服务端字段与前端DTO存在差异，这里统一做一次归一化
+    const resp = await apiClient.get<ApiResponse<any>>(this.BASE_PATH, { params });
+    const page = (resp.data?.data || {}) as Partial<PageResponse<unknown>> & { records?: any[] };
+    const records = Array.isArray(page.records) ? page.records.map(this.normalizeRecord) : [];
+    return {
+      ...page,
+      records,
+    } as PageResponse<UserNotificationDTO>;
   }
 
   /** 未读数量 */
   static async getUnreadCount(): Promise<number> {
     const url = `${this.BASE_PATH}/unread-count`;
     const resp = await apiClient.get<ApiResponse<UnreadCountResponse>>(url);
-    return resp.data.data?.unreadCount ?? 0;
+    return Math.max(0, resp.data?.data?.unreadCount ?? 0);
   }
 
   /** 标记单条为已读 */
   static async markAsRead(id: string): Promise<void> {
     await apiClient.put(`${this.BASE_PATH}/${id}/read`);
+    try { window.dispatchEvent(new CustomEvent('notifications:changed')); } catch { void 0; }
   }
 
   /** 全部标记已读 */
   static async markAllAsRead(): Promise<void> {
     await apiClient.put(`${this.BASE_PATH}/read-all`);
+    try { window.dispatchEvent(new CustomEvent('notifications:changed')); } catch { void 0; }
   }
 
   /** 删除单条通知 */
   static async delete(id: string): Promise<void> {
     await apiClient.delete(`${this.BASE_PATH}/${id}`);
+    try { window.dispatchEvent(new CustomEvent('notifications:changed')); } catch { void 0; }
   }
 
   /** 清空所有已读通知（后端两种可能路径，优先 clear-read，失败则尝试 read） */
@@ -48,5 +58,33 @@ export class NotificationsService {
     } catch {
       await apiClient.delete(`${this.BASE_PATH}/read`);
     }
+    try { window.dispatchEvent(new CustomEvent('notifications:changed')); } catch { void 0; }
+  }
+
+  // 将服务端记录结构映射为前端 UserNotificationDTO
+  private static normalizeRecord(server: any): UserNotificationDTO {
+    const status: string | undefined = server?.status;
+    const read: boolean = typeof server?.read === 'boolean' ? server.read : status === 'READ';
+
+    const typeMap: Record<string, NotificationType> = {
+      COMMENT: 'COMMENT',
+      REPLY: 'REPLY',
+      LIKE: 'LIKE',
+      FOLLOW: 'FOLLOW',
+      SYSTEM: 'SYSTEM',
+      NEW_FOLLOWER: 'FOLLOW',
+    };
+    const mappedType: NotificationType = typeMap[server?.type as string] ?? 'SYSTEM';
+
+    return {
+      id: String(server?.id ?? ''),
+      type: mappedType,
+      title: server?.title ?? '',
+      content: server?.content ?? '',
+      senderName: server?.senderName ?? undefined,
+      senderAvatar: server?.senderAvatar ?? undefined,
+      read,
+      createTime: server?.createTime ?? new Date().toISOString(),
+    };
   }
 }

@@ -803,6 +803,8 @@ export interface FrontCourseDTO {
   price?: number;                // 当前售价（可选）
   originalPrice?: number;        // 原价（可选）
   createTime: string;            // 创建时间
+  // 新增：解锁标记（用于列表页展示）
+  unlocked?: boolean;            // 是否已解锁
 }
 
 // 前台课程详情章节信息
@@ -835,6 +837,21 @@ export interface FrontCourseDetailDTO {
   createTime: string;            // 创建时间
   updateTime: string;            // 更新时间
   chapters: FrontChapterDTO[];   // 章节列表
+  // 新增：解锁信息
+  unlocked?: boolean;            // 是否已解锁（可学习）
+  unlockPlans?: UnlockPlanDTO[]; // 可解锁的套餐列表（可能为空或未提供）
+}
+
+// 解锁套餐信息（用于前台课程详情显示可解锁的会员方案）
+export interface UnlockPlanDTO {
+  id: string;
+  name: string;
+  level: number;            // 等级（1/2/3）
+  validityMonths: number;   // 有效期（月）
+  price: number;            // 售价
+  originalPrice?: number;   // 原价
+  recommended?: boolean;    // 是否推荐
+  benefits?: string[];      // 方案权益
 }
 
 // ================ 公开课程相关接口定义 ================

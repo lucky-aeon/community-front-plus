@@ -11,7 +11,8 @@ import {
   LogOut,
   LayoutDashboard,
   Shield,
-  Key
+  Key,
+  Bell
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,7 @@ import type { UserDTO } from '@shared/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useUserMenuCodes } from '@/hooks/useUserMenuCodes';
 import { MENU_CODE } from '@shared/constants/menu-codes';
+import { NotificationsService } from '@shared/services/api';
 
 interface TopNavigationProps {
   className?: string;
@@ -46,6 +48,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
   // 用户菜单码
   const { isAllowed } = useUserMenuCodes();
@@ -99,6 +102,28 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
     fetchRole();
     return () => { cancelled = true; };
   }, [user]);
+
+  // 轮询未读数量，并在通知变化时即时刷新
+  useEffect(() => {
+    let cancelled = false;
+    let timer: number | undefined;
+    const fetchUnread = async () => {
+      try {
+        if (!user) return;
+        const count = await NotificationsService.getUnreadCount();
+        if (!cancelled) setUnreadCount(Math.max(0, count));
+      } catch { /* 静默失败 */ }
+    };
+    fetchUnread();
+    timer = window.setInterval(fetchUnread, 60_000);
+    const onChanged = () => { void fetchUnread(); };
+    window.addEventListener('notifications:changed', onChanged as EventListener);
+    return () => {
+      cancelled = true;
+      if (timer) window.clearInterval(timer);
+      window.removeEventListener('notifications:changed', onChanged as EventListener);
+    };
+  }, [user?.id]);
 
   const isActiveRoute = (path: string) => {
     if (path === '/dashboard/home') {
@@ -217,6 +242,25 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
               <Plus className="h-4 w-4" />
               <span className="font-medium">发布</span>
             </Button>
+
+            {/* Notification Bell */}
+            {user && (
+              <button
+                onClick={() => navigate(ROUTES.USER_BACKEND_MESSAGES)}
+                className={cn(
+                  "relative p-2 rounded-xl transition-colors",
+                  "hover:bg-honey-50 focus:outline-none focus:ring-2 focus:ring-honey-500/20"
+                )}
+                title="消息中心"
+              >
+                <Bell className="h-5 w-5 text-warm-gray-700" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 bg-red-500 text-white rounded-full h-4 min-w-[1rem] px-1 text-[10px] leading-4 text-center shadow">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
+              </button>
+            )}
 
             {/* User Menu */}
             {user && (

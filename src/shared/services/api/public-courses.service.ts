@@ -26,7 +26,14 @@ export class PublicCoursesService {
    */
   static async getPublicCourseDetail(id: string): Promise<PublicCourseDetailDTO> {
     const response = await apiClient.get<ApiResponse<PublicCourseDetailDTO>>(`/public/courses/${id}`);
-    return response.data.data;
+    const data = response.data.data;
+    // 归一化数组字段，防止 UI 直接 .length 时报 null 错误
+    return {
+      ...data,
+      techStack: data.techStack ?? [],
+      tags: data.tags ?? [],
+      resources: data.resources ?? [],
+      chapters: data.chapters ?? [],
+    } as PublicCourseDetailDTO;
   }
 }
-

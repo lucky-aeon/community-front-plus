@@ -42,7 +42,15 @@ export class CoursesService {
   static async getFrontCourseDetail(id: string): Promise<FrontCourseDetailDTO> {
     const response = await apiClient.get<ApiResponse<FrontCourseDetailDTO>>(`/app/courses/${id}`);
     const data = response.data.data;
-    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as FrontCourseDetailDTO;
+    // 归一化后端可能返回的 null/undefined 数组字段，避免前端直接 .length 报错
+    return {
+      ...data,
+      coverImage: ResourceAccessService.toAccessUrl(data.coverImage),
+      techStack: data.techStack ?? [],
+      tags: data.tags ?? [],
+      resources: data.resources ?? [],
+      chapters: data.chapters ?? [],
+    } as FrontCourseDetailDTO;
   }
 
   /**

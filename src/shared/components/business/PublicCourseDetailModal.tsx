@@ -130,7 +130,7 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
                 <div className="w-1 h-1 rounded-full bg-warm-gray-300" />
                 <div className="flex items-center gap-1">
                   <BookOpen className="h-4 w-4" />
-                  <span>{detail.chapters.length} 章节</span>
+                  <span>{(detail.chapters ?? []).length} 章节</span>
                 </div>
               </div>
             </div>
@@ -182,13 +182,13 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
               <Card className="p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-base font-semibold">课程章节</h3>
-                  <span className="text-xs text-warm-gray-500">共 {detail.chapters.length} 章</span>
+                  <span className="text-xs text-warm-gray-500">共 {(detail.chapters ?? []).length} 章</span>
                 </div>
-                {detail.chapters.length === 0 ? (
+                {(detail.chapters ?? []).length === 0 ? (
                   <div className="text-sm text-warm-gray-600">暂无章节</div>
                 ) : (
                   <div className="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
-                    {[...detail.chapters]
+                    {[...(detail.chapters ?? [])]
                       .sort((a, b) => a.sortOrder - b.sortOrder)
                       .map((ch) => (
                         <div

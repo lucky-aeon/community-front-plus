@@ -138,11 +138,15 @@ export const FollowsPage: React.FC = () => {
     return (
       <Card key={`all-${item.targetId}`} className="p-4 flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <div className="h-14 w-20 rounded bg-gray-100 overflow-hidden">
-            {item.targetCover || (item as FollowItemEx).courseCover ? (
-              <img src={item.targetCover || (item as FollowItemEx).courseCover} alt={(item.targetName || (item as FollowItemEx).courseTitle) || ''} className="h-full w-full object-cover" />
-            ) : null}
-          </div>
+          {(item.targetCover || (item as FollowItemEx).courseCover) && (
+            <div className="h-14 w-20 rounded overflow-hidden bg-gray-100">
+              <img
+                src={item.targetCover || (item as FollowItemEx).courseCover}
+                alt={(item.targetName || (item as FollowItemEx).courseTitle) || ''}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          )}
           <div>
             <div className="font-medium text-gray-900 flex items-center">
               <GraduationCap className="h-4 w-4 text-gray-400 mr-2" />
@@ -214,11 +218,15 @@ export const FollowsPage: React.FC = () => {
         filteredCourses.map(c => (
           <Card key={c.targetId} className="p-4 flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="h-14 w-20 rounded bg-gray-100 overflow-hidden">
-                {c.targetCover || (c as FollowItemEx).courseCover ? (
-                  <img src={c.targetCover || (c as FollowItemEx).courseCover} alt={(c.targetName || (c as FollowItemEx).courseTitle) || ''} className="h-full w-full object-cover" />
-                ) : null}
-              </div>
+              {(c.targetCover || (c as FollowItemEx).courseCover) && (
+                <div className="h-14 w-20 rounded overflow-hidden bg-gray-100">
+                  <img
+                    src={c.targetCover || (c as FollowItemEx).courseCover}
+                    alt={(c.targetName || (c as FollowItemEx).courseTitle) || ''}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
               <div>
                 <div className="font-medium text-gray-900 flex items-center">
                   <GraduationCap className="h-4 w-4 text-gray-400 mr-2" />

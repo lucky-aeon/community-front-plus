@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, Clock, ExternalLink, Tags, Star } from 'lucide-react';
+import { BookOpen, Clock, ExternalLink, Tags, Star, Lock } from 'lucide-react';
 import { CoursesService, SubscribeService } from '@shared/services/api';
 import { FrontCourseDetailDTO, FrontChapterDTO } from '@shared/types';
 import { Card } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { Comments } from '@shared/components/ui/Comments';
+import { PaymentModal } from '@shared/components/business/PaymentModal';
 
 export const CourseDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ export const CourseDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [followLoading, setFollowLoading] = useState<boolean>(false);
+  const [isPaymentOpen, setIsPaymentOpen] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchCourseDetail = async () => {
@@ -71,6 +73,10 @@ export const CourseDetailPage: React.FC = () => {
   }, [course]);
 
   const startLearning = () => {
+    if (course?.unlocked === false) {
+      setIsPaymentOpen(true);
+      return;
+    }
     if (course && firstChapter) {
       navigate(`/dashboard/courses/${course.id}/chapters/${firstChapter.id}`);
     }
@@ -148,6 +154,9 @@ export const CourseDetailPage: React.FC = () => {
     );
   }
 
+  // 安全的章节数组，避免后端返回 null 导致 length 报错
+  const chapters = course.chapters ?? [];
+
   return (
     <div className="relative">
       {/* 顶部 Hero */}
@@ -172,7 +181,7 @@ export const CourseDetailPage: React.FC = () => {
               <div className="w-1 h-1 rounded-full bg-warm-gray-300" />
               <div className="flex items-center gap-1">
                 <BookOpen className="h-4 w-4" />
-                <span>{course.chapters.length} 章节</span>
+                <span>{chapters.length} 章节</span>
               </div>
             </div>
 
@@ -197,10 +206,10 @@ export const CourseDetailPage: React.FC = () => {
                 </Button>
                 <Button
                   onClick={startLearning}
-                  disabled={!firstChapter}
+                  disabled={!firstChapter && course?.unlocked !== false}
                   className="bg-gradient-to-r from-premium-500 via-honey-600 to-amber-600 text-white"
                 >
-                  开始学习
+                  {course?.unlocked === false ? '解锁课程' : '开始学习'}
                 </Button>
                 {course.projectUrl && (
                   <Button variant="secondary" onClick={() => openUrl(course.projectUrl)}>
@@ -297,23 +306,70 @@ export const CourseDetailPage: React.FC = () => {
 
         {/* 右侧：章节列表 */}
         <div>
+          {/* 未解锁时显示解锁方式 */}
+          {course.unlocked === false && ((course.unlockPlans && course.unlockPlans.length > 0) || typeof course.price === 'number') && (
+            <Card className="p-6 space-y-4 mb-4">
+              <h2 className="text-lg font-bold">解锁方式</h2>
+              {/* 订阅解锁（套餐） */}
+              {(course.unlockPlans && course.unlockPlans.length > 0) && (
+                <div>
+                  <div className="text-sm text-warm-gray-600 mb-2">订阅以下任一套餐可解锁本课程：</div>
+                  <div className="space-y-2">
+                    {course.unlockPlans.map((p) => (
+                      <div key={p.id} className="flex items-center justify-between p-3 rounded-lg border bg-white">
+                        <div className="font-medium text-gray-900">{p.name}</div>
+                        <div className="text-right">
+                          <div className="text-base font-semibold text-gray-900">¥{p.price}</div>
+                          {typeof p.originalPrice === 'number' && p.originalPrice > p.price && (
+                            <div className="text-xs text-warm-gray-500 line-through">¥{p.originalPrice}</div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 单次购买（按课程价格） */}
+              {typeof course.price === 'number' && (
+                <div className="pt-2">
+                  <div className="text-sm text-warm-gray-600 mb-2">或直接购买本课程：</div>
+                  <div className="flex items-center justify-between p-3 rounded-lg border bg-white">
+                    <div className="font-medium text-gray-900">单次购买</div>
+                    <div className="text-right">
+                      <div className="text-base font-semibold text-gray-900">¥{course.price}</div>
+                      {typeof course.originalPrice === 'number' && course.originalPrice > (course.price ?? 0) && (
+                        <div className="text-xs text-warm-gray-500 line-through">¥{course.originalPrice}</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div className="mt-3">
+                <Button variant="honeySoft" className="w-full" onClick={() => setIsPaymentOpen(true)}>去支付解锁</Button>
+              </div>
+            </Card>
+          )}
           <Card className="p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold">课程章节</h2>
-              <Badge variant="secondary">共 {course.chapters.length} 章</Badge>
+              <Badge variant="secondary">共 {chapters.length} 章</Badge>
             </div>
 
-            {course.chapters.length === 0 ? (
+            {chapters.length === 0 ? (
               <div className="text-sm text-warm-gray-600">暂无章节</div>
             ) : (
               <div className="space-y-2">
-                {[...course.chapters]
+                {[...chapters]
                   .sort((a, b) => a.sortOrder - b.sortOrder)
                   .map((ch) => (
                     <button
                       key={ch.id}
-                      onClick={() => navigate(`/dashboard/courses/${course.id}/chapters/${ch.id}`)}
-                      className="w-full text-left p-3 rounded-lg border hover:bg-honey-50/60 transition-colors"
+                      onClick={() => {
+                        if (course.unlocked === false) { setIsPaymentOpen(true); return; }
+                        navigate(`/dashboard/courses/${course.id}/chapters/${ch.id}`);
+                      }}
+                      className={`w-full text-left p-3 rounded-lg border transition-colors ${course.unlocked === false ? 'opacity-70 cursor-not-allowed' : 'hover:bg-honey-50/60'}`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -325,6 +381,11 @@ export const CourseDetailPage: React.FC = () => {
                             </div>
                           </div>
                         </div>
+                        {course.unlocked === false && (
+                          <div className="flex items-center gap-1 text-xs text-warm-gray-600">
+                            <Lock className="h-3.5 w-3.5" /> 未解锁
+                          </div>
+                        )}
                       </div>
                     </button>
                   ))}
@@ -335,6 +396,8 @@ export const CourseDetailPage: React.FC = () => {
           {/* 移除右侧评分卡，评分仅在顶部展示 */}
         </div>
       </div>
+      {/* 支付二维码弹窗（与会员页一致） */}
+      <PaymentModal open={isPaymentOpen} onOpenChange={setIsPaymentOpen} />
     </div>
   );
 };

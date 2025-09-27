@@ -150,7 +150,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
           )}
         </div>
 
-        {/* Course Stats */}
+        {/* Course Stats + 解锁状态 */}
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center space-x-4 text-warm-gray-500">
             <div className="flex items-center space-x-1.5">
@@ -162,6 +162,14 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
               <span className="font-medium">{course.chapterCount}章节</span>
             </div>
           </div>
+          {typeof course.unlocked === 'boolean' && (
+            <Badge className={cn(
+              'text-xs font-semibold',
+              course.unlocked ? 'bg-emerald-100 text-emerald-700 border-emerald-200' : 'bg-warm-gray-100 text-warm-gray-700 border-warm-gray-200'
+            )}>
+              {course.unlocked ? '已解锁' : '未解锁'}
+            </Badge>
+          )}
         </div>
 
         {/* Technology Stack Tags */}
