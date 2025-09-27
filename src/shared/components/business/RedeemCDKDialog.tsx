@@ -3,6 +3,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { showToast } from '@shared/utils/toast';
+import { UserSubscriptionService } from '@shared/services/api/user-subscription.service';
+import { AuthService } from '@shared/services/api/auth.service';
 
 interface RedeemCDKDialogProps {
   open: boolean;
@@ -17,8 +19,9 @@ export const RedeemCDKDialog: React.FC<RedeemCDKDialogProps> = ({ open, onOpenCh
     if (!code.trim()) return showToast.error('请输入 CDK 激活码');
     setLoading(true);
     try {
-      // TODO: 接入真实兑换接口
-      await new Promise((r) => setTimeout(r, 600));
+      await UserSubscriptionService.activateCDK(code.trim());
+      // 刷新本地用户信息（便于立即显示最新套餐）
+      try { await AuthService.refreshUserInfo(); } catch { /* ignore */ }
       showToast.success('激活成功');
       setCode('');
       onOpenChange(false);
@@ -45,7 +48,7 @@ export const RedeemCDKDialog: React.FC<RedeemCDKDialogProps> = ({ open, onOpenCh
             {loading ? '激活中...' : '激活'}
           </Button>
         </div>
-        <p className="text-xs text-warm-gray-500">提示：当前为前端示例，后续接入后端兑换接口</p>
+        <p className="text-xs text-warm-gray-500">提示：激活后权益将自动应用至当前账号</p>
       </DialogContent>
     </Dialog>
   );

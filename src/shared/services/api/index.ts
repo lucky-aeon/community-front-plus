@@ -26,6 +26,7 @@ export { UserFollowsService } from './user-follows.service';
 export { PublicCoursesService } from './public-courses.service';
 export { PublicStatsService } from './public-stats.service';
 export { apiClient, type ApiResponse } from './config';
+export { UserSubscriptionService } from './user-subscription.service';
 
 // 导出类型定义
 export type {

@@ -3,6 +3,8 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { showToast } from '@shared/utils/toast';
+import { UserSubscriptionService } from '@shared/services/api/user-subscription.service';
+import { AuthService } from '@shared/services/api/auth.service';
 
 export const RedeemCDKPage: React.FC = () => {
   const [code, setCode] = useState('');
@@ -14,8 +16,8 @@ export const RedeemCDKPage: React.FC = () => {
     }
     setLoading(true);
     try {
-      // TODO: 接入实际兑换接口
-      await new Promise((r) => setTimeout(r, 600));
+      await UserSubscriptionService.activateCDK(code.trim());
+      try { await AuthService.refreshUserInfo(); } catch { /* ignore */ }
       showToast.success('激活成功');
       setCode('');
     } finally {
@@ -40,7 +42,7 @@ export const RedeemCDKPage: React.FC = () => {
           <Button variant="honeySoft" onClick={handleRedeem} disabled={loading} className="w-full sm:w-auto">
             {loading ? '激活中...' : '立即激活'}
           </Button>
-          <p className="text-xs text-warm-gray-500">提示：演示环境未接入接口，当前为前端示例流程</p>
+          <p className="text-xs text-warm-gray-500">提示：激活后权益将自动应用至当前账号</p>
         </div>
       </Card>
     </div>
