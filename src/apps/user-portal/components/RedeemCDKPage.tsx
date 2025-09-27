@@ -4,11 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { showToast } from '@shared/utils/toast';
 import { UserSubscriptionService } from '@shared/services/api/user-subscription.service';
-import { AuthService } from '@shared/services/api/auth.service';
+import { useAuth } from '@/context/AuthContext';
 
 export const RedeemCDKPage: React.FC = () => {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const { refreshUser } = useAuth();
 
   const handleRedeem = async () => {
     if (!code.trim()) {
@@ -17,7 +18,7 @@ export const RedeemCDKPage: React.FC = () => {
     setLoading(true);
     try {
       await UserSubscriptionService.activateCDK(code.trim());
-      try { await AuthService.refreshUserInfo(); } catch { /* ignore */ }
+      await refreshUser();
       showToast.success('激活成功');
       setCode('');
     } finally {

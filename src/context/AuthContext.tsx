@@ -147,6 +147,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     AuthService.logout();
   };
 
+  const refreshUser = async () => {
+    try {
+      const updated = await AuthService.refreshUserInfo();
+      if (updated) setUser(updated);
+    } catch { /* ignore */ }
+  };
+
   const value: AuthContextType = {
     user,
     login,
@@ -155,6 +162,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     registerWithCode,
     registerOnly,
     logout,
+    refreshUser,
     isLoading,
     isInitializing,
   };

@@ -5,7 +5,6 @@ import {
   Activity,
   Users,
   Shield,
-  ShieldCheck,
   FileText,
   Folder,
   Tag,
@@ -67,7 +66,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         { id: 'sessions', name: '会话管理', icon: Smartphone, path: '/dashboard/admin/sessions' },
         { id: 'ip-ban', name: 'IP封禁', icon: Shield, path: '/dashboard/admin/ip-ban' },
         { id: 'social-accounts', name: '三方账号', icon: Key, path: '/dashboard/admin/social-accounts' },
-        { id: 'permissions', name: '权限管理', icon: ShieldCheck, path: '/dashboard/admin/permissions' },
+        
         { id: 'orders', name: '订单管理', icon: Receipt, path: '/dashboard/admin/orders' },
         { id: 'subscription-plans', name: '套餐管理', icon: Package, path: '/dashboard/admin/subscription-plans' },
         { id: 'cdk', name: 'CDK管理', icon: Key, path: '/dashboard/admin/cdk' }

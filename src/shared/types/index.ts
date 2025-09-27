@@ -68,6 +68,8 @@ export interface AuthContextType {
   // 纯注册接口：仅完成注册，不自动登录
   registerOnly: (email: string, code: string, password: string) => Promise<void>;
   logout: () => void;
+  // 主动刷新当前用户信息（例如CDK激活后）
+  refreshUser: () => Promise<void>;
   // 表示登录/注册等认证动作的进行态（用于按钮/表单禁用）
   isLoading: boolean;
   // 应用启动阶段的初始化态（仅用于路由守卫决定是否渲染页面）

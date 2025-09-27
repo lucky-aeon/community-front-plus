@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { showToast } from '@shared/utils/toast';
 import { UserSubscriptionService } from '@shared/services/api/user-subscription.service';
-import { AuthService } from '@shared/services/api/auth.service';
+import { useAuth } from '@/context/AuthContext';
 
 interface RedeemCDKDialogProps {
   open: boolean;
@@ -14,14 +14,15 @@ interface RedeemCDKDialogProps {
 export const RedeemCDKDialog: React.FC<RedeemCDKDialogProps> = ({ open, onOpenChange }) => {
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const { refreshUser } = useAuth();
 
   const handleSubmit = async () => {
     if (!code.trim()) return showToast.error('请输入 CDK 激活码');
     setLoading(true);
     try {
       await UserSubscriptionService.activateCDK(code.trim());
-      // 刷新本地用户信息（便于立即显示最新套餐）
-      try { await AuthService.refreshUserInfo(); } catch { /* ignore */ }
+      // 刷新全局用户状态（以便 UI 立即更新套餐信息）
+      await refreshUser();
       showToast.success('激活成功');
       setCode('');
       onOpenChange(false);

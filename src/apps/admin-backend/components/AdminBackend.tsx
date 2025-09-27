@@ -43,7 +43,7 @@ export const AdminBackend: React.FC = () => {
         <Route path="/sessions" element={<SessionsPage />} />
         <Route path="/ip-ban" element={<IpBanPage />} />
         <Route path="/social-accounts" element={<SocialAccountsPage />} />
-        <Route path="/permissions" element={<ComingSoonPage title="权限管理" />} />
+        {/** 权限管理菜单已下线，移除对应路由 **/}
         <Route path="/orders" element={<OrdersPage />} />
         <Route path="/subscription-plans" element={<SubscriptionPlansPage />} />
         <Route path="/cdk" element={<CDKPage />} />
