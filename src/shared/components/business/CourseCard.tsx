@@ -14,9 +14,10 @@ interface CourseCardProps {
   hideContent?: boolean; // 列表页不展示简介/标签
   hideHero?: boolean; // 是否隐藏顶部封面/渐变区
   hideStatus?: boolean; // 是否隐藏状态徽章
+  hidePrice?: boolean; // 是否隐藏价格
 }
 
-export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAuthor = true, hideContent = false, hideHero = false, hideStatus = false }) => {
+export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAuthor = true, hideContent = false, hideHero = false, hideStatus = false, hidePrice = false }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDING': return 'bg-amber-100 text-amber-800 border-amber-200';
@@ -201,7 +202,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
 
         {/* Price and Action */}
         <div className={cn("space-y-3", hideHero ? "pt-0" : "pt-2 border-t border-warm-gray-100")}> 
-          {course.price !== undefined && (
+          {!hidePrice && course.price !== undefined && (
             <div className="flex items-center justify-between">
               <div className="flex items-baseline space-x-2">
                 {course.price === 0 ? (

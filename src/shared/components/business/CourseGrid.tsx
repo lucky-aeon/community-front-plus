@@ -113,6 +113,7 @@ export const CourseGrid: React.FC<CourseGridProps> = () => {
                 hideContent
                 hideHero
                 hideStatus
+                hidePrice
               />
             ))}
           </div>

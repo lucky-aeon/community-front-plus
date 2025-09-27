@@ -377,7 +377,7 @@ export const CourseDetailPage: React.FC = () => {
                           <div>
                             <div className="text-sm font-medium text-gray-900 line-clamp-1">{ch.title}</div>
                             <div className="text-xs text-warm-gray-500 flex items-center gap-1">
-                              <Clock className="h-3.5 w-3.5" /> 预计 {ch.readingTime} 分钟 · {formatDate(ch.createTime)}
+                              <Clock className="h-3.5 w-3.5" /> 预计 {ch.readingTime} 分钟
                             </div>
                           </div>
                         </div>

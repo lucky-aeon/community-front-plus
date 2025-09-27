@@ -98,18 +98,6 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-xl font-bold text-gray-900 line-clamp-2">{detail.title}</h2>
                 <div className="shrink-0 flex items-center gap-2">
-                  {typeof detail.price !== 'undefined' && (
-                    <div className="flex items-baseline gap-2">
-                      {detail.price === 0 ? (
-                        <span className="text-xl font-bold text-emerald-600">免费</span>
-                      ) : (
-                        <span className="text-xl font-bold text-gray-900">¥{detail.price}</span>
-                      )}
-                      {detail.price !== 0 && typeof detail.originalPrice !== 'undefined' && detail.originalPrice > (detail.price ?? 0) && (
-                        <span className="text-sm text-warm-gray-500 line-through">¥{detail.originalPrice}</span>
-                      )}
-                    </div>
-                  )}
                   {detail.demoUrl && (
                     <Button variant="secondary" size="sm" onClick={() => openUrl(detail.demoUrl)}>
                       <ExternalLink className="h-4 w-4 mr-1" /> 在线演示
