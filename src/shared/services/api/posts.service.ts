@@ -122,6 +122,21 @@ export class PostsService {
   }
 
   /**
+   * 分页查询某个用户发布的文章列表（仅已发布，可按分类类型过滤）
+   * POST /api/app/posts/user/{userId}/queries
+   */
+  static async getUserPublicPosts(userId: string, params: PublicPostQueryRequest = {}): Promise<PageResponse<FrontPostDTO>> {
+    const response = await apiClient.post<ApiResponse<PageResponse<FrontPostDTO>>>(`/app/posts/user/${userId}/queries`, params);
+    const page = response.data.data;
+    page.records = page.records.map(p => ({
+      ...p,
+      coverImage: ResourceAccessService.toAccessUrl(p.coverImage),
+      authorAvatar: ResourceAccessService.toAccessUrl(p.authorAvatar)
+    } as FrontPostDTO));
+    return page;
+  }
+
+  /**
    * 根据文章ID获取文章详情
    * GET /api/public/posts/{id}
    */

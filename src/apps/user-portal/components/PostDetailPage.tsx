@@ -41,16 +41,17 @@ export const PostDetailPage: React.FC = () => {
         const postDetail = await PostsService.getPublicPostDetail(postId);
         setPost(postDetail);
         
-        // 获取相关文章（最新的3篇）
+        // 获取作者的其他文章（最多3篇），同分类类型优先
         try {
-          const relatedResponse = await PostsService.getPublicPosts({
+          const relatedResponse = await PostsService.getUserPublicPosts(postDetail.authorId, {
             pageNum: 1,
-            pageSize: 4 // 获取4篇，然后过滤掉当前文章
+            pageSize: 4,
+            categoryType: postDetail.categoryType
           });
           const filteredRelated = relatedResponse.records.filter(p => p.id !== postId).slice(0, 3);
           setRelatedPosts(filteredRelated);
         } catch (relatedError) {
-          console.error('获取相关文章失败:', relatedError);
+          console.error('获取作者其他文章失败:', relatedError);
           // 相关文章失败不影响主文章展示
         }
       } catch (error) {
@@ -170,7 +171,7 @@ export const PostDetailPage: React.FC = () => {
           </Card>
           {/* Related Posts */}
           <Card className="p-4">
-            <h3 className="font-semibold text-gray-900 mb-3">相关内容</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">作者的其他文章</h3>
             <div className="space-y-3">
               {relatedPosts.map((relatedPost) => (
                 <div 
