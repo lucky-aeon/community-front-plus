@@ -22,6 +22,7 @@ import type {
   CDKType,
   CDKStatus,
   CDKAcquisitionType,
+  CDKSubscriptionStrategy,
   PageResponse,
   SimpleSubscriptionPlanDTO,
   SimpleCourseDTO,
@@ -35,6 +36,7 @@ type FilterState = {
   status?: CDKStatus;
   targetId?: string;
   acquisitionType?: CDKAcquisitionType;
+  code?: string;
 };
 
 export const CDKPage: React.FC = () => {
@@ -57,6 +59,8 @@ export const CDKPage: React.FC = () => {
     targetId: string;
     quantity: string;
     acquisitionType: CDKAcquisitionType | '';
+    subscriptionStrategy: CDKSubscriptionStrategy | '';
+    price: string;
     remark: string;
     result?: CDKDTO[];
     copyingBatch?: boolean;
@@ -67,6 +71,8 @@ export const CDKPage: React.FC = () => {
     targetId: '',
     quantity: '1',
     acquisitionType: 'PURCHASE',
+    subscriptionStrategy: '',
+    price: '',
     remark: ''
   });
 
@@ -97,6 +103,7 @@ export const CDKPage: React.FC = () => {
         ...(filters.status && { status: filters.status }),
         ...(filters.targetId && { targetId: filters.targetId }),
         ...(filters.acquisitionType && { acquisitionType: filters.acquisitionType }),
+        ...(filters.code && { code: filters.code.trim() }),
       };
       const res: PageResponse<CDKDTO> = await CDKService.getPagedCDKs(req);
       setCdks(res.records);
@@ -140,19 +147,38 @@ export const CDKPage: React.FC = () => {
       targetId: '',
       quantity: '1',
       acquisitionType: 'PURCHASE',
+      subscriptionStrategy: '',
+      price: '',
       remark: '',
       result: undefined
     });
   };
   const submitCreate = async () => {
-    const { cdkType, targetId, quantity, acquisitionType, remark } = createDialog;
+    const { cdkType, targetId, quantity, acquisitionType, subscriptionStrategy, price: priceStr, remark } = createDialog;
 
     if (!cdkType) return showToast.error('请选择CDK类型');
     if (!targetId) return showToast.error('请选择绑定目标');
     if (!acquisitionType) return showToast.error('请选择获取方式');
 
     const qty = parseInt(quantity || '0', 10);
-    if (!Number.isInteger(qty) || qty < 1 || qty > 100) return showToast.error('数量取值范围 1-100');
+    if (!Number.isInteger(qty) || qty < 1 || qty > 1000) return showToast.error('数量取值范围 1-1000');
+
+    // 价格校验
+    const isGift = acquisitionType === "GIFT";
+    const priceTrim = (priceStr || "").trim();
+    const priceRegex = /^\d+(?:\.\d{1,2})?$/; // 非负，最多两位小数
+
+    if (cdkType === "SUBSCRIPTION_PLAN") {
+      const strat = (subscriptionStrategy || "PURCHASE") as CDKSubscriptionStrategy;
+      if (strat === "UPGRADE") {
+        if (!priceTrim) return showToast.error("升级策略需填写补差价");
+        if (!priceRegex.test(priceTrim)) return showToast.error("价格需为非负数，最多两位小数");
+      }
+    }
+
+    if (!isGift && priceTrim) {
+      if (!priceRegex.test(priceTrim)) return showToast.error("价格需为非负数，最多两位小数");
+    }
 
     // 备注长度验证
     if (remark && remark.length > 500) return showToast.error('备注长度不能超过500字符');
@@ -162,6 +188,8 @@ export const CDKPage: React.FC = () => {
       targetId,
       quantity: qty,
       acquisitionType,
+      ...(cdkType === "SUBSCRIPTION_PLAN" && { subscriptionStrategy: (subscriptionStrategy || "PURCHASE") as CDKSubscriptionStrategy }),
+      ...(!isGift && priceTrim && { price: Number(priceTrim) }),
       ...(remark.trim() && { remark: remark.trim() })
     };
 
@@ -256,6 +284,11 @@ export const CDKPage: React.FC = () => {
                   <SelectItem value="GIFT">赠送</SelectItem>
                 </SelectContent>
               </Select>
+            <Input
+              value={filters.code || ""}
+              onChange={(e) => setFilters(prev => ({ ...prev, code: e.target.value }))}
+              placeholder="兑换码"
+            />
           </div>
           {/* 操作按钮行：左生成，右重置/刷新/查询 */}
           <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
@@ -285,6 +318,8 @@ export const CDKPage: React.FC = () => {
                   <TableHead className="min-w-[160px]">目标</TableHead>
                   <TableHead className="min-w-[100px]">状态</TableHead>
                   <TableHead className="min-w-[100px]">获取方式</TableHead>
+                  <TableHead className="min-w-[100px]">策略</TableHead>
+                  <TableHead className="min-w-[100px]">价格</TableHead>
                   <TableHead className="min-w-[140px]">使用者</TableHead>
                   <TableHead className="min-w-[160px]">使用时间</TableHead>
                   <TableHead className="min-w-[160px]">创建时间</TableHead>
@@ -296,14 +331,14 @@ export const CDKPage: React.FC = () => {
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      {Array.from({ length: 10 }).map((__, j) => (
+                      {Array.from({ length: 12 }).map((__, j) => (
                         <TableCell key={j}><Skeleton className="h-4 w-[120px]" /></TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : cdks.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center text-muted-foreground py-8">暂无数据</TableCell>
+                    <TableCell colSpan={12} className="text-center text-muted-foreground py-8">暂无数据</TableCell>
                   </TableRow>
                 ) : (
                   cdks.map(item => (
@@ -313,7 +348,9 @@ export const CDKPage: React.FC = () => {
                       <TableCell>{item.targetName}</TableCell>
                       <TableCell>{statusBadge(item.status)}</TableCell>
                       <TableCell>{acquisitionTypeBadge(item.acquisitionType)}</TableCell>
-                      <TableCell className="text-xs">{item.usedByUserId || '-'}</TableCell>
+                      <TableCell>{item.cdkType === "SUBSCRIPTION_PLAN" ? (item.subscriptionStrategy === "UPGRADE" ? "升级" : "购买") : "-"}</TableCell>
+                      <TableCell>{typeof item.price === "number" ? `¥${item.price.toFixed(2)}` : "-"}</TableCell>
+                      <TableCell className="text-xs">{item.usedByUserName || item.usedByUserId || "-"}</TableCell>
                       <TableCell className="text-xs">{item.usedTime ? new Date(item.usedTime).toLocaleString('zh-CN') : '-'}</TableCell>
                       <TableCell className="text-xs">{new Date(item.createTime).toLocaleString('zh-CN')}</TableCell>
                       <TableCell className="text-xs max-w-[120px] truncate" title={item.remark || ''}>{item.remark || '-'}</TableCell>
@@ -385,6 +422,8 @@ export const CDKPage: React.FC = () => {
             targetId: '',
             quantity: '1',
             acquisitionType: 'PURCHASE',
+            subscriptionStrategy: '',
+            price: '',
             remark: '',
             result: undefined
           }));
@@ -393,7 +432,7 @@ export const CDKPage: React.FC = () => {
         <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-2xl">
           <DialogHeader>
             <DialogTitle>生成CDK</DialogTitle>
-            <DialogDescription>选择类型、绑定目标与数量，支持批量生成（最多100个）。</DialogDescription>
+            <DialogDescription>选择类型、绑定目标与数量，支持批量生成（最多1000个）。</DialogDescription>
           </DialogHeader>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -402,7 +441,7 @@ export const CDKPage: React.FC = () => {
                 value={createDialog.cdkType || ''}
                 onValueChange={async (v) => {
                   const type = v as CDKType;
-                  setCreateDialog(prev => ({ ...prev, cdkType: type, targetId: '' }));
+                  setCreateDialog(prev => ({ ...prev, cdkType: type, targetId: '', subscriptionStrategy: type === "SUBSCRIPTION_PLAN" ? "PURCHASE" : "" }));
                   await loadTargets(type);
                 }}
               >
@@ -413,6 +452,21 @@ export const CDKPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
+            {createDialog.cdkType === "SUBSCRIPTION_PLAN" && (
+              <div className="space-y-2">
+                <Label>订阅策略</Label>
+                <Select
+                  value={createDialog.subscriptionStrategy || "PURCHASE"}
+                  onValueChange={(v) => setCreateDialog(prev => ({ ...prev, subscriptionStrategy: v as CDKSubscriptionStrategy }))}
+                >
+                  <SelectTrigger><SelectValue placeholder="选择策略" /></SelectTrigger>
+                  <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+                    <SelectItem value="PURCHASE">购买</SelectItem>
+                    <SelectItem value="UPGRADE">升级</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-2">
               <Label>绑定目标</Label>
               <Select
@@ -434,7 +488,7 @@ export const CDKPage: React.FC = () => {
               <Label>获取方式</Label>
               <Select
                 value={createDialog.acquisitionType || ''}
-                onValueChange={(v) => setCreateDialog(prev => ({ ...prev, acquisitionType: v as CDKAcquisitionType }))}
+                onValueChange={(v) => setCreateDialog(prev => ({ ...prev, acquisitionType: v as CDKAcquisitionType, price: v === "GIFT" ? "" : prev.price }))}
               >
                 <SelectTrigger><SelectValue placeholder="选择获取方式" /></SelectTrigger>
                 <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
@@ -444,14 +498,26 @@ export const CDKPage: React.FC = () => {
               </Select>
             </div>
             <div className="space-y-2">
+              <Label>价格（可选）</Label>
+              <Input
+                type="number"
+                min={0}
+                step="0.01"
+                value={createDialog.price}
+                onChange={(e) => setCreateDialog(prev => ({ ...prev, price: e.target.value }))}
+                placeholder="0.00"
+                disabled={createDialog.acquisitionType === "GIFT"}
+              />
+            </div>
+            <div className="space-y-2">
               <Label>数量</Label>
               <Input
                 type="number"
                 min={1}
-                max={100}
+                max={1000}
                 value={createDialog.quantity}
                 onChange={(e) => setCreateDialog(prev => ({ ...prev, quantity: e.target.value }))}
-                placeholder="1-100"
+                placeholder="1-1000"
               />
             </div>
             <div className="space-y-2 md:col-span-2">
