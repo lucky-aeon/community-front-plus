@@ -51,7 +51,6 @@ const PATH_PREFIX_TO_CODE_ORDERED: Array<{ prefix: string; code: MenuCode }> = [
   { prefix: '/dashboard/user-backend', code: MENU_CODE.USER_BACKEND },
   // 用户门户
   { prefix: '/dashboard/membership', code: MENU_CODE.MEMBERSHIP },
-  { prefix: '/dashboard/redeem', code: MENU_CODE.REDEEM_CDK },
   { prefix: '/dashboard/discussions', code: MENU_CODE.DASHBOARD_DISCUSSIONS },
   { prefix: '/dashboard/courses', code: MENU_CODE.DASHBOARD_COURSES },
   { prefix: '/dashboard/changelog', code: MENU_CODE.DASHBOARD_CHANGELOG },

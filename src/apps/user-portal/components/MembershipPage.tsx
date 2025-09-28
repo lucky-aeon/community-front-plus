@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { ROUTES } from '@shared/routes/routes';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
 
 export const MembershipPage: React.FC = () => {
   const { user } = useAuth();
@@ -20,6 +21,7 @@ export const MembershipPage: React.FC = () => {
   const [plans, setPlans] = useState<SubscriptionPlanDTO[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
+  const [isRedeemOpen, setIsRedeemOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,7 +103,7 @@ export const MembershipPage: React.FC = () => {
             </div>
             <div className="flex items-center gap-2">
               <Button size="sm" onClick={() => navigate(ROUTES.USER_BACKEND_PROFILE)}>管理套餐</Button>
-              <Button size="sm" variant="honeySoft" onClick={() => navigate(ROUTES.REDEEM_CDK)}>兑换码兑换</Button>
+              <Button size="sm" variant="honeySoft" onClick={() => setIsRedeemOpen(true)}>兑换码兑换</Button>
             </div>
           </div>
         </Card>
@@ -159,6 +161,7 @@ export const MembershipPage: React.FC = () => {
         </div>
       )}
       <PaymentModal open={isPaymentOpen} onOpenChange={setIsPaymentOpen} />
+      <RedeemCDKDialog open={isRedeemOpen} onOpenChange={setIsRedeemOpen} />
     </div>
   );
 };

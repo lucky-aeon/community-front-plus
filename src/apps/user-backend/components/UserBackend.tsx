@@ -73,8 +73,8 @@ export const UserBackend: React.FC = () => {
   return (
     <UserBackendLayout>
       <Routes>
-        {/* 默认重定向到我的文章 */}
-        <Route path="/" element={<Navigate to="/dashboard/user-backend/articles" replace />} />
+        {/* 默认重定向到个人信息 */}
+        <Route path="/" element={<Navigate to="/dashboard/user-backend/profile" replace />} />
         
         {/* 用户后台页面路由 */}
         <Route path="/articles" element={<MyArticlesPage />} />
@@ -91,7 +91,7 @@ export const UserBackend: React.FC = () => {
         <Route path="/devices" element={<DeviceManagementPage />} />
         
         {/* 404 处理 */}
-        <Route path="*" element={<Navigate to="/dashboard/user-backend/articles" replace />} />
+        <Route path="*" element={<Navigate to="/dashboard/user-backend/profile" replace />} />
       </Routes>
     </UserBackendLayout>
   );

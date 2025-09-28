@@ -12,6 +12,7 @@ import { ROUTES } from '@shared/routes/routes';
 import { useNavigate } from 'react-router-dom';
 import { GithubOAuthService } from '@shared/services/api/oauth-github.service';
 import type { UserSocialBindStatusDTO } from '@shared/types/oauth';
+import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
 
 export const ProfileSettingsPage: React.FC = () => {
   const { user } = useAuth();
@@ -23,6 +24,8 @@ export const ProfileSettingsPage: React.FC = () => {
   const [avatarUrl, setAvatarUrl] = useState<string>(user?.avatar || ''); // 新增头像状态
   const [avatarResourceId, setAvatarResourceId] = useState<string>('');   // 新增：待保存的头像资源ID
   const [githubBind, setGithubBind] = useState<UserSocialBindStatusDTO | null>(null);
+
+  const [isRedeemOpen, setIsRedeemOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -486,7 +489,7 @@ export const ProfileSettingsPage: React.FC = () => {
                   </div>
                   <div className="flex space-x-2">
                     <Button size="sm" variant="honeySoft" className="flex-1" onClick={() => navigate(ROUTES.MEMBERSHIP)}>续费 / 升级</Button>
-                    <Button size="sm" variant="honeySoft" className="flex-1" onClick={() => navigate(ROUTES.REDEEM_CDK)}>兑换码兑换</Button>
+                    <Button size="sm" variant="honeySoft" className="flex-1" onClick={() => setIsRedeemOpen(true)}>兑换码兑换</Button>
                   </div>
                 </div>
               );
@@ -520,6 +523,7 @@ export const ProfileSettingsPage: React.FC = () => {
 
         </div>
       </div>
+      <RedeemCDKDialog open={isRedeemOpen} onOpenChange={setIsRedeemOpen} />
     </div>
   );
 };

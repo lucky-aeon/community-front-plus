@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { PageContainer } from '@shared/components/layout/PageContainer';
 import { DashboardOverview } from '@shared/components/business/DashboardOverview';
@@ -6,10 +6,12 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@shared/routes/routes';
 import { useNavigate } from 'react-router-dom';
+import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
 
 export const HomePage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [isRedeemOpen, setIsRedeemOpen] = useState(false);
 
   if (!user) {
     return (
@@ -41,7 +43,7 @@ export const HomePage: React.FC = () => {
               </div>
               <div className="flex gap-2">
                 <Button size="sm" variant="honeySoft" onClick={() => navigate(ROUTES.MEMBERSHIP)}>续费 / 升级</Button>
-                <Button size="sm" variant="honeySoft" onClick={() => navigate(ROUTES.REDEEM_CDK)}>兑换码兑换</Button>
+                <Button size="sm" variant="honeySoft" onClick={() => setIsRedeemOpen(true)}>兑换码兑换</Button>
               </div>
             </div>
           </Card>
@@ -49,6 +51,7 @@ export const HomePage: React.FC = () => {
       })()}
       {/* Dashboard Overview - 三栏布局 */}
       <DashboardOverview />
+      <RedeemCDKDialog open={isRedeemOpen} onOpenChange={setIsRedeemOpen} />
     </PageContainer>
   );
 };

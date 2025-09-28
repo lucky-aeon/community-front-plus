@@ -10,7 +10,6 @@ import { CourseDetailPage } from './CourseDetailPage';
 import { ChapterDetailPage } from './ChapterDetailPage';
 import { UserBackend } from '../../user-backend/components/UserBackend';
 import { MembershipPage } from './MembershipPage';
-import { RedeemCDKPage } from './RedeemCDKPage';
 
 export const Dashboard: React.FC = () => {
   return (
@@ -36,7 +35,6 @@ export const Dashboard: React.FC = () => {
               <Route path="/courses/:courseId" element={<CourseDetailPage />} />
               <Route path="/changelog" element={<ChangelogPage />} />
               <Route path="/membership" element={<MembershipPage />} />
-              <Route path="/redeem" element={<RedeemCDKPage />} />
 
               {/* 404 处理 */}
               <Route path="*" element={<Navigate to="/dashboard/home" replace />} />

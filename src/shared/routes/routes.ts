@@ -26,7 +26,6 @@ export const ROUTES = {
 
   // 会员与兑换
   MEMBERSHIP: '/dashboard/membership',
-  REDEEM_CDK: '/dashboard/redeem',
 } as const;
 
 // 路由工具函数
