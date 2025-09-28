@@ -142,6 +142,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const sendPasswordResetCode = async (email: string) => {
+    setIsLoading(true);
+    try {
+      await AuthService.sendPasswordResetCode(email);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resetPassword = async (email: string, code: string, newPassword: string) => {
+    setIsLoading(true);
+    try {
+      await AuthService.resetPassword({ email, verificationCode: code, newPassword });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const logout = () => {
     setUser(null);
     AuthService.logout();
@@ -161,6 +179,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     sendRegisterCode,
     registerWithCode,
     registerOnly,
+    sendPasswordResetCode,
+    resetPassword,
     logout,
     refreshUser,
     isLoading,

@@ -67,6 +67,9 @@ export interface AuthContextType {
   registerWithCode: (email: string, code: string, password: string) => Promise<void>;
   // 纯注册接口：仅完成注册，不自动登录
   registerOnly: (email: string, code: string, password: string) => Promise<void>;
+  // 忘记密码：发送验证码 & 重置
+  sendPasswordResetCode: (email: string) => Promise<void>;
+  resetPassword: (email: string, code: string, newPassword: string) => Promise<void>;
   logout: () => void;
   // 主动刷新当前用户信息（例如CDK激活后）
   refreshUser: () => Promise<void>;

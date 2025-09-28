@@ -18,9 +18,14 @@ interface AuthModalProps {
   onClose: () => void;
 }
 
+type AuthMode = 'login' | 'register' | 'forgot';
+
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
-  const [isLogin, setIsLogin] = useState(true);
+  const [mode, setMode] = useState<AuthMode>('login');
+  const isLogin = mode === 'login';
+  const isRegister = mode === 'register';
+  const isForgot = mode === 'forgot';
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -32,10 +37,26 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const emailInputRef = useRef<HTMLInputElement>(null);
   const [cooldown, setCooldown] = useState(0); // seconds left
 
-  const { login, registerOnly, sendRegisterCode, isLoading } = useAuth();
+  const { login, registerOnly, sendRegisterCode, sendPasswordResetCode, resetPassword, isLoading } = useAuth();
   const [agree, setAgree] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [privacyOpen, setPrivacyOpen] = useState(false);
+
+  const switchMode = (nextMode: AuthMode) => {
+    setMode(nextMode);
+    setFormData(prev => ({
+      email: prev.email,
+      password: '',
+      confirmPassword: '',
+      code: '',
+    }));
+    setCooldown(0);
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+    if (nextMode !== 'register') {
+      setAgree(false);
+    }
+  };
 
   useEffect(() => {
     if (isOpen && emailInputRef.current) {
@@ -43,7 +64,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         emailInputRef.current?.focus();
       }, 100);
     }
-  }, [isOpen]);
+  }, [isOpen, mode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +88,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           showToast.error('请输入密码');
           return;
         }
-        await login(formData.email, formData.password);
+        await login(email, formData.password);
         // 仅当确认已登录成功（token 与 user 已写入）时才导航
         if (!AuthService.isLoggedIn()) return;
         const stored = AuthService.getStoredUser();
@@ -77,7 +98,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         } else {
           navigate(ROUTES.DASHBOARD_HOME, { replace: true });
         }
-      } else {
+      } else if (isRegister) {
         if (!agree) {
           showToast.error('请先阅读并同意《服务条款》和《隐私政策》');
           return;
@@ -98,12 +119,31 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           showToast.error('两次输入的密码不一致');
           return;
         }
-        await registerOnly(formData.email, formData.code, formData.password);
+        await registerOnly(email, formData.code, formData.password);
         // 切换到登录表单并回填邮箱，不关闭弹窗
-        setIsLogin(true);
-        setFormData(prev => ({ email: prev.email, password: '', confirmPassword: '', code: '' }));
-        setCooldown(0);
+        switchMode('login');
         return; // 保持弹窗打开，等待用户登录
+      } else {
+        if (!formData.code) {
+          showToast.error('请输入邮箱验证码');
+          return;
+        }
+        if (!formData.password) {
+          showToast.error('请设置新密码');
+          return;
+        }
+        if (formData.password.length < 6 || formData.password.length > 20) {
+          showToast.error('新密码长度需为 6-20 位');
+          return;
+        }
+        if (formData.password !== formData.confirmPassword) {
+          showToast.error('两次输入的新密码不一致');
+          return;
+        }
+        await resetPassword(email, formData.code, formData.password);
+        showToast.success('密码重置成功，请使用新密码登录');
+        switchMode('login');
+        return;
       }
       onClose();
       setFormData({ email: '', password: '', confirmPassword: '', code: '' });
@@ -133,16 +173,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       showToast.error('请输入有效的邮箱地址');
       return;
     }
-    if (cooldown > 0) return;
+    if (cooldown > 0 || (!isRegister && !isForgot)) return;
 
     try {
-      // 调用上下文的发码接口（实际请求由 AuthService 执行）
-      await sendRegisterCode(email);
+      if (isRegister) {
+        await sendRegisterCode(email);
+        showToast.success('验证码已发送，请注意查收邮箱');
+      } else if (isForgot) {
+        await sendPasswordResetCode(email);
+        showToast.success('重置验证码已发送，请查收邮箱');
+      }
       // 启动 5 分钟倒计时
       setCooldown(300);
     } catch (e) {
       // 失败提示由 axios 拦截器统一处理，这里无需重复提示
-      console.error('发送注册验证码失败', e);
+      console.error('发送验证码失败', e);
     }
   };
 
@@ -165,9 +210,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         onInteractOutside={(e) => e.preventDefault()}
       >
         <DialogHeader>
-          <DialogTitle>{isLogin ? '欢迎回来' : '创建账户'}</DialogTitle>
+          <DialogTitle>{isLogin ? '欢迎回来' : isRegister ? '创建账户' : '重置密码'}</DialogTitle>
           <DialogDescription>
-            {isLogin ? '登录以访问您的专属课程' : '加入我们的社区，开始您的学习之旅'}
+            {isLogin
+              ? '登录以访问您的专属课程'
+              : isRegister
+                ? '加入我们的社区，开始您的学习之旅'
+                : '请输入验证码并设置新密码以找回账户'}
           </DialogDescription>
         </DialogHeader>
 
@@ -189,8 +238,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                 autoComplete="email"
               />
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              {/* 发送验证码按钮（仅注册态 + 合法邮箱时显示） */}
-              {(() => { const emailValid = /\S+@\S+\.\S+/.test(formData.email); return (!isLogin && emailValid) ? (
+              {/* 发送验证码按钮（注册/找回密码且邮箱合法时显示） */}
+              {(() => { const emailValid = /\S+@\S+\.\S+/.test(formData.email); return ((isRegister || isForgot) && emailValid) ? (
                 <button
                   type="button"
                   onClick={handleSendCode}
@@ -235,8 +284,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* 验证码输入（注册态） */}
-          {!isLogin && (
+          {/* 验证码输入（注册/找回密码） */}
+          {(isRegister || isForgot) && (
             <div className="space-y-2">
               <Label htmlFor="auth-code">邮箱验证码</Label>
               <Input
@@ -251,17 +300,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
-          {/* 设置密码（注册态） */}
-          {!isLogin && (
+          {/* 设置密码（注册/找回密码） */}
+          {(isRegister || isForgot) && (
             <>
               <div className="space-y-2 relative">
-                <Label htmlFor="auth-set-password">设置密码</Label>
+                <Label htmlFor="auth-set-password">{isRegister ? '设置密码' : '新密码'}</Label>
                 <div className="relative">
                   <Input
                     id="auth-set-password"
                     type={showPassword ? 'text' : 'password'}
                     name="password"
-                    placeholder="设置登录密码（6-20位）"
+                    placeholder={isRegister ? '设置登录密码（6-20位）' : '请输入新密码（6-20位）'}
                     value={formData.password}
                     onChange={handleChange}
                     required
@@ -284,13 +333,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               <div className="space-y-2 relative">
-                <Label htmlFor="auth-confirm-password">确认密码</Label>
+                <Label htmlFor="auth-confirm-password">{isRegister ? '确认密码' : '确认新密码'}</Label>
                 <div className="relative">
                   <Input
                     id="auth-confirm-password"
                     type={showConfirmPassword ? 'text' : 'password'}
                     name="confirmPassword"
-                    placeholder="再次输入登录密码"
+                    placeholder={isRegister ? '再次输入登录密码' : '再次输入新密码'}
                     value={formData.confirmPassword}
                     onChange={handleChange}
                     required
@@ -315,7 +364,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           )}
 
           {/* 条款勾选（注册态） */}
-          {!isLogin && (
+          {isRegister && (
             <div className="flex items-start gap-2 text-sm text-gray-600">
               <Checkbox
                 id="agree-terms"
@@ -339,7 +388,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             disabled={isLoading}
           >
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isLogin ? '登录' : '创建账户'}
+            {isLogin ? '登录' : isRegister ? '创建账户' : '重置密码'}
           </Button>
         </form>
 
@@ -353,42 +402,81 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           </div>
         )}
 
-        <div className="mt-4 text-center">
-          <p className="text-sm text-gray-600">
-            {isLogin ? '还没有账户？ ' : '已经有账户了？ '}
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-honey-600 hover:text-honey-700 font-semibold"
-            >
-              {isLogin ? '立即注册' : '立即登录'}
-            </button>
-          </p>
+        <div className="mt-4 text-center text-sm text-gray-600 space-y-2">
+          {isLogin && (
+            <>
+              <p>
+                还没有账户？
+                <button
+                  type="button"
+                  onClick={() => switchMode('register')}
+                  className="ml-1 text-honey-600 hover:text-honey-700 font-semibold"
+                >
+                  立即注册
+                </button>
+              </p>
+              <button
+                type="button"
+                onClick={() => switchMode('forgot')}
+                className="text-honey-600 hover:text-honey-700 font-semibold"
+              >
+                忘记密码？
+              </button>
+            </>
+          )}
+          {isRegister && (
+            <p>
+              已经有账户了？
+              <button
+                type="button"
+                onClick={() => switchMode('login')}
+                className="ml-1 text-honey-600 hover:text-honey-700 font-semibold"
+              >
+                立即登录
+              </button>
+            </p>
+          )}
+          {isForgot && (
+            <p>
+              想起密码了？
+              <button
+                type="button"
+                onClick={() => switchMode('login')}
+                className="ml-1 text-honey-600 hover:text-honey-700 font-semibold"
+              >
+                返回登录
+              </button>
+            </p>
+          )}
         </div>
 
         {/* 第三方登录 */}
-        <div className="mt-4">
-          <div className="relative my-3">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t"></span>
+        {!isForgot && (
+          <div className="mt-4">
+            <div className="relative my-3">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t"></span>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-500">或</span>
+              </div>
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500">或</span>
-            </div>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={async () => {
+                try {
+                  await GithubOAuthService.startAuthorizeRedirect();
+                } catch (error) {
+                  console.error('GitHub OAuth redirect failed', error);
+                  showToast.error('获取 GitHub 授权地址失败，请稍后再试');
+                }
+              }}
+            >
+              <Github className="mr-2 h-5 w-5" /> 使用 GitHub {isLogin ? '登录' : '注册'}
+            </Button>
           </div>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={async () => {
-              try {
-                await GithubOAuthService.startAuthorizeRedirect();
-              } catch (e) {
-                showToast.error('获取 GitHub 授权地址失败，请稍后再试');
-              }
-            }}
-          >
-            <Github className="mr-2 h-5 w-5" /> 使用 GitHub {isLogin ? '登录' : '注册'}
-          </Button>
-        </div>
+        )}
       </DialogContent>
       {/* 条款/隐私弹窗 */}
       <TermsModal open={termsOpen} onOpenChange={setTermsOpen} />

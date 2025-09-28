@@ -51,6 +51,12 @@ export interface RegisterWithCodeRequest {
   password: string;
 }
 
+export interface ResetPasswordRequest {
+  email: string;
+  verificationCode: string;
+  newPassword: string;
+}
+
 // 认证服务类
 export class AuthService {
   
@@ -105,12 +111,26 @@ export class AuthService {
   }
 
   /**
+   * 发送密码重置验证码到邮箱
+   */
+  static async sendPasswordResetCode(email: string): Promise<void> {
+    await apiClient.post<ApiResponse<void>>('/auth/password/reset-code', { email });
+  }
+
+  /**
    * 纯注册方法 - 仅完成注册，不自动登录
    */
   static async registerOnly(params: RegisterWithCodeRequest): Promise<void> {
     // 调用注册接口，但不处理返回的token和用户信息
     await apiClient.post<ApiResponse<LoginResponse>>('/auth/register', params);
     // 注册成功，不进行任何本地存储操作
+  }
+
+  /**
+   * 重置密码
+   */
+  static async resetPassword(params: ResetPasswordRequest): Promise<void> {
+    await apiClient.post<ApiResponse<void>>('/auth/password/reset', params);
   }
 
   /**
