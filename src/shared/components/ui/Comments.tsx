@@ -6,7 +6,6 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 // 移除三点菜单，直接铺开操作按钮
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@shared/utils/cn';
-import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import { CommentsService, ChaptersService } from '@shared/services/api';
 import { PostsService } from '@shared/services/api/posts.service';
@@ -49,7 +48,6 @@ export const Comments: React.FC<CommentsProps> = ({
   onQAResolveChange,
 }) => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
@@ -104,12 +102,10 @@ export const Comments: React.FC<CommentsProps> = ({
       onCountChange?.(resp.total);
     } catch (e: unknown) {
       console.error('加载评论失败', e);
-      const msg = e instanceof Error ? e.message : '请稍后重试';
-      toast({ title: '加载评论失败', description: msg, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
-  }, [businessId, businessType, pageNum, pageSize, toast, onCountChange]);
+  }, [businessId, businessType, pageNum, pageSize, onCountChange]);
 
   useEffect(() => {
     if (mode === 'thread') {
@@ -130,8 +126,6 @@ export const Comments: React.FC<CommentsProps> = ({
           setLatestComments(data);
         } catch (e: unknown) {
           console.error('加载最新评论失败', e);
-          const msg = e instanceof Error ? e.message : '请稍后重试';
-          toast({ title: '加载最新评论失败', description: msg, variant: 'destructive' });
         } finally {
           setLoadingLatest(false);
         }
@@ -188,8 +182,6 @@ export const Comments: React.FC<CommentsProps> = ({
       await loadComments(true);
     } catch (e: unknown) {
       console.error('发布评论失败', e);
-      const msg = e instanceof Error ? e.message : '请稍后重试';
-      toast({ title: '发布失败', description: msg, variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -216,8 +208,6 @@ export const Comments: React.FC<CommentsProps> = ({
       await loadComments(true);
     } catch (e: unknown) {
       console.error('回复失败', e);
-      const msg = e instanceof Error ? e.message : '请稍后重试';
-      toast({ title: '回复失败', description: msg, variant: 'destructive' });
     } finally {
       setReplying(prev => ({ ...prev, [parent.id]: false }));
     }
@@ -231,8 +221,6 @@ export const Comments: React.FC<CommentsProps> = ({
       onCountChange?.(Math.max(0, total - 1));
     } catch (e: unknown) {
       console.error('删除失败', e);
-      const msg = e instanceof Error ? e.message : '请稍后重试';
-      toast({ title: '删除失败', description: msg, variant: 'destructive' });
     }
   };
 
@@ -265,8 +253,6 @@ export const Comments: React.FC<CommentsProps> = ({
       });
     } catch (e) {
       console.error('切换采纳状态失败', e);
-      const msg = e instanceof Error ? e.message : '请稍后重试';
-      toast({ title: '操作失败', description: msg, variant: 'destructive' });
     } finally {
       setAccepting(prev => ({ ...prev, [c.id]: false }));
     }

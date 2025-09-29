@@ -58,6 +58,7 @@ apiClient.interceptors.response.use(
       const cfg = error.config || {};
       const headers = (cfg.headers || {}) as Record<string, string>;
       const skipAuthLogout = headers['X-Skip-Auth-Logout'] === 'true' || (cfg as unknown as { __skipAuthLogout?: boolean }).__skipAuthLogout === true;
+      let toastShown = false;
 
       switch (status) {
         case 401:
@@ -67,22 +68,27 @@ apiClient.interceptors.response.use(
             localStorage.removeItem('auth_token');
             localStorage.removeItem('user');
             showToast.error('登录已过期，请重新登录');
+            toastShown = true;
           }
           break;
         case 403:
           showToast.error('权限不足');
+          toastShown = true;
           break;
         case 404:
           showToast.error('请求的资源未找到');
+          toastShown = true;
           break;
         case 500:
           showToast.error('服务器错误，请稍后再试');
+          toastShown = true;
           break;
         case 400: {
           // 客户端请求错误，显示后端返回的具体错误信息
           const badRequestMessage = data?.message || '请求参数有误';
           if (badRequestMessage.trim() !== '') {
             showToast.error(badRequestMessage);
+            toastShown = true;
           }
           break;
         }
@@ -91,16 +97,22 @@ apiClient.interceptors.response.use(
           const errorMessage = data?.message || '请求失败，请稍后再试';
           if (errorMessage.trim() !== '') {
             showToast.error(errorMessage);
+            toastShown = true;
           }
           break;
         }
       }
+      if (toastShown) {
+        try { (error as any).__toastShown = true; } catch { /* no-op */ }
+      }
     } else if (error.request) {
       // 网络错误
       showToast.error('网络连接失败，请检查网络设置');
+      try { (error as any).__toastShown = true; } catch { /* no-op */ }
     } else {
       // 其他错误
       showToast.error('请求发生错误');
+      try { (error as any).__toastShown = true; } catch { /* no-op */ }
     }
     
     return Promise.reject(error);

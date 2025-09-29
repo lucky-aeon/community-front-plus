@@ -15,7 +15,6 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PostsService } from '@shared/services/api/posts.service';
 import { PostDTO, PageResponse } from '@shared/types';
-import { showToast } from '@shared/utils/toast';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { ROUTES, routeUtils } from '@shared/routes/routes';
 import AdminPagination from '@shared/components/AdminPagination';
@@ -43,7 +42,6 @@ export const MyArticlesPage: React.FC = () => {
       setArticles(response.records);
     } catch (error) {
       console.error('获取文章列表失败:', error);
-      showToast.error('获取文章列表失败');
     } finally {
       setIsLoading(false);
     }

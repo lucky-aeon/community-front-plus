@@ -203,7 +203,6 @@ export const MyCommentsPage: React.FC = () => {
       }
     } catch (e) {
       console.error('跳转目标打开失败：', e);
-      showToast.error('目标内容不可访问或已删除');
     }
   };
 

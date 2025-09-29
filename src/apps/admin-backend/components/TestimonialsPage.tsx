@@ -86,7 +86,6 @@ export const TestimonialsPage: React.FC = () => {
       });
     } catch (error) {
       console.error('加载评价数据失败:', error);
-      showToast.error('加载数据失败');
     } finally {
       setLoading(false);
     }
@@ -123,7 +122,6 @@ export const TestimonialsPage: React.FC = () => {
       setStatusDialog({ open: false, testimonial: null, targetStatus: null });
     } catch (error) {
       console.error('修改状态失败:', error);
-      showToast.error('状态修改失败');
     }
   };
 
@@ -151,7 +149,6 @@ export const TestimonialsPage: React.FC = () => {
       }
     } catch (error) {
       console.error('删除失败:', error);
-      showToast.error('删除失败');
     }
   };
 
@@ -197,7 +194,6 @@ export const TestimonialsPage: React.FC = () => {
       
     } catch (error) {
       console.error('设置排序权重失败:', error);
-      showToast.error('设置失败');
       setSortOrderDialog(prev => ({ ...prev, submitting: false }));
     }
   };

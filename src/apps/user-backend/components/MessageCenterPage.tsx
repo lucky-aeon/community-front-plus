@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { NotificationsService } from '@shared/services/api';
 import type { NotificationQueryRequest, UserNotificationDTO, PageResponse } from '@shared/types';
-import { showToast } from '@shared/utils/toast';
 
 export const MessageCenterPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -54,8 +53,8 @@ export const MessageCenterPage: React.FC = () => {
         records: reset ? data.records : [...prev.records, ...data.records],
       }));
       try { setUnreadCount(await NotificationsService.getUnreadCount()); } catch { void 0; }
-    } catch {
-      showToast.error('加载消息失败');
+    } catch (e) {
+      // 错误提示交由 axios 拦截器统一处理
     } finally {
       setLoading(false);
     }
@@ -71,8 +70,8 @@ export const MessageCenterPage: React.FC = () => {
         records: prev.records.map(r => r.id === messageId ? { ...r, read: true } : r)
       }));
       try { setUnreadCount(await NotificationsService.getUnreadCount()); } catch { void 0; }
-    } catch {
-      showToast.error('标记已读失败');
+    } catch (e) {
+      // 错误提示交由 axios 拦截器统一处理
     }
   };
 
@@ -86,8 +85,8 @@ export const MessageCenterPage: React.FC = () => {
         total: Math.max(0, prev.total - 1)
       }));
       try { setUnreadCount(await NotificationsService.getUnreadCount()); } catch { void 0; }
-    } catch {
-      showToast.error('删除失败');
+    } catch (e) {
+      // 错误提示交由 axios 拦截器统一处理
     }
   };
 
@@ -106,8 +105,8 @@ export const MessageCenterPage: React.FC = () => {
               try {
                 await NotificationsService.markAllAsRead();
                 fetchList();
-              } catch {
-                showToast.error('操作失败');
+              } catch (e) {
+                // 错误提示交由 axios 拦截器统一处理
               }
             }}
           >
@@ -120,8 +119,8 @@ export const MessageCenterPage: React.FC = () => {
               try {
                 await NotificationsService.clearRead();
                 fetchList();
-              } catch {
-                showToast.error('清空失败');
+              } catch (e) {
+                // 错误提示交由 axios 拦截器统一处理
               }
             }}
           >
