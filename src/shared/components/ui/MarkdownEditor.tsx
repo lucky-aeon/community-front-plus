@@ -6,6 +6,9 @@ import 'viewerjs/dist/viewer.css';
 import './MarkdownEditor.css';
 import { UploadService } from '@shared/services/api/upload.service';
 import { ResourceAccessService } from '@shared/services/api/resource-access.service';
+import { ExpressionsService, type ExpressionTypeDTO } from '@shared/services/api/expressions.service';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { showToast } from '@shared/utils/toast';
 
 export interface MarkdownEditorHandle {
@@ -45,6 +48,8 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
   const [isInitialized, setIsInitialized] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isEchartsLoaded, setIsEchartsLoaded] = useState(false);
+  const [expressions, setExpressions] = useState<ExpressionTypeDTO[]>([]);
+  const [isExprOpen, setIsExprOpen] = useState(false);
   // 上传任务队列（用于显示进度与取消）
   const [uploadTasks, setUploadTasks] = useState<Array<{
     id: string;
@@ -138,6 +143,65 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
       viewer.show();
     }
   }, []);
+
+  // 处理自定义表情渲染（将 :name: 或 :code: 替换为 <img>）
+  const processCustomEmojis = useCallback(() => {
+    try {
+      const previewEl = document.querySelector(`#${containerIdRef.current} .cherry-previewer`);
+      if (!previewEl || !expressions || expressions.length === 0) return;
+
+      const walker = document.createTreeWalker(previewEl, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          const parent = (node as any).parentNode as HTMLElement | null;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          const tag = parent.tagName;
+          if (tag === 'SCRIPT' || tag === 'STYLE' || parent.classList.contains('emoji-processed')) return NodeFilter.FILTER_REJECT;
+          const val = node.nodeValue || '';
+          return val.includes(':') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      } as any);
+
+      const nodes: Node[] = [];
+      let n: Node | null;
+      // eslint-disable-next-line no-cond-assign
+      while ((n = walker.nextNode())) nodes.push(n);
+
+      const regex = /:([a-zA-Z0-9_\u4e00-\u9fa5]+):/g;
+
+      nodes.forEach((textNode) => {
+        const text = textNode.nodeValue || '';
+        if (!regex.test(text)) return;
+        regex.lastIndex = 0;
+        const fragments: Node[] = [];
+        let lastIndex = 0;
+        let m: RegExpExecArray | null;
+        // eslint-disable-next-line no-cond-assign
+        while ((m = regex.exec(text)) !== null) {
+          if (m.index > lastIndex) fragments.push(document.createTextNode(text.slice(lastIndex, m.index)));
+          const name = m[1];
+          const expr = expressions.find(exp => exp.name === name || exp.code === name);
+          if (expr) {
+            const img = document.createElement('img');
+            img.src = ExpressionsService.toImageUrl(expr.image) || '';
+            img.alt = name;
+            img.title = name;
+            img.className = 'custom-expression';
+            fragments.push(img);
+          } else {
+            fragments.push(document.createTextNode(m[0]));
+          }
+          lastIndex = regex.lastIndex;
+        }
+        if (lastIndex < text.length) fragments.push(document.createTextNode(text.slice(lastIndex)));
+
+        const wrapper = document.createElement('span');
+        wrapper.className = 'emoji-processed';
+        fragments.forEach(f => wrapper.appendChild(f));
+        const parent = (textNode as any).parentNode as Node | null;
+        if (parent) parent.replaceChild(wrapper, textNode);
+      });
+    } catch { /* ignore */ }
+  }, [expressions]);
 
   // 文件上传处理
   const handleFileUpload = useCallback(async (file: File, callback: (url: string, params?: Record<string, unknown>) => void) => {
@@ -331,6 +395,19 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
           inlineMath: {
             engine: 'MathJax' as const
           },
+          // 启用内置emoji，并追加自定义映射（按已加载表情动态生成）
+          emoji: {
+            useUnicode: false,
+            upperCase: true,
+            customResourceURL: 'https://github.githubassets.com/images/icons/emoji/unicode/${code}.png?v8',
+            customEmoji: Object.fromEntries(
+              (expressions || []).flatMap((exp) => {
+                const url = ExpressionsService.toImageUrl(exp.imageUrl) || '';
+                // 同时支持 name 与 code 两种写法
+                return [[exp.name, url], [exp.code, url]] as Array<[string, string]>;
+              })
+            )
+          },
           codeBlock: {
             expandCode: true
           },
@@ -364,6 +441,8 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
           setTimeout(() => {
             isUserInputRef.current = false;
           }, 0);
+          // 处理自定义表情渲染
+          setTimeout(processCustomEmojis, 60);
         },
         afterInit: () => {
           setIsInitialized(true);
@@ -438,6 +517,31 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
               console.warn('Failed to add resource button:', e);
             }
           }, 240);
+
+          // 添加表情按钮
+          setTimeout(() => {
+            try {
+              const toolbarElement = document.querySelector(`#${containerIdRef.current} .cherry-toolbar .toolbar-right`);
+              if (toolbarElement) {
+                const existingBtn = toolbarElement.querySelector('.cherry-emoji-btn');
+                if (!existingBtn) {
+                  const emojiBtn = document.createElement('span');
+                  emojiBtn.className = 'cherry-toolbar-button cherry-emoji-btn';
+                  emojiBtn.innerHTML = '😊';
+                  emojiBtn.style.cssText = `cursor:pointer;padding:4px 8px;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:16px;transition:background-color .2s;margin:0 2px;`;
+                  emojiBtn.onmouseenter = () => { emojiBtn.style.backgroundColor = '#f3f4f6'; };
+                  emojiBtn.onmouseleave = () => { emojiBtn.style.backgroundColor = 'transparent'; };
+                  emojiBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); setIsExprOpen(true); };
+                  toolbarElement.appendChild(emojiBtn);
+                }
+              }
+            } catch (e) {
+              console.warn('Failed to add emoji button:', e);
+            }
+          }, 260);
+
+          // 初始化后先处理一次表情
+          setTimeout(processCustomEmojis, 100);
         }
       },
       fileUpload: handleFileUpload
@@ -451,7 +555,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
     }
 
     return config as unknown;
-  }, [previewOnly, height, placeholder, toolbar, enableFullscreen, enableToc]);
+  }, [previewOnly, height, placeholder, toolbar, enableFullscreen, enableToc, expressions, processCustomEmojis]);
 
   // 初始化Cherry编辑器
   useEffect(() => {
@@ -487,6 +591,21 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
       }
     };
   }, [getCherryConfig, isEchartsLoaded]);
+
+  // 加载表情列表（一次）
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const list = await ExpressionsService.getAll();
+        if (!mounted) return;
+        setExpressions(list || []);
+        // 初始化后处理一次（若已初始化）
+        setTimeout(processCustomEmojis, 120);
+      } catch { /* ignore */ }
+    })();
+    return () => { mounted = false; };
+  }, [processCustomEmojis]);
 
   // 注意：不在全屏切换时重建实例，保持原行为，避免闪烁
 
@@ -622,6 +741,54 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
           ))}
         </div>
       )}
+
+      {/* 表情选择弹窗 */}
+      <Dialog open={isExprOpen} onOpenChange={setIsExprOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>插入表情</DialogTitle>
+          </DialogHeader>
+          <div className="grid grid-cols-5 gap-3">
+            {(expressions || []).map((exp) => {
+              const url = ExpressionsService.toImageUrl(exp.imageUrl) || '';
+              return (
+                <button
+                  key={exp.code}
+                  type="button"
+                  className="flex flex-col items-center gap-2 p-2 rounded hover:bg-gray-100"
+                  title={`${exp.name} (${exp.code})`}
+                  onClick={() => {
+                    try {
+                      const inst = cherryInstanceRef.current as unknown as { editor?: { editor?: { replaceSelection?: (text: string) => void; focus?: () => void } } } | null;
+                      const cm = inst?.editor?.editor;
+                      const snippet = `:${exp.code}:`;
+                      if (cm?.replaceSelection) {
+                        cm.replaceSelection(snippet);
+                        cm.focus?.();
+                      } else {
+                        // 兜底：直接更新
+                        const current = lastValueRef.current || '';
+                        const needsLF = !!current && !current.endsWith('\n');
+                        onChange(`${current}${needsLF ? '\n' : ''}${snippet}`);
+                      }
+                    } catch { /* ignore */ }
+                    setIsExprOpen(false);
+                    // 选中后稍后渲染一次
+                    setTimeout(processCustomEmojis, 120);
+                  }}
+                >
+                  <img src={url} className="w-8 h-8 rounded object-contain" />
+                  <span className="text-xs text-gray-600 truncate max-w-[80px]">{exp.name}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-3 text-xs text-gray-500">提示：支持直接输入 :表情代码: 插入表情</div>
+          <div className="mt-2 text-right">
+            <Button variant="secondary" onClick={() => setIsExprOpen(false)}>关闭</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });

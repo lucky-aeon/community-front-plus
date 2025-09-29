@@ -45,6 +45,17 @@
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
 }
 
+/* 自定义表情样式（与标准emoji保持一致的可读性） */
+.markdown-editor-wrapper .cherry-previewer img.custom-expression {
+  width: 2em !important;
+  height: 2em !important;
+  display: inline-block !important;
+  vertical-align: text-bottom !important;
+  margin: 0 4px !important;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
 /* 视频样式，使视频在预览区自适应 */
 .markdown-editor-wrapper .cherry-previewer video {
   max-width: 100%;

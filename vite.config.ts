@@ -7,12 +7,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: '0.0.0.0',
-    // 显式允许外网穿透域名与本地访问
-    allowedHosts: [
-      '54d74399.r2.cpolar.top',
-      'localhost',
-      '127.0.0.1',
-    ],
+    // 放开所有 Host 校验（开发环境）
+    allowedHosts: true,
     proxy: {
       '/api': {
         target: 'http://127.0.0.1:8520',
@@ -24,11 +20,7 @@ export default defineConfig({
   // 预览模式同样允许上述域名（如使用 `npm run preview`）
   preview: {
     host: '0.0.0.0',
-    allowedHosts: [
-      '54d74399.r2.cpolar.top',
-      'localhost',
-      '127.0.0.1',
-    ],
+    allowedHosts: true,
   },
   optimizeDeps: {
     exclude: ['lucide-react'],

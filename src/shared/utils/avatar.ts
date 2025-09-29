@@ -58,4 +58,3 @@ export function getAvatarUrl(
     return appendCb(v);
   }
 }
-
