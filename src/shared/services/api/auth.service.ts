@@ -157,10 +157,23 @@ export class AuthService {
 
   /**
    * 用户登出
+   * 对接后端接口：POST /auth/logout
+   * - 携带凭证以便服务端清理 HttpOnly Cookie（如资源访问票据）
+   * - 使用跳过401全局登出副作用的请求头，避免重复提示
    */
-  static logout(): void {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
+  static async logout(): Promise<void> {
+    try {
+      await apiClient.post<ApiResponse<void>>('/auth/logout', {}, {
+        withCredentials: true,
+        // 某些情况下服务端可能返回401（例如已过期/已注销），避免触发全局拦截器重复提示
+        headers: { 'X-Skip-Auth-Logout': 'true' },
+      } as any);
+    } catch {
+      // 忽略登出请求异常，保证本地会话被清理
+    } finally {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('user');
+    }
   }
 
   /**

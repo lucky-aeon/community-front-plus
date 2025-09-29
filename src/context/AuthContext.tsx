@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { User, AuthContextType } from '../shared/types';
 import { AuthService } from '../shared/services/api/auth.service';
 import { ResourceAccessService } from '../shared/services/api/resource-access.service';
@@ -23,6 +24,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(false);
   // 应用初始化阶段（仅用于路由守卫判断是否渲染页面）
   const [isInitializing, setIsInitializing] = useState(true);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // 检查存储的用户会话和 token
@@ -161,8 +164,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
+    // 立即清空本地状态与受保护路由渲染
     setUser(null);
-    AuthService.logout();
+    // 异步对接后端登出，并在受保护区域时回到首页
+    (async () => {
+      try {
+        await AuthService.logout();
+      } finally {
+        // 若当前处于受保护的仪表盘区域，登出后跳转到首页
+        if (location.pathname.startsWith('/dashboard')) {
+          navigate('/', { replace: true });
+        }
+      }
+    })();
   };
 
   const refreshUser = async () => {
