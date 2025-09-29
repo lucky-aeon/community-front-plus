@@ -1,0 +1,319 @@
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Image as ImageIcon, Plus, RefreshCw, Edit, Trash2, CheckCircle, XCircle, ArrowUpRight } from 'lucide-react';
+import AdminPagination from '@shared/components/AdminPagination';
+import { AdminExpressionService } from '@shared/services/api/admin-expression.service';
+import type { AdminExpressionDTO, ExpressionQueryRequest, PageResponse, ExpressionStatus, CreateExpressionRequest, UpdateExpressionRequest } from '@shared/types';
+import { ResourceAccessService } from '@shared/services/api/resource-access.service';
+import { ResourcePicker } from '@shared/components/business/ResourcePicker';
+import { showToast } from '@shared/utils/toast';
+import { ImageUpload } from '@shared/components/common/ImageUpload';
+
+export const ExpressionsPage: React.FC = () => {
+  const [loading, setLoading] = useState(false);
+  const [list, setList] = useState<AdminExpressionDTO[]>([]);
+  const [pagination, setPagination] = useState({ current: 1, size: 10, total: 0, pages: 0 });
+  const [query, setQuery] = useState<ExpressionQueryRequest>({ pageNum: 1, pageSize: 10 });
+
+  // 创建/编辑对话框
+  const [editOpen, setEditOpen] = useState(false);
+  const [editing, setEditing] = useState<AdminExpressionDTO | null>(null);
+  const [form, setForm] = useState<{ name: string; code: string; image?: string; sortOrder?: string; status: ExpressionStatus }>(
+    { name: '', code: '', image: '', sortOrder: '0', status: 'ENABLED' }
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  // 删除对话框
+  const [delOpen, setDelOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<AdminExpressionDTO | null>(null);
+
+  // 加载列表
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const page: PageResponse<AdminExpressionDTO> = await AdminExpressionService.getExpressions(query);
+      setList(page.records);
+      setPagination({ current: page.current, size: page.size, total: page.total, pages: page.pages });
+    } catch (e) {
+      console.error('加载表情列表失败:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [query]);
+
+  useEffect(() => { load(); }, [query.pageNum, query.pageSize, query.status, query.keyword]);
+
+  const statusBadge = useCallback((status: ExpressionStatus) => {
+    const text = status === 'ENABLED' ? '启用' : '停用';
+    const variant = status === 'ENABLED' ? 'default' : 'secondary';
+    return <Badge variant={variant as any}>{text}</Badge>;
+  }, []);
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm({ name: '', code: '', image: '', sortOrder: '0', status: 'ENABLED' });
+    setEditOpen(true);
+  };
+  const openEdit = (row: AdminExpressionDTO) => {
+    setEditing(row);
+    setForm({ name: row.name, code: row.code, image: row.image, sortOrder: String(row.sortOrder ?? 0), status: row.status });
+    setEditOpen(true);
+  };
+
+  const valid = useMemo(() => form.name.trim().length > 0 && form.code.trim().length > 0, [form]);
+
+  const submit = async () => {
+    if (!valid) return;
+    setSubmitting(true);
+    try {
+      const payload: CreateExpressionRequest | UpdateExpressionRequest = {
+        name: form.name.trim(),
+        code: form.code.trim(),
+        image: form.image?.trim() || undefined,
+        sortOrder: form.sortOrder && !isNaN(+form.sortOrder) ? +form.sortOrder : undefined,
+        status: form.status,
+      };
+      if (!editing) {
+        await AdminExpressionService.createExpression(payload as CreateExpressionRequest);
+        showToast.success('创建成功');
+      } else {
+        await AdminExpressionService.updateExpression(editing.id, payload as UpdateExpressionRequest);
+        showToast.success('更新成功');
+      }
+      setEditOpen(false);
+      await load();
+    } catch (e) {
+      console.error('提交失败:', e);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const toggleStatus = async (row: AdminExpressionDTO) => {
+    const target: ExpressionStatus = row.status === 'ENABLED' ? 'DISABLED' : 'ENABLED';
+    try {
+      await AdminExpressionService.updateStatus(row.id, target);
+      setList(prev => prev.map(it => it.id === row.id ? { ...it, status: target } : it));
+    } catch (e) {
+      console.error('更新状态失败:', e);
+    }
+  };
+
+  const confirmDelete = (row: AdminExpressionDTO) => { setToDelete(row); setDelOpen(true); };
+  const doDelete = async () => {
+    if (!toDelete) return;
+    try {
+      await AdminExpressionService.deleteExpression(toDelete.id);
+      setDelOpen(false);
+      setToDelete(null);
+      // 若最后一条被删，回退一页
+      if (list.length === 1 && pagination.current > 1) {
+        setQuery(prev => ({ ...prev, pageNum: (prev.pageNum || 1) - 1 }));
+      } else {
+        await load();
+      }
+    } catch (e) {
+      console.error('删除失败:', e);
+    }
+  };
+
+  const onPickResource = (snippet: string) => {
+    // 解析 ResourcePicker 返回的 Markdown 或 URL，抽取URL部分
+    const match = snippet.match(/\(([^)]+)\)/);
+    const url = match?.[1] || snippet;
+    // 将URL反解为资源访问端点携带的资源ID（如果是我们的公共端点），否则直接存URL
+    try {
+      const idMatch = url.match(/\/api\/public\/resource\/(.*?)\//);
+      const rid = idMatch?.[1];
+      setForm(prev => ({ ...prev, image: rid || url }));
+    } catch {
+      setForm(prev => ({ ...prev, image: url }));
+    }
+  };
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* 工具栏 */}
+      <Card>
+        <CardContent className="pt-6 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div className="sm:col-span-2">
+              <Input placeholder="名称/代码 关键字" value={query.keyword || ''} onChange={(e) => setQuery(prev => ({ ...prev, keyword: e.target.value, pageNum: 1 }))} />
+            </div>
+            <div>
+              <Select value={query.status || 'all'} onValueChange={(v) => setQuery(prev => ({ ...prev, status: v === 'all' ? undefined : (v as ExpressionStatus), pageNum: 1 }))}>
+                <SelectTrigger><SelectValue placeholder="状态" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">全部状态</SelectItem>
+                  <SelectItem value="ENABLED">启用</SelectItem>
+                  <SelectItem value="DISABLED">停用</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="secondary" onClick={() => load()} disabled={loading}><RefreshCw className="h-4 w-4 mr-2" />刷新</Button>
+              <Button onClick={openCreate}><Plus className="h-4 w-4 mr-2" />新增表情</Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 列表 */}
+      <Card className="mt-4 flex-1">
+        <CardContent className="pt-6">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[100px]">预览</TableHead>
+                  <TableHead>名称</TableHead>
+                  <TableHead>代码</TableHead>
+                  <TableHead>状态</TableHead>
+                  <TableHead className="w-[100px]">排序</TableHead>
+                  <TableHead>更新时间</TableHead>
+                  <TableHead className="w-[220px] text-right">操作</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-12 w-16" /></TableCell>
+                      <TableCell colSpan={6}><Skeleton className="h-4 w-full" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : list.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center text-sm text-muted-foreground">暂无数据</TableCell>
+                  </TableRow>
+                ) : (
+                  list.map(row => {
+                    const preview = row.image ? ResourceAccessService.toAccessUrl(row.image) : undefined;
+                    return (
+                      <TableRow key={row.id}>
+                        <TableCell>
+                          {preview ? (
+                            <img src={preview} alt={row.name} className="h-12 w-12 rounded object-cover border" />
+                          ) : (
+                            <div className="h-12 w-12 rounded border flex items-center justify-center text-gray-400"><ImageIcon className="h-5 w-5" /></div>
+                          )}
+                        </TableCell>
+                        <TableCell className="font-medium">{row.name}</TableCell>
+                        <TableCell className="text-muted-foreground">{row.code}</TableCell>
+                        <TableCell>{statusBadge(row.status)}</TableCell>
+                        <TableCell>{row.sortOrder ?? 0}</TableCell>
+                        <TableCell className="text-muted-foreground">{row.updateTime?.replace('T', ' ')}</TableCell>
+                        <TableCell className="text-right space-x-2">
+                          <Button variant="outline" size="sm" onClick={() => toggleStatus(row)}>
+                            {row.status === 'ENABLED' ? (<><XCircle className="h-4 w-4 mr-1" />停用</>) : (<><CheckCircle className="h-4 w-4 mr-1" />启用</>)}
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => openEdit(row)}><Edit className="h-4 w-4 mr-1" />编辑</Button>
+                          <Button variant="destructive" size="sm" onClick={() => confirmDelete(row)}><Trash2 className="h-4 w-4 mr-1" />删除</Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* 分页 */}
+          <div className="mt-4">
+            <AdminPagination current={pagination.current} totalPages={pagination.pages} onChange={(p) => setQuery(prev => ({ ...prev, pageNum: p }))} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 新增/编辑对话框 */}
+      <Dialog open={editOpen} onOpenChange={(o) => { if (!o) setEditOpen(false); }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editing ? '编辑表情' : '新增表情'}</DialogTitle>
+            <DialogDescription>填写表情信息并保存</DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">名称</Label>
+              <Input className="col-span-3" value={form.name} onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">代码</Label>
+              <Input className="col-span-3" value={form.code} onChange={(e) => setForm(prev => ({ ...prev, code: e.target.value }))} placeholder=":smile:" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">图片</Label>
+              <div className="col-span-3 flex gap-2">
+                <Input value={form.image || ''} onChange={(e) => setForm(prev => ({ ...prev, image: e.target.value }))} placeholder="资源ID或图片URL" />
+                <Button variant="secondary" onClick={() => setPickerOpen(true)} title="从资源库选择"><ArrowUpRight className="h-4 w-4" /></Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <Label className="text-right">上传</Label>
+              <div className="col-span-3">
+                <ImageUpload
+                  value={form.image || ''}
+                  onChange={(url) => setForm(prev => ({ ...prev, image: url }))}
+                  onUploadSuccess={(rid) => { if (rid) setForm(prev => ({ ...prev, image: rid })); }}
+                  placeholder="点击上传或拖拽图片到此处"
+                  previewSize="lg"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">排序</Label>
+              <Input className="col-span-3" type="number" min={0} value={form.sortOrder || '0'} onChange={(e) => setForm(prev => ({ ...prev, sortOrder: e.target.value }))} />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">状态</Label>
+              <div className="col-span-3">
+                <Select value={form.status} onValueChange={(v) => setForm(prev => ({ ...prev, status: v as ExpressionStatus }))}>
+                  <SelectTrigger><SelectValue placeholder="请选择" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ENABLED">启用</SelectItem>
+                    <SelectItem value="DISABLED">停用</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="secondary" onClick={() => setEditOpen(false)}>取消</Button>
+            <Button onClick={submit} disabled={!valid || submitting}>{submitting ? '提交中...' : '保存'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 资源选择器 */}
+      <ResourcePicker open={pickerOpen} onClose={() => setPickerOpen(false)} onInsert={onPickResource} />
+
+      {/* 删除确认 */}
+      <AlertDialog open={delOpen} onOpenChange={setDelOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>删除表情</AlertDialogTitle>
+            <AlertDialogDescription>此操作不可撤销，确定删除该表情吗？</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDelOpen(false)}>取消</AlertDialogCancel>
+            <AlertDialogAction onClick={doDelete} className="bg-red-600 hover:bg-red-700">删除</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
+};
+
+export default ExpressionsPage;

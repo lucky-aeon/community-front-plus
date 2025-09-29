@@ -1508,3 +1508,46 @@ export interface BannedIpDTO {
   bannedUntil: string;                 // 封禁到期时间（ISO字符串格式）
   remainSeconds: number;               // 剩余封禁时间（秒）
 }
+
+// ================ 表情管理（管理员）相关接口定义 ================
+
+// 表情状态
+export type ExpressionStatus = 'ENABLED' | 'DISABLED';
+
+// 管理员视角表情DTO
+export interface AdminExpressionDTO {
+  id: string;              // 表情ID
+  name: string;            // 名称
+  code: string;            // 唯一代码（如 :smile:）
+  image?: string;          // 图片资源ID或URL
+  sortOrder: number;       // 排序权重
+  status: ExpressionStatus;// 状态
+  createTime: string;      // 创建时间
+  updateTime: string;      // 更新时间
+}
+
+// 表情查询请求
+export interface ExpressionQueryRequest {
+  pageNum?: number;
+  pageSize?: number;
+  keyword?: string;        // 名称/代码 搜索
+  status?: ExpressionStatus;
+}
+
+// 新增表情请求
+export interface CreateExpressionRequest {
+  name: string;
+  code: string;
+  image?: string;          // 资源ID或URL
+  sortOrder?: number;
+  status?: ExpressionStatus;
+}
+
+// 更新表情请求
+export interface UpdateExpressionRequest {
+  name?: string;
+  code?: string;
+  image?: string;
+  sortOrder?: number;
+  status?: ExpressionStatus;
+}
