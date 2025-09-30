@@ -11,6 +11,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { ReactionBar } from '@shared/components/ui/ReactionBar';
 import { Comments } from '@shared/components/ui/Comments';
+import { LikeButton } from '@shared/components/ui/LikeButton';
 
 export const ChapterDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -167,6 +168,14 @@ export const ChapterDetailPage: React.FC = () => {
               <BookOpen className="h-4 w-4" />
               <span>发布于 {formatDate(chapterDetail.createTime)}</span>
             </div>
+            <div className="flex-1" />
+            {/* 顶部操作：点赞 */}
+            <LikeButton
+              businessType="CHAPTER"
+              businessId={chapterDetail.id}
+              initialCount={chapterDetail.likeCount}
+              onChange={(s) => setChapterDetail(prev => prev ? { ...prev, likeCount: s.likeCount } as FrontChapterDetailDTO : prev)}
+            />
           </div>
           {/* 上/下一章按钮 */}
           <div className="mt-3 flex items-center gap-2">

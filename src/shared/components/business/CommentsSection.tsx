@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Heart, MessageSquare, Trash2 } from 'lucide-react';
+import { MessageSquare, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +10,7 @@ import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { CommentsService } from '@shared/services/api';
 import { CommentDTO, User, BusinessType } from '@shared/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { LikeButton } from '@shared/components/ui/LikeButton';
 
 interface CommentsSectionProps {
   businessId: string;
@@ -290,14 +291,13 @@ export const CommentsSection: React.FC<CommentsSectionProps> = ({
 
                   {/* 操作按钮 */}
                   <div className="flex items-center space-x-4">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex items-center space-x-1 text-gray-500 hover:text-red-500"
-                    >
-                      <Heart className="h-4 w-4" />
-                      <span>{comment.likeCount || 0}</span>
-                    </Button>
+                    <LikeButton
+                      businessType="COMMENT"
+                      businessId={comment.id}
+                      initialLiked={comment.isLiked}
+                      initialCount={comment.likeCount || 0}
+                      onChange={(s) => setComments(prev => prev.map(c => c.id === comment.id ? { ...c, likeCount: s.likeCount, isLiked: s.liked } : c))}
+                    />
                     
                     {currentUser && (
                       <Button

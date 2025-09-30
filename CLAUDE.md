@@ -117,3 +117,35 @@ feat(admin-cdk): 显示使用者昵称并支持订阅策略与价格
 - 数量上限改为 1000，新增 code 筛选
 - 类型对齐：CDKDTO/CreateCDKRequest/CDKQueryRequest
 ```
+
+## 组件允许自行弹 toast 的场景
+
+- 本地校验与交互类错误（非网络）：
+    - 输入校验不通过、必填项缺失、客户端计算失败、复制到剪贴板失败等。
+    - 示例：`showToast.error('请输入版本号')`、`showToast.error('排序权重必须是非负整数')`。
+
+- 非 Axios 的网络调用（不会经过拦截器）：
+    - `fetch` / `XMLHttpRequest` 的场景需要组件或封装处自己处理提示。
+    - 参考：`src/shared/services/api/resource-access.service.ts`、`src/shared/services/api/aliyun-upload.service.ts`。
+
+## 示例
+
+- 正确（Axios 失败交给拦截器）：
+
+```
+try {
+  await SomeService.update(params);
+  // 成功提示由后端 message 控制，拦截器统一弹出
+} catch (e) {
+  console.error('更新失败', e); // 不在这里 showToast.error
+}
+```
+
+- 正确（本地表单校验）：
+
+```
+if (!form.title) {
+  showToast.error('请输入标题');
+  return;
+}
+```

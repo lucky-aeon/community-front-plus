@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, Clock, ExternalLink, Tags, Star, Lock } from 'lucide-react';
+import { BookOpen, Clock, ExternalLink, Tags, Star, Lock, MessageSquare } from 'lucide-react';
 import { CoursesService, SubscribeService } from '@shared/services/api';
 import { FrontCourseDetailDTO, FrontChapterDTO } from '@shared/types';
 import { Card } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,6 +13,7 @@ import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { ReactionBar } from '@shared/components/ui/ReactionBar';
 import { Comments } from '@shared/components/ui/Comments';
 import { PaymentModal } from '@shared/components/business/PaymentModal';
+import { LikeButton } from '@shared/components/ui/LikeButton';
 
 export const CourseDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -233,6 +235,43 @@ export const CourseDetailPage: React.FC = () => {
         {/* 左侧：课程概览 */}
         <div className="space-y-6 lg:col-span-2">
           <Card className="p-6 space-y-4">
+            {/* 顶部操作：点赞 + 表情 + 分类/标签 */}
+            <div className="flex items-center gap-4">
+              <LikeButton
+                businessType="COURSE"
+                businessId={course.id}
+                initialCount={course.likeCount}
+                onChange={(s) => setCourse(prev => prev ? { ...prev, likeCount: s.likeCount } as FrontCourseDetailDTO : prev)}
+              />
+            </div>
+            <ReactionBar businessType={'COURSE'} businessId={course.id} />
+            {((course.techStack?.length ?? 0) > 0 || (course.tags?.length ?? 0) > 0) && (
+              <div className="pt-2 space-y-3">
+                {(course.techStack?.length ?? 0) > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Tags className="h-4 w-4 text-honey-600" />
+                    <div className="flex flex-wrap gap-2">
+                      {course.techStack!.map((t) => (
+                        <Badge key={`tech-${t}`} className="bg-honey-50 text-honey-700 border-honey-200">{t}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {(course.tags?.length ?? 0) > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-warm-gray-500">分类标签</span>
+                    <div className="flex flex-wrap gap-2">
+                      {course.tags!.map((tag) => (
+                        <Badge key={`tag-${tag}`} className="bg-sage-50 text-sage-700 border-sage-200">{tag}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <Separator className="my-2" />
+
             <h2 className="text-lg font-bold">课程介绍</h2>
             <div className="prose-content">
               <MarkdownEditor
@@ -245,69 +284,16 @@ export const CourseDetailPage: React.FC = () => {
                 enableToc={false}
                 className="!border-none !shadow-none !bg-transparent"
               />
-              {/* 表情回复 */}
-              <ReactionBar businessType={'COURSE'} businessId={course.id} />
             </div>
 
-            {/* 技术栈与标签 */}
-            <div className="pt-2 space-y-3">
-              {(course.techStack?.length ?? 0) > 0 && (
-                <div className="flex items-center gap-2">
-                  <Tags className="h-4 w-4 text-honey-600" />
-                  <div className="flex flex-wrap gap-2">
-                    {course.techStack.map((t) => (
-                      <Badge key={t} className="bg-honey-50 text-honey-700 border-honey-200">{t}</Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {(course.tags?.length ?? 0) > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-warm-gray-500">分类标签</span>
-                  <div className="flex flex-wrap gap-2">
-                    {course.tags.map((t) => (
-                      <Badge key={t} className="bg-sage-50 text-sage-700 border-sage-200">{t}</Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
           </Card>
 
-          {/* 资源区 */}
-          {(course.resources?.length ?? 0) > 0 && (
-            <Card className="p-6">
-              <h2 className="text-lg font-bold mb-4">课程资源</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {course.resources!.map((r, idx) => (
-                  <div key={`${r.title}-${idx}`} className="flex items-start gap-3 p-3 rounded-lg border hover:bg-honey-50/40 transition-colors">
-                    <div className="mt-0.5">
-                      {/* 简单的图标映射 */}
-                      {r.icon === 'Github' && (
-                        <svg viewBox="0 0 24 24" className="h-5 w-5 text-gray-800" aria-hidden>
-                          <path fill="currentColor" d="M12 .5A12 12 0 0 0 0 12.7c0 5.4 3.4 10 8.2 11.6.6.1.8-.3.8-.6v-2.1c-3.3.7-4-1.6-4-1.6-.6-1.4-1.3-1.8-1.3-1.8-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 .1.7 2 .7 2 1 .1 2-.5 2-.5-.6-.4-1-.9-1.2-1.5-.2-.6 0-1.3.4-1.8-2.6-.3-5.4-1.3-5.4-5.9 0-1.3.5-2.5 1.3-3.3-.1-.3-.6-1.6.1-3.3 0 0 1-.3 3.4 1.3a11.7 11.7 0 0 1 6.2 0C17 5.2 18 5.5 18 5.5c.7 1.7.2 3 .2 3 .8.8 1.3 2 1.3 3.3 0 4.7-2.8 5.6-5.4 5.9.4.3.7 1 .7 2.1v3c0 .3.2.7.8.6 4.8-1.6 8.2-6.2 8.2-11.6A12 12 0 0 0 12 .5Z"/>
-                        </svg>
-                      )}
-                      {r.icon === 'Code' && (
-                        <svg viewBox="0 0 24 24" className="h-5 w-5 text-honey-700" aria-hidden>
-                          <path fill="currentColor" d="M9.4 16.6 5.8 13l3.6-3.6L8 8l-5 5 5 5 1.4-1.4Zm5.2 0 3.6-3.6-3.6-3.6L16 8l5 5-5 5-1.4-1.4ZM14.9 4l-3.8 16H9.1L12.9 4h2Z"/>
-                        </svg>
-                      )}
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900 leading-tight">{r.title}</div>
-                      <div className="text-sm text-warm-gray-600 leading-relaxed">{r.description}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
+          {/* 资源区：已移动到右侧栏 */}
 
           <Comments businessId={course.id} businessType={'COURSE'} authorId={course.authorId} />
         </div>
 
-        {/* 右侧：章节列表 */}
+        {/* 右侧：资源 + 章节列表 */}
         <div>
           {/* 未解锁时显示解锁方式 */}
           {course.unlocked === false && ((course.unlockPlans && course.unlockPlans.length > 0) || typeof course.price === 'number') && (
@@ -353,6 +339,35 @@ export const CourseDetailPage: React.FC = () => {
               </div>
             </Card>
           )}
+          {(course.resources?.length ?? 0) > 0 && (
+            <Card className="p-6 space-y-4 mb-4">
+              <h2 className="text-lg font-bold">课程资源</h2>
+              <div className="grid grid-cols-1 gap-4">
+                {course.resources!.map((r, idx) => (
+                  <div key={`${r.title}-${idx}`} className="flex items-start gap-3 p-3 rounded-lg border hover:bg-honey-50/40 transition-colors">
+                    <div className="mt-0.5">
+                      {/* 简单的图标映射 */}
+                      {r.icon === 'Github' && (
+                        <svg viewBox="0 0 24 24" className="h-5 w-5 text-gray-800" aria-hidden>
+                          <path fill="currentColor" d="M12 .5A12 12 0 0 0 0 12.7c0 5.4 3.4 10 8.2 11.6.6.1.8-.3.8-.6v-2.1c-3.3.7-4-1.6-4-1.6-.6-1.4-1.3-1.8-1.3-1.8-1-.7.1-.7.1-.7 1.1.1 1.7 1.2 1.7 1.2 1 .1.7 2 .7 2 1 .1 2-.5 2-.5-.6-.4-1-.9-1.2-1.5-.2-.6 0-1.3.4-1.8-2.6-.3-5.4-1.3-5.4-5.9 0-1.3.5-2.5 1.3-3.3-.1-.3-.6-1.6.1-3.3 0 0 1-.3 3.4 1.3a11.7 11.7 0 0 1 6.2 0C17 5.2 18 5.5 18 5.5c.7 1.7.2 3 .2 3 .8.8 1.3 2 1.3 3.3 0 4.7-2.8 5.6-5.4 5.9.4.3.7 1 .7 2.1v3c0 .3.2.7.8.6 4.8-1.6 8.2-6.2 8.2-11.6A12 12 0 0 0 12 .5Z"/>
+                        </svg>
+                      )}
+                      {r.icon === 'Code' && (
+                        <svg viewBox="0 0 24 24" className="h-5 w-5 text-honey-700" aria-hidden>
+                          <path fill="currentColor" d="M9.4 16.6 5.8 13l3.6-3.6L8 8l-5 5 5 5 1.4-1.4Zm5.2 0 3.6-3.6-3.6-3.6L16 8l5 5-5 5-1.4-1.4ZM14.9 4l-3.8 16H9.1L12.9 4h2Z"/>
+                        </svg>
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900 leading-tight">{r.title}</div>
+                      <div className="text-sm text-warm-gray-600 leading-relaxed">{r.description}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
           <Card className="p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold">课程章节</h2>

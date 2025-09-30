@@ -14,6 +14,7 @@ import { AuthModal } from '@shared/components/business/AuthModal';
 import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
 import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { ReactionBar } from '@shared/components/ui/ReactionBar';
+import { LikeButton } from '@shared/components/ui/LikeButton';
 import { useNavigate } from 'react-router-dom';
 import { routeUtils } from '@shared/routes/routes';
 
@@ -301,6 +302,13 @@ export const Comments: React.FC<CommentsProps> = ({
             {/* 表情回复 */}
             <ReactionBar businessType={'COMMENT'} businessId={c.id} />
             <div className="mt-2 flex items-center gap-2">
+              <LikeButton
+                businessType="COMMENT"
+                businessId={c.id}
+                initialLiked={c.isLiked}
+                initialCount={c.likeCount}
+                onChange={(s) => setFlatComments(prev => prev.map(item => item.id === c.id ? { ...item, likeCount: s.likeCount, isLiked: s.liked } : item))}
+              />
               <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => setOpenReply(prev => ({ ...prev, [c.id]: !prev[c.id] }))}>
                 <CornerDownRight className="h-4 w-4 mr-1" /> 回复
               </Button>

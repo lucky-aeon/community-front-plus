@@ -584,6 +584,7 @@ export interface CourseDTO {
   totalReadingTime: number;      // 总阅读时间（分钟）
   createTime: string;            // 创建时间
   updateTime: string;            // 更新时间
+  likeCount?: number;            // 点赞数（管理端返回）
 }
 
 // 创建课程请求参数
@@ -667,6 +668,7 @@ export interface ChapterDTO {
   readingTime?: number;          // 阅读时间（分钟），可选
   createTime: string;            // 创建时间
   updateTime: string;            // 更新时间
+  likeCount?: number;            // 点赞数（管理端返回/统计）
 }
 
 // 创建课程章节请求参数
@@ -808,6 +810,7 @@ export interface FrontCourseDTO {
   price?: number;                // 当前售价（可选）
   originalPrice?: number;        // 原价（可选）
   createTime: string;            // 创建时间
+  likeCount?: number;            // 点赞数（前台列表返回）
   // 新增：解锁标记（用于列表页展示）
   unlocked?: boolean;            // 是否已解锁
 }
@@ -819,6 +822,7 @@ export interface FrontChapterDTO {
   sortOrder: number;             // 章节排序
   readingTime: number;           // 章节阅读时长（分钟）
   createTime: string;            // 章节创建时间
+  likeCount?: number;            // 点赞数（详情里的章节列表返回）
 }
 
 // 前台课程详情DTO（API返回的课程详细信息）
@@ -842,6 +846,7 @@ export interface FrontCourseDetailDTO {
   createTime: string;            // 创建时间
   updateTime: string;            // 更新时间
   chapters: FrontChapterDTO[];   // 章节列表
+  likeCount?: number;            // 点赞数（详情返回）
   // 新增：解锁信息
   unlocked?: boolean;            // 是否已解锁（可学习）
   unlockPlans?: UnlockPlanDTO[]; // 可解锁的套餐列表（可能为空或未提供）
@@ -877,6 +882,7 @@ export interface PublicCourseDTO {
   demoUrl?: string;
   resources?: CourseResource[];
   createTime: string;
+  likeCount?: number;            // 点赞数（公开列表返回）
 }
 
 // 公开课程详情DTO（未登录可见，包含章节列表）
@@ -896,6 +902,7 @@ export interface PublicCourseDetailDTO {
   createTime: string;
   updateTime?: string;
   chapters: FrontChapterDTO[];
+  likeCount?: number;            // 点赞数（公开详情返回）
 }
 
 // ================ 管理员用户活动日志相关接口定义 ================
@@ -1002,6 +1009,7 @@ export interface FrontChapterDetailDTO {
   readingTime: number;           // 章节阅读时长（分钟）
   createTime: string;            // 章节创建时间
   updateTime: string;            // 章节更新时间
+  likeCount?: number;            // 点赞数（前台章节详情返回）
 }
 
 // ================ 关注功能相关接口定义 ================

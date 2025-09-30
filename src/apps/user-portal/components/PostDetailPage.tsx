@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, MessageSquare, CheckCircle } from 'lucide-react';
+import { ArrowLeft, MessageSquare, CheckCircle, Eye } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { ReactionBar } from '@shared/components/ui/ReactionBar';
 import { Comments } from '@shared/components/ui/Comments';
 import { SubscribeButton } from '@/components/ui/subscribe-button';
+import { LikeButton } from '@shared/components/ui/LikeButton';
 // 评论组件
 import { routeUtils } from '@shared/routes/routes';
 import { PostsService } from '@shared/services/api/posts.service';
@@ -24,6 +26,13 @@ export const PostDetailPage: React.FC = () => {
   const [relatedPosts, setRelatedPosts] = useState<FrontPostDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const scrollToComments = () => {
+    const el = document.getElementById('comments');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   // 获取文章详情和相关文章
   useEffect(() => {
@@ -203,7 +212,38 @@ export const PostDetailPage: React.FC = () => {
         <div className="lg:col-span-9 space-y-6">
           <Card className="p-6">
             {/* Post Title */}
-            <h1 className="text-3xl font-bold text-gray-900 mb-6">{post.title}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{post.title}</h1>
+            {/* Publish Time */}
+            {post.publishTime && (
+              <div className="text-sm text-gray-500 mb-4">发布于 {post.publishTime}</div>
+            )}
+
+            {/* Top Actions: 点赞 / 评论数 / 浏览数 */}
+            <div className="flex items-center gap-4 mb-6">
+              <LikeButton
+                businessType="POST"
+                businessId={post.id}
+                initialCount={post.likeCount}
+                onChange={(s) => setPost(prev => prev ? { ...prev, likeCount: s.likeCount } : prev)}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                className="flex items-center space-x-2"
+                onClick={scrollToComments}
+              >
+                <MessageSquare className="h-4 w-4" />
+                <span>{post.commentCount}</span>
+              </Button>
+              <div className="flex items-center space-x-1 text-sm text-gray-500">
+                <Eye className="h-4 w-4" />
+                <span>{post.viewCount}</span>
+              </div>
+            </div>
+
+            {/* 表情操作也放到顶部 */}
+            <ReactionBar businessType={'POST'} businessId={post.id} className="mb-4 -mt-4" />
+            <Separator className="my-4" />
 
             {/* Post Summary - 移到内容上方 */}
             {post.summary && (
@@ -248,35 +288,19 @@ export const PostDetailPage: React.FC = () => {
                   enableToc={false}
                 />
               </div>
-              {/* 表情回复 */}
-              <ReactionBar businessType={'POST'} businessId={post.id} />
+              {/* 顶部已提供表情操作，此处移除避免重复 */}
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center justify-between py-4 border-t border-gray-200">
-              <div className="flex items-center space-x-4">
-                <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                  <Heart className="h-4 w-4" />
-                  <span>{post.likeCount}</span>
-                </Button>
-                
-                <Button variant="ghost" size="sm" className="flex items-center space-x-2">
-                  <MessageSquare className="h-4 w-4" />
-                  <span>{post.commentCount}</span>
-                </Button>
-                
-                <div className="flex items-center space-x-2 text-sm text-gray-500">
-                  <span>浏览 {post.viewCount}</span>
-                </div>
-              </div>
-            </div>
+            {/* 底部操作行移除：按产品需求仅保留顶部操作 */}
           </Card>
 
-          <Comments
+          <div id="comments">
+            <Comments
             businessId={post.id}
             businessType="POST"
             authorId={post.authorId}
             isQA={post.categoryType === 'QA'}
+            onCountChange={(n) => setPost(prev => prev ? { ...prev, commentCount: n } : prev)}
             onQAResolveChange={({ action, commentId }) => {
               setPost(prev => {
                 if (!prev) return prev;
@@ -288,7 +312,8 @@ export const PostDetailPage: React.FC = () => {
                 return { ...prev, acceptedCommentIds: Array.from(set) } as FrontPostDetailDTO;
               });
             }}
-          />
+            />
+          </div>
         </div>
       </div>
     </div>

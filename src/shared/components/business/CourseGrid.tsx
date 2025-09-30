@@ -36,6 +36,7 @@ export const CourseGrid: React.FC<CourseGridProps> = () => {
     price: c.price,
     originalPrice: c.originalPrice,
     createTime: c.createTime,
+    likeCount: c.likeCount,
   });
 
   const loadCourses = useCallback(async () => {
