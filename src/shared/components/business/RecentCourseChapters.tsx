@@ -103,7 +103,7 @@ export const RecentCourseChapters: React.FC<RecentCourseChaptersProps> = ({
                       {item.title}
                     </h4>
 
-                    {/* 元信息行：课程名（章节模式显示，作为轻量链接） + 时间 */}
+                    {/* 元信息行：章节模式仅显示课程名；课程模式显示时间 */}
                     <div className="flex items-center gap-2 text-xs text-warm-gray-500">
                       {isChapterMode && 'courseName' in item && (
                         <button
@@ -118,13 +118,12 @@ export const RecentCourseChapters: React.FC<RecentCourseChaptersProps> = ({
                           <span className="truncate">{item.courseName}</span>
                         </button>
                       )}
-                      {isChapterMode && 'courseName' in item && (
-                        <span className="text-warm-gray-300">•</span>
+                      {!isChapterMode && (
+                        <span className="inline-flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          {new Date(item.createTime).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
+                        </span>
                       )}
-                      <span className="inline-flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {new Date(item.createTime).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}
-                      </span>
                     </div>
                   </div>
                   <ChevronRight className="h-4 w-4 text-warm-gray-400 opacity-0 group-hover:opacity-100 transition-opacity mt-1 shrink-0" />

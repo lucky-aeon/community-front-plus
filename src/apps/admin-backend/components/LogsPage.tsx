@@ -209,7 +209,7 @@ export const LogsPage: React.FC = () => {
                     <TableHead>目标</TableHead>
                     <TableHead>IP/设备</TableHead>
                     <TableHead>请求路径</TableHead>
-                    <TableHead className="text-right">操作</TableHead>
+                    <TableHead className="text-right min-w-[120px]">操作</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

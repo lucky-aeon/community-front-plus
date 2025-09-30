@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AppAiNewsService } from '@shared/services/api';
+import { sanitizeHtml } from '@shared/utils/sanitize-html';
 import type { FrontDailyItemDTO } from '@shared/types';
 import { ArrowLeft, ExternalLink, Newspaper } from 'lucide-react';
 
@@ -52,7 +53,7 @@ export const AiNewsDetailPage: React.FC = () => {
                   <span className="text-muted-foreground">抓取时间：{formatDateTime(item.fetchedAt)}</span>
                 </div>
               </header>
-              <div className="prose prose-neutral max-w-none" dangerouslySetInnerHTML={{ __html: item.content || item.summary || '' }} />
+              <div className="prose prose-neutral max-w-none content-html" dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.content || item.summary || '') }} />
               <div className="mt-6">
                 <Button asChild variant="outline">
                   <a href={item.url} target="_blank" rel="noreferrer">

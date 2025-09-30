@@ -2,11 +2,12 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Eye, ExternalLink, RefreshCw, Calendar, Newspaper, Sparkles } from 'lucide-react';
+import { RefreshCw, Calendar, Newspaper, Sparkles } from 'lucide-react';
 import { AppAiNewsService } from '@shared/services/api';
+import { sanitizeHtml } from '@shared/utils/sanitize-html';
 import type { HistoryDateDTO, FrontDailyItemDTO, DailyQueryRequest } from '@shared/types';
-import { Link } from 'react-router-dom';
-import AdminPagination from '@shared/components/AdminPagination';
+import { Link, useNavigate, useSearchParams, useParams } from 'react-router-dom';
+// 分页在日期视图不再使用，此处不引入 AdminPagination
 
 export const AiNewsPage: React.FC = () => {
   const [dates, setDates] = useState<HistoryDateDTO[]>([]);
@@ -16,6 +17,9 @@ export const AiNewsPage: React.FC = () => {
   const [pagination, setPagination] = useState({ current: 1, size: 10, total: 0, pages: 0 });
   const listAnchor = React.useRef<HTMLDivElement | null>(null);
   const [pastPreview, setPastPreview] = useState<Record<string, string>>({});
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { date: dateParamFromPath } = useParams();
 
   const loadDates = useCallback(async () => {
     try {
@@ -28,7 +32,8 @@ export const AiNewsPage: React.FC = () => {
     try {
       setLoading(true);
       const resp = await AppAiNewsService.getDaily(query);
-      setItems(resp.records);
+      const records = resp.records || [];
+      setItems(records);
       setPagination({ current: resp.current, size: resp.size, total: resp.total, pages: resp.pages });
     } catch (e) {
       console.error('加载AI日报列表失败:', e);
@@ -38,13 +43,88 @@ export const AiNewsPage: React.FC = () => {
   }, [query]);
 
   useEffect(() => { loadDates(); }, [loadDates]);
-  useEffect(() => { loadDaily(); }, [query.pageNum, query.pageSize, query.date, query.withContent, loadDaily]);
+  // 当 URL 上携带 date 参数时，等 query 同步后再加载，避免先拉“最新”的 10 条
+  useEffect(() => {
+    if (dateParamFromPath && query.date !== dateParamFromPath) return;
+    loadDaily();
+  }, [query.pageNum, query.pageSize, query.date, query.withContent, loadDaily, dateParamFromPath]);
 
   const onPageChange = (p: number) => setQuery(prev => ({ ...prev, pageNum: p }));
   const formatDateTime = (s?: string) => !s ? '-' : new Date(s).toLocaleString('zh-CN');
   const activeDate = query.date || 'latest';
   const latestDate = useMemo(() => (dates.length > 0 ? dates[0].date : undefined), [dates]);
   const displayPastDates = useMemo(() => dates.filter(d => d.date !== latestDate).slice(0, 6), [dates, latestDate]);
+
+  // 从 URL 同步查询条件，并在日期视图一次性拉全当天内容
+  useEffect(() => {
+    const dateParam = dateParamFromPath || searchParams.get('date') || undefined;
+    setQuery(prev => {
+      const next = {
+        ...prev,
+        date: dateParam,
+        pageNum: 1,
+        pageSize: dateParam ? 1000 : (prev.pageSize ?? 10),
+        // 后端已在 daily 接口返回完整数据，是否带上 withContent 均可
+        withContent: !!dateParam,
+      };
+      if (
+        prev.date === next.date &&
+        prev.pageNum === next.pageNum &&
+        prev.pageSize === next.pageSize &&
+        prev.withContent === next.withContent
+      ) {
+        return prev;
+      }
+      return next;
+    });
+  }, [dateParamFromPath, searchParams]);
+  const listSection = useMemo(() => {
+    if (activeDate === 'latest') return null;
+    if (loading && items.length === 0) {
+      return (
+        <div className="space-y-8">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="space-y-3">
+              <Skeleton className="h-7 w-2/3" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-11/12" />
+              <Skeleton className="h-4 w-5/6" />
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (items.length === 0) {
+      return <div className="text-center text-muted-foreground py-10">暂无数据</div>;
+    }
+    return (
+      <article className="max-w-3xl mx-auto">
+        {/* 标题预留（无导语/无日期） */}
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight">AI 日报</h1>
+        </header>
+
+        {/* 条目分节渲染 */}
+        <div className="prose prose-neutral max-w-none">
+          {items.map((it, idx) => (
+            <section key={it.id} className="not-prose py-6">
+              <h2 className="text-xl font-semibold leading-snug mb-2">
+                {idx + 1}、{it.title}
+              </h2>
+              <div className="prose prose-neutral max-w-none content-html">
+                {it.content && it.content.trim() !== '' ? (
+                  <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(it.content) }} />
+                ) : (
+                  <div className="text-muted-foreground">暂无正文</div>
+                )}
+              </div>
+              {/* 原文按钮按需隐藏（按需求删除） */}
+            </section>
+          ))}
+        </div>
+      </article>
+    );
+  }, [activeDate, loading, items]);
 
   // 预取往期摘要（仅在“最新”视图）
   useEffect(() => {
@@ -76,15 +156,24 @@ export const AiNewsPage: React.FC = () => {
     void loadPreviews();
   }, [activeDate, displayPastDates.length]);
   const gotoList = () => {
-    if (listAnchor.current) {
-      listAnchor.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    // 跳转到当日路由，展示完整列表
+    const dateFromItems = items[0]?.publishedAt ? String(items[0].publishedAt).slice(0, 10) : undefined;
+    const date = latestDate || dateFromItems;
+    if (date) navigate(`/dashboard/ai-news/daily/${encodeURIComponent(date)}`);
   };
   const gotoDate = (d: string) => {
-    setQuery(prev => ({ ...prev, date: d, pageNum: 1 }));
-    setTimeout(gotoList, 30);
+    navigate(`/dashboard/ai-news/daily/${encodeURIComponent(d)}`);
   };
+  // 监听 URL 中的 date 参数，驱动查询条件
+  useEffect(() => {
+    const dateParam = dateParamFromPath || searchParams.get('date') || undefined;
+    setQuery(prev => {
+      if (prev.date === dateParam && prev.pageNum === 1) return prev;
+      return { ...prev, date: dateParam, pageNum: 1 };
+    });
+  }, [searchParams, dateParamFromPath]);
 
+  const isDateRoute = !!(dateParamFromPath || searchParams.get('date'));
   return (
     <div className="px-4 py-6">
       <div className="flex items-center gap-2 mb-4">
@@ -92,7 +181,7 @@ export const AiNewsPage: React.FC = () => {
         <h1 className="text-xl font-semibold">AI 日报</h1>
         <div className="ml-auto flex items-center gap-2">
           {activeDate !== 'latest' && (
-            <Button variant="outline" size="sm" onClick={() => setQuery(prev => ({ ...prev, date: undefined, pageNum: 1 }))}>回到今日</Button>
+            <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/ai-news')}>回到今日</Button>
           )}
           <Button variant="outline" size="sm" onClick={() => loadDaily()} disabled={loading}>
             <RefreshCw className="w-4 h-4 mr-1" /> 刷新
@@ -101,8 +190,8 @@ export const AiNewsPage: React.FC = () => {
       </div>
 
       <div className="pt-2">
-          {/* 今日头条式摘要（仅在最新日期时展示） */}
-          {activeDate === 'latest' && (
+          {/* 今日头条式摘要（仅在“非日期路由”的最新视图展示） */}
+          {activeDate === 'latest' && !isDateRoute && (
             <section className="rounded-2xl overflow-hidden bg-gradient-to-br from-gray-900 via-gray-900 to-gray-800 text-white">
               <div className="grid grid-cols-1 md:grid-cols-5">
                 <div className="md:col-span-3 p-6 md:p-8">
@@ -166,67 +255,11 @@ export const AiNewsPage: React.FC = () => {
             </section>
           )}
 
-          {/* 卡片列表 */}
+          {/* 卡片列表（仅在选择某个具体日期时展示） */}
           <div ref={listAnchor} />
-          {loading && items.length === 0 ? (
-            <div className="columns-1 sm:columns-2 lg:columns-3 2xl:columns-4 gap-6">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Card key={i} className="mb-4 break-inside-avoid border rounded-lg">
-                  <CardContent className="p-4 space-y-3">
-                    <Skeleton className="h-5 w-4/5" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-5/6" />
-                    <div className="flex items-center justify-between pt-1">
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-8 w-24" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : items.length === 0 ? (
-            <div className="text-center text-muted-foreground py-10">暂无数据</div>
-          ) : (
-            <div className="columns-1 sm:columns-2 lg:columns-3 2xl:columns-4 gap-6">
-              {items.map((it) => (
-                <Card key={it.id} className="mb-4 break-inside-avoid border rounded-lg hover:shadow-sm transition-shadow">
-                  <CardContent className="p-5">
-                    <Link to={`/dashboard/ai-news/${it.id}`} className="group inline-block">
-                      <h3 className="text-base font-semibold leading-snug group-hover:text-honey-700 line-clamp-2">
-                        {it.title}
-                      </h3>
-                    </Link>
-                    <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
-                      {it.summary}
-                    </p>
-                    <div className="flex items-center justify-between mt-4 text-sm text-muted-foreground">
-                      <div>
-                        <span className="mr-3">{formatDateTime(it.publishedAt)}</span>
-                        <span className="px-2 py-0.5 rounded bg-honey-50 text-honey-700 border border-honey-100 text-xs">{it.source}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button asChild size="sm" variant="ghost">
-                          <Link to={`/dashboard/ai-news/${it.id}`}>
-                            <Eye className="w-4 h-4 mr-1" /> 详情
-                          </Link>
-                        </Button>
-                        <Button asChild size="sm" variant="outline">
-                          <a href={it.url} target="_blank" rel="noreferrer">
-                            <ExternalLink className="w-4 h-4 mr-1" /> 原文
-                          </a>
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+          {listSection}
 
-          {/* 分页 */}
-          <div className="mt-4">
-            <AdminPagination current={pagination.current} totalPages={pagination.pages} total={pagination.total} onChange={onPageChange} />
-          </div>
+          {/* 日期视图不使用分页，全部展示 */}
       </div>
     </div>
   );

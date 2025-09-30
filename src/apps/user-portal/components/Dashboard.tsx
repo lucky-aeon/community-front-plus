@@ -38,6 +38,7 @@ export const Dashboard: React.FC = () => {
               <Route path="/changelog" element={<ChangelogPage />} />
               <Route path="/membership" element={<MembershipPage />} />
               <Route path="/ai-news" element={<AiNewsPage />} />
+              <Route path="/ai-news/daily/:date" element={<AiNewsPage />} />
               <Route path="/ai-news/:id" element={<AiNewsDetailPage />} />
 
               {/* 404 处理 */}

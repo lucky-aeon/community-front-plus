@@ -204,3 +204,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* HTML 内容渲染（AI 日报等） */
+.content-html img { max-width: 100%; height: auto; }
+.content-html iframe, .content-html video { max-width: 100%; }
+/* AIBASE 内容中的标注片段（应隐藏） */
+.content-html .spamTxt { display: none; }

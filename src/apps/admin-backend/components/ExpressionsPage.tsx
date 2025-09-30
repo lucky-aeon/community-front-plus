@@ -15,6 +15,8 @@ import { AdminExpressionService } from '@shared/services/api/admin-expression.se
 import type { AdminExpressionDTO, ExpressionQueryRequest, PageResponse, CreateExpressionRequest, UpdateExpressionRequest } from '@shared/types';
 import { ResourceAccessService } from '@shared/services/api/resource-access.service';
 import { ResourcePicker } from '@shared/components/business/ResourcePicker';
+// 组件层不再直接弹出 axios 成功提示，统一交给拦截器
+// 仅在本地校验失败等场景才使用 showToast
 import { showToast } from '@shared/utils/toast';
 import { ImageUpload } from '@shared/components/common/ImageUpload';
 
@@ -85,10 +87,10 @@ export const ExpressionsPage: React.FC = () => {
       } as any;
       if (!editing) {
         await AdminExpressionService.createExpression(payload as CreateExpressionRequest);
-        showToast.success('创建成功');
+        // 成功提示交给 Axios 拦截器根据后端返回的 message 统一弹出
       } else {
         await AdminExpressionService.updateExpression(editing.id, payload as UpdateExpressionRequest);
-        showToast.success('更新成功');
+        // 成功提示交给 Axios 拦截器根据后端返回的 message 统一弹出
       }
       setEditOpen(false);
       await load();
@@ -170,7 +172,7 @@ export const ExpressionsPage: React.FC = () => {
       {/* 列表 */}
       <Card className="mt-4 flex-1">
         <CardContent className="pt-6">
-          <div className="overflow-x-auto">
+          <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -180,7 +182,7 @@ export const ExpressionsPage: React.FC = () => {
                   <TableHead>状态</TableHead>
                   <TableHead className="w-[100px]">排序</TableHead>
                   <TableHead>创建时间</TableHead>
-                  <TableHead className="w-[220px] text-right">操作</TableHead>
+                  <TableHead className="text-right min-w-[200px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -212,12 +214,33 @@ export const ExpressionsPage: React.FC = () => {
                         <TableCell>{statusBadge(row.isActive)}</TableCell>
                         <TableCell>{row.sortOrder ?? 0}</TableCell>
                         <TableCell className="text-muted-foreground">{row.createTime?.replace('T', ' ')}</TableCell>
-                        <TableCell className="text-right space-x-2">
-                          <Button variant="outline" size="sm" onClick={() => toggleStatus(row)}>
-                            {row.isActive ? (<><XCircle className="h-4 w-4 mr-1" />停用</>) : (<><CheckCircle className="h-4 w-4 mr-1" />启用</>)}
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => openEdit(row)}><Edit className="h-4 w-4 mr-1" />编辑</Button>
-                          <Button variant="destructive" size="sm" onClick={() => confirmDelete(row)}><Trash2 className="h-4 w-4 mr-1" />删除</Button>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2 flex-wrap">
+                            <Button variant="outline" size="sm" onClick={() => toggleStatus(row)}>
+                              {row.isActive ? (
+                                <>
+                                  <XCircle className="h-3 w-3 mr-1" />
+                                  停用
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="h-3 w-3 mr-1" />
+                                  启用
+                                </>
+                              )}
+                            </Button>
+                            <Button variant="outline" size="sm" onClick={() => openEdit(row)}>
+                              <Edit className="h-3 w-3 mr-1" /> 编辑
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => confirmDelete(row)}
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" /> 删除
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -295,7 +318,7 @@ export const ExpressionsPage: React.FC = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDelOpen(false)}>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={doDelete} className="bg-red-600 hover:bg-red-700">删除</AlertDialogAction>
+            <AlertDialogAction onClick={doDelete} className="bg-destructive hover:bg-destructive/90">删除</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

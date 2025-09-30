@@ -7,7 +7,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { RefreshCw, Shield, Trash2 } from 'lucide-react';
 import { AdminIpService } from '@shared/services/api/admin-ip.service';
 import { BannedIpDTO } from '@shared/types';
-import { showToast } from '@shared/utils/toast';
+// Axios 错误提示统一由拦截器处理；组件不额外弹错
 
 // 格式化剩余时间显示
 const formatRemainTime = (remainSeconds: number): string => {
@@ -50,7 +50,6 @@ export const IpBanPage: React.FC = () => {
       setBannedIps(data);
     } catch (error) {
       console.error('获取封禁IP列表失败:', error);
-      showToast('获取封禁IP列表失败', 'error');
     } finally {
       setLoading(false);
     }
@@ -64,7 +63,6 @@ export const IpBanPage: React.FC = () => {
       setBannedIps(prev => prev.filter(item => item.ip !== ip));
     } catch (error) {
       console.error('解封IP失败:', error);
-      showToast('解封IP失败', 'error');
     } finally {
       setUnbanDialog({ open: false, ip: '' });
     }
@@ -131,7 +129,7 @@ export const IpBanPage: React.FC = () => {
                   <TableHead>IP地址</TableHead>
                   <TableHead>封禁到期时间</TableHead>
                   <TableHead>剩余时间</TableHead>
-                  <TableHead className="text-right">操作</TableHead>
+                  <TableHead className="text-right min-w-[120px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -154,15 +152,17 @@ export const IpBanPage: React.FC = () => {
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setUnbanDialog({ open: true, ip: item.ip })}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        解封
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setUnbanDialog({ open: true, ip: item.ip })}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          解封
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -187,7 +187,7 @@ export const IpBanPage: React.FC = () => {
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => handleUnbanIp(unbanDialog.ip)}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90"
             >
               确认解封
             </AlertDialogAction>

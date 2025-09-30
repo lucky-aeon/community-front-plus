@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MessageSquare, Search, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,7 @@ import { PostsService } from '@shared/services/api/posts.service';
 import { FrontPostDTO, PageResponse } from '@shared/types';
 
 export const DiscussionsPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<'all' | 'articles' | 'questions'>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [posts, setPosts] = useState<FrontPostDTO[]>([]);
@@ -35,18 +37,26 @@ export const DiscussionsPage: React.FC = () => {
     }
   };
 
-  // 初始加载和标签切换时重新加载数据
+  // 从 URL 初始化 tab/page，并在 URL 改变时同步状态（支持后退返回保持状态）
+  useEffect(() => {
+    const tabParam = (searchParams.get('tab') || 'all') as 'all' | 'articles' | 'questions';
+    const pageParam = Math.max(1, parseInt(searchParams.get('page') || '1', 10) || 1);
+    if (tabParam !== activeTab) setActiveTab(tabParam);
+    if (pageParam !== currentPage) setCurrentPage(pageParam);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // 根据 tab/page 拉取数据
   useEffect(() => {
     const categoryType = activeTab === 'articles' ? 'ARTICLE' : activeTab === 'questions' ? 'QA' : undefined;
-    setCurrentPage(1);
-    fetchPosts(1, categoryType);
-  }, [activeTab]);
+    fetchPosts(currentPage, categoryType);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, currentPage]);
 
   // 分页切换
   const handlePageChange = (page: number) => {
-    const categoryType = activeTab === 'articles' ? 'ARTICLE' : activeTab === 'questions' ? 'QA' : undefined;
     setCurrentPage(page);
-    fetchPosts(page, categoryType);
+    setSearchParams({ tab: activeTab, page: String(page) });
   };
 
   // 本地搜索过滤（在已加载的数据中搜索）
@@ -64,7 +74,10 @@ export const DiscussionsPage: React.FC = () => {
 
   // 处理标签页切换
   const handleTabChange = (value: string) => {
-    setActiveTab(value as 'all' | 'articles' | 'questions');
+    const nextTab = value as 'all' | 'articles' | 'questions';
+    setActiveTab(nextTab);
+    setCurrentPage(1);
+    setSearchParams({ tab: nextTab, page: '1' });
   };
 
   return (
