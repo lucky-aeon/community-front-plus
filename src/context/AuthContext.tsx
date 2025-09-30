@@ -97,8 +97,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const user = await AuthService.login({ email, password });
-      setUser(user);
+      // 先建立资源访问会话（签发 HttpOnly Cookie），再更新用户
       try { await ResourceAccessService.ensureSession(); } catch { void 0; }
+      setUser(user);
     } finally {
       setIsLoading(false);
     }
@@ -108,8 +109,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const user = await AuthService.register({ name, email, password });
-      setUser(user);
+      // 先建立资源访问会话，避免头像等资源首屏加载因缺少 Cookie 而失败
       try { await ResourceAccessService.ensureSession(); } catch { void 0; }
+      setUser(user);
     } finally {
       setIsLoading(false);
     }
@@ -128,8 +130,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsLoading(true);
     try {
       const user = await AuthService.registerWithCode({ email, emailVerificationCode: code, password });
-      setUser(user);
+      // 先建立资源访问会话，确保后续资源可访问
       try { await ResourceAccessService.ensureSession(); } catch { void 0; }
+      setUser(user);
     } finally {
       setIsLoading(false);
     }

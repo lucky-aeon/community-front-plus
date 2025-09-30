@@ -264,6 +264,8 @@ export class AuthService {
 
     let user: User = this.mapBackendUserToFrontendUser(backendUser as unknown as BackendUser);
     user = await this.enrichPlanLevel(user);
+    // 建立资源访问会话，确保头像等资源可立即访问
+    try { await ResourceAccessService.ensureSession(); } catch { /* ignore */ }
     localStorage.setItem('user', JSON.stringify(user));
     return user;
   }
