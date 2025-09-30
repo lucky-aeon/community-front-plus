@@ -23,7 +23,8 @@ export const RedeemCDKDialog: React.FC<RedeemCDKDialogProps> = ({ open, onOpenCh
       await UserSubscriptionService.activateCDK(code.trim());
       // 刷新全局用户状态（以便 UI 立即更新套餐信息）
       await refreshUser();
-      showToast.success('激活成功');
+      // 激活成功后刷新菜单权限，避免权限栏仍显示未授权
+      window.dispatchEvent(new Event('menu-codes:refresh'));
       setCode('');
       onOpenChange(false);
     } finally {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { UserAccessService } from '@shared/services/api/user-access.service';
 import { useAuth } from '@/context/AuthContext';
 
@@ -10,27 +10,32 @@ export function useUserMenuCodes() {
   const [menuCodes, setMenuCodes] = useState<string[] | null>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      if (!user) {
-        setMenuCodes(null);
-        return;
-      }
-      try {
-        setLoading(true);
-        const list = await UserAccessService.getUserMenuCodes();
-        if (!cancelled) setMenuCodes(list);
-      } catch {
-        if (!cancelled) setMenuCodes([]);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
+  const reload = useCallback(async () => {
+    if (!user) {
+      setMenuCodes(null);
+      return;
     }
-    load();
-    // 当用户ID变化时重新拉取
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    try {
+      setLoading(true);
+      const list = await UserAccessService.getUserMenuCodes();
+      setMenuCodes(list);
+    } catch {
+      setMenuCodes([]);
+    } finally {
+      setLoading(false);
+    }
   }, [user?.id]);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  // 监听全局刷新事件（例如：CDK 激活后需要刷新权限）
+  useEffect(() => {
+    const handler = () => { void reload(); };
+    window.addEventListener('menu-codes:refresh', handler);
+    return () => window.removeEventListener('menu-codes:refresh', handler);
+  }, [reload]);
 
   const codeSet = useMemo(() => (menuCodes ? new Set(menuCodes) : null), [menuCodes]);
 
@@ -40,6 +45,5 @@ export function useUserMenuCodes() {
     return codeSet.has(code);
   };
 
-  return { menuCodes: codeSet, isAllowed, isLoading: loading } as const;
+  return { menuCodes: codeSet, isAllowed, isLoading: loading, reload } as const;
 }
-
