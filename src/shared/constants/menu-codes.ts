@@ -5,6 +5,7 @@ export const MENU_CODE = {
   DASHBOARD_DISCUSSIONS: 'MENU_DASHBOARD_DISCUSSIONS',
   DASHBOARD_COURSES: 'MENU_DASHBOARD_COURSES',
   DASHBOARD_CHANGELOG: 'MENU_DASHBOARD_CHANGELOG',
+  DASHBOARD_AI_NEWS: 'MENU_DASHBOARD_AI_NEWS',
   USER_BACKEND: 'MENU_USER_BACKEND',
   USER_ARTICLES: 'MENU_USER_ARTICLES',
   USER_COMMENTS: 'MENU_USER_COMMENTS',
@@ -26,6 +27,7 @@ export const NAV_ID_TO_CODE: Record<string, MenuCode | undefined> = {
   discussions: MENU_CODE.DASHBOARD_DISCUSSIONS,
   courses: MENU_CODE.DASHBOARD_COURSES,
   changelog: MENU_CODE.DASHBOARD_CHANGELOG,
+  'ai-news': MENU_CODE.DASHBOARD_AI_NEWS,
   // 用户中心左侧导航 id
   articles: MENU_CODE.USER_ARTICLES,
   comments: MENU_CODE.USER_COMMENTS,
@@ -51,6 +53,7 @@ const PATH_PREFIX_TO_CODE_ORDERED: Array<{ prefix: string; code: MenuCode }> = [
   { prefix: '/dashboard/user-backend', code: MENU_CODE.USER_BACKEND },
   // 用户门户
   { prefix: '/dashboard/membership', code: MENU_CODE.MEMBERSHIP },
+  { prefix: '/dashboard/ai-news', code: MENU_CODE.DASHBOARD_AI_NEWS },
   { prefix: '/dashboard/discussions', code: MENU_CODE.DASHBOARD_DISCUSSIONS },
   { prefix: '/dashboard/courses', code: MENU_CODE.DASHBOARD_COURSES },
   { prefix: '/dashboard/changelog', code: MENU_CODE.DASHBOARD_CHANGELOG },
@@ -66,4 +69,3 @@ export function getMenuCodeByPathname(pathname: string): MenuCode | null {
 export function getMenuCodeByNavId(navId: string): MenuCode | null {
   return NAV_ID_TO_CODE[navId] || null;
 }
-

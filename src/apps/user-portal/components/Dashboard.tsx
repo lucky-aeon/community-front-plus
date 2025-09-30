@@ -10,6 +10,8 @@ import { CourseDetailPage } from './CourseDetailPage';
 import { ChapterDetailPage } from './ChapterDetailPage';
 import { UserBackend } from '../../user-backend/components/UserBackend';
 import { MembershipPage } from './MembershipPage';
+import { AiNewsPage } from './AiNewsPage';
+import { AiNewsDetailPage } from './AiNewsDetailPage';
 
 export const Dashboard: React.FC = () => {
   return (
@@ -35,6 +37,8 @@ export const Dashboard: React.FC = () => {
               <Route path="/courses/:courseId" element={<CourseDetailPage />} />
               <Route path="/changelog" element={<ChangelogPage />} />
               <Route path="/membership" element={<MembershipPage />} />
+              <Route path="/ai-news" element={<AiNewsPage />} />
+              <Route path="/ai-news/:id" element={<AiNewsDetailPage />} />
 
               {/* 404 处理 */}
               <Route path="*" element={<Navigate to="/dashboard/home" replace />} />

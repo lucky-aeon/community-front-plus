@@ -31,6 +31,8 @@ export { PublicCoursesService } from './public-courses.service';
 export { PublicStatsService } from './public-stats.service';
 export { apiClient, type ApiResponse } from './config';
 export { UserSubscriptionService } from './user-subscription.service';
+export { AdminAiNewsService } from './admin-ai-news.service';
+export { AppAiNewsService } from './app-ai-news.service';
 
 // 导出类型定义
 export type {
@@ -110,4 +112,14 @@ export type {
   ResourceType,
   GetUploadCredentialsRequest,
   UploadCredentialsDTO,
+  // AI 日报
+  AdminDailyItemDTO,
+  AdminDailyQueryRequest,
+  IngestResult,
+  DailyItemStatus,
+  DailySource,
+  // 前台 AI 日报
+  HistoryDateDTO,
+  DailyQueryRequest,
+  FrontDailyItemDTO,
 } from '@shared/types';

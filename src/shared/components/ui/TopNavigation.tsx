@@ -12,7 +12,8 @@ import {
   LayoutDashboard,
   Shield,
   Key,
-  Bell
+  Bell,
+  Newspaper
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -78,7 +79,15 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
       icon: MessageSquare,
       description: '技术讨论和问答',
       code: MENU_CODE.DASHBOARD_DISCUSSIONS
-    }
+    },
+    {
+      id: 'ai-news',
+      name: 'AI 日报',
+      path: '/dashboard/ai-news',
+      icon: Newspaper,
+      description: '每日AI资讯精选',
+      code: MENU_CODE.DASHBOARD_AI_NEWS
+    },
   ];
 
   // 临时未读数（后续可接入通知中心/接口）

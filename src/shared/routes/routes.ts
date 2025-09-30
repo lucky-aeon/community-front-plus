@@ -11,6 +11,8 @@ export const ROUTES = {
   DASHBOARD_COURSES: '/dashboard/courses',
   DASHBOARD_COURSES_DETAIL: '/dashboard/courses/:courseId',
   DASHBOARD_CHANGELOG: '/dashboard/changelog',
+  DASHBOARD_AI_NEWS: '/dashboard/ai-news',
+  DASHBOARD_AI_NEWS_DETAIL: '/dashboard/ai-news/:id',
   
   // 用户后台路由
   USER_BACKEND: '/dashboard/user-backend',
@@ -67,6 +69,12 @@ export const navigationConfig = [
     name: '课程', 
     path: '/dashboard/courses',
     icon: 'BookOpen'
+  },
+  { 
+    id: 'ai-news', 
+    name: 'AI 日报', 
+    path: '/dashboard/ai-news',
+    icon: 'Newspaper'
   },
   { 
     id: 'changelog', 

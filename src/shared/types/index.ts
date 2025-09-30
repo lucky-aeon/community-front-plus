@@ -696,6 +696,75 @@ export interface ChapterQueryRequest {
   pageSize?: number;             // 每页大小，默认为10
 }
 
+// ================ 管理员 AI 日报相关接口定义 ================
+
+// 日报条目状态
+export type DailyItemStatus = 'PUBLISHED' | 'HIDDEN';
+
+// 日报来源
+export type DailySource = 'AIBASE';
+
+// 管理端查询 AI 日报请求参数
+export interface AdminDailyQueryRequest {
+  pageNum?: number;              // 页码，从1开始，默认为1
+  pageSize?: number;             // 每页大小，默认为10
+  date?: string;                 // 日期筛选，格式 YYYY-MM-DD，可为空
+  status?: DailyItemStatus;      // 状态筛选，可为空
+  withContent?: boolean;         // 是否携带正文内容，默认 false
+}
+
+// 管理端 AI 日报条目 DTO
+export interface AdminDailyItemDTO {
+  id: string;
+  source: DailySource;           // 来源，如 AIBASE
+  title: string;                 // 标题
+  summary?: string;              // 摘要
+  content?: string;              // 正文（withContent=true 时返回）
+  url: string;                   // 原文链接
+  sourceItemId?: number;         // 来源站点的原始ID
+  publishedAt?: string;          // 原文发布时间（ISO字符串）
+  fetchedAt: string;             // 抓取时间（ISO字符串）
+  status: DailyItemStatus;       // 状态：已发布/隐藏
+  metadata?: Record<string, unknown>; // 额外元数据
+}
+
+// 采集结果
+export interface IngestResult {
+  startId: number;               // 起始抓取ID
+  fetched: number;               // 抓取条数
+  inserted: number;              // 新增条数
+}
+
+// ================ 用户前台 AI 日报相关接口定义 ================
+
+// 历史日期项（含该日条数）
+export interface HistoryDateDTO {
+  date: string; // yyyy-MM-dd
+  count: number;
+}
+
+// 用户前台查询请求
+export interface DailyQueryRequest {
+  pageNum?: number;          // 页码
+  pageSize?: number;         // 每页大小
+  date?: string;             // yyyy-MM-dd（留空则取后端 latest）
+  withContent?: boolean;     // 是否返回 content
+}
+
+// 用户前台 AI 日报条目
+export interface FrontDailyItemDTO {
+  id: string;
+  source: DailySource;
+  title: string;
+  summary?: string;
+  content?: string;
+  url: string;
+  sourceItemId?: number;
+  publishedAt?: string;
+  fetchedAt: string;
+  metadata?: Record<string, unknown>;
+}
+
 // ================ 管理员用户管理相关接口定义 ================
 
 // 管理员用户查询请求参数
