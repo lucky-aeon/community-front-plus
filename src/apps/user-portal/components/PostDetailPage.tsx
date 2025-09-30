@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { ReactionBar } from '@shared/components/ui/ReactionBar';
 import { Comments } from '@shared/components/ui/Comments';
 import { SubscribeButton } from '@/components/ui/subscribe-button';
 // 评论组件
@@ -247,6 +248,8 @@ export const PostDetailPage: React.FC = () => {
                   enableToc={false}
                 />
               </div>
+              {/* 表情回复 */}
+              <ReactionBar businessType={'POST'} businessId={post.id} />
             </div>
 
             {/* Actions */}

@@ -24,6 +24,7 @@ export { ResourceService } from './resource.service';
 export { AdminResourceService } from './admin-resource.service';
 export { AdminExpressionService } from './admin-expression.service';
 export { ExpressionsService, type ExpressionTypeDTO } from './expressions.service';
+export { ReactionsService, type ReactionSummaryDTO, type ReactionUserDTO } from './reactions.service';
 export { UserFollowsService } from './user-follows.service';
 export { PublicCoursesService } from './public-courses.service';
 export { PublicStatsService } from './public-stats.service';

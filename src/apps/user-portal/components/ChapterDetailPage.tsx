@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { ReactionBar } from '@shared/components/ui/ReactionBar';
 import { Comments } from '@shared/components/ui/Comments';
 
 export const ChapterDetailPage: React.FC = () => {
@@ -203,6 +204,8 @@ export const ChapterDetailPage: React.FC = () => {
                 enableToc
                 className="!border-none !shadow-none !bg-transparent"
               />
+            {/* 表情回复 */}
+            <ReactionBar businessType={'CHAPTER'} businessId={chapterDetail.id} />
             </div>
           </Card>
 

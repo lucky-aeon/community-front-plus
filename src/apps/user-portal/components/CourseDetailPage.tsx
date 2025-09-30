@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { ReactionBar } from '@shared/components/ui/ReactionBar';
 import { Comments } from '@shared/components/ui/Comments';
 import { PaymentModal } from '@shared/components/business/PaymentModal';
 
@@ -244,6 +245,8 @@ export const CourseDetailPage: React.FC = () => {
                 enableToc={false}
                 className="!border-none !shadow-none !bg-transparent"
               />
+              {/* 表情回复 */}
+              <ReactionBar businessType={'COURSE'} businessId={course.id} />
             </div>
 
             {/* 技术栈与标签 */}
