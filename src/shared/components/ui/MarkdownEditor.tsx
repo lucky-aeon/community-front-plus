@@ -30,18 +30,21 @@ interface MarkdownEditorProps {
   onOpenResourcePicker?: () => void;
 }
 
-export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorProps>(({ 
-  value,
-  onChange,
-  previewOnly = false,
-  height = 400,
-  placeholder = '请输入markdown内容...',
-  toolbar = true,
-  className = '',
-  enableFullscreen = true,
-  enableToc = false,
-  onOpenResourcePicker,
-}, ref) => {
+function MarkdownEditorImpl(
+  {
+    value,
+    onChange,
+    previewOnly = false,
+    height = 400,
+    placeholder = '请输入markdown内容...',
+    toolbar = true,
+    className = '',
+    enableFullscreen = true,
+    enableToc = false,
+    onOpenResourcePicker,
+  }: MarkdownEditorProps,
+  ref: React.Ref<MarkdownEditorHandle>
+) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cherryInstanceRef = useRef<Cherry | null>(null);
   const containerIdRef = useRef(`markdown-editor-${Math.random().toString(36).substr(2, 9)}`);
@@ -118,6 +121,13 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
     };
   }, [isFullscreen]);
 
+  // 保证资源访问会话有效（用于 <img src="/api/public/resource/..."> 的 Cookie）
+  useEffect(() => {
+    (async () => {
+      try { await ResourceAccessService.ensureSession(); } catch { /* ignore */ }
+    })();
+  }, []);
+
   // 处理图片点击预览
   const handleImageClick = useCallback((e: Event) => {
     const target = e.target as HTMLElement;
@@ -144,29 +154,32 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
     }
   }, []);
 
-  // 处理自定义表情渲染（将 :name: 或 :code: 替换为 <img>）
+  // 将 :code:/ :name: 文本节点替换为 <img>，并为图片绑定 onerror 以在 Cookie 过期时自动重试
   const processCustomEmojis = useCallback(() => {
     try {
       const previewEl = document.querySelector(`#${containerIdRef.current} .cherry-previewer`);
       if (!previewEl || !expressions || expressions.length === 0) return;
 
-      const walker = document.createTreeWalker(previewEl, NodeFilter.SHOW_TEXT, {
-        acceptNode(node) {
-          const parent = (node as any).parentNode as HTMLElement | null;
-          if (!parent) return NodeFilter.FILTER_REJECT;
-          const tag = parent.tagName;
-          if (tag === 'SCRIPT' || tag === 'STYLE' || parent.classList.contains('emoji-processed')) return NodeFilter.FILTER_REJECT;
-          const val = node.nodeValue || '';
-          return val.includes(':') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
-        }
-      } as any);
+      const walker = document.createTreeWalker(
+        previewEl,
+        NodeFilter.SHOW_TEXT,
+        {
+          acceptNode(node) {
+            const parent = (node as any).parentNode as HTMLElement | null;
+            if (!parent) return NodeFilter.FILTER_REJECT;
+            const tag = parent.tagName;
+            if (tag === 'SCRIPT' || tag === 'STYLE' || parent.classList.contains('emoji-processed')) return NodeFilter.FILTER_REJECT;
+            const val = node.nodeValue || '';
+            return val.includes(':') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+          }
+        } as any
+      );
 
+      const regex = /:([a-zA-Z0-9_\u4e00-\u9fa5]+):/g;
       const nodes: Node[] = [];
       let n: Node | null;
       // eslint-disable-next-line no-cond-assign
       while ((n = walker.nextNode())) nodes.push(n);
-
-      const regex = /:([a-zA-Z0-9_\u4e00-\u9fa5]+):/g;
 
       nodes.forEach((textNode) => {
         const text = textNode.nodeValue || '';
@@ -179,13 +192,24 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
         while ((m = regex.exec(text)) !== null) {
           if (m.index > lastIndex) fragments.push(document.createTextNode(text.slice(lastIndex, m.index)));
           const name = m[1];
-          const expr = expressions.find(exp => exp.name === name || exp.code === name);
-          if (expr) {
+          const exp = expressions.find((e) => e.code === name || e.name === name);
+          if (exp) {
+            const base = ExpressionsService.toImageUrl(exp.imageUrl) || '';
             const img = document.createElement('img');
-            img.src = ExpressionsService.toImageUrl(expr.image) || '';
+            img.src = base;
             img.alt = name;
             img.title = name;
             img.className = 'custom-expression';
+            if (!img.getAttribute('data-emoji-bound')) {
+              img.setAttribute('data-emoji-bound', '1');
+              img.onerror = async () => {
+                try { await ResourceAccessService.ensureSession(); } catch { /* ignore */ }
+                try {
+                  const next = base + (base.includes('?') ? '&' : '?') + '_=' + Date.now();
+                  img.src = next;
+                } catch { /* ignore */ }
+              };
+            }
             fragments.push(img);
           } else {
             fragments.push(document.createTextNode(m[0]));
@@ -193,15 +217,33 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
           lastIndex = regex.lastIndex;
         }
         if (lastIndex < text.length) fragments.push(document.createTextNode(text.slice(lastIndex)));
-
         const wrapper = document.createElement('span');
         wrapper.className = 'emoji-processed';
-        fragments.forEach(f => wrapper.appendChild(f));
+        fragments.forEach((f) => wrapper.appendChild(f));
         const parent = (textNode as any).parentNode as Node | null;
         if (parent) parent.replaceChild(wrapper, textNode);
       });
+
+      // 兜底：为已有的 <img.custom-expression> 绑定 onerror
+      try {
+        previewEl.querySelectorAll('img.custom-expression').forEach((node) => {
+          const img = node as HTMLImageElement;
+          if (img.getAttribute('data-emoji-bound')) return;
+          img.setAttribute('data-emoji-bound', '1');
+          const base = String(img.getAttribute('src') || '');
+          img.onerror = async () => {
+            try { await ResourceAccessService.ensureSession(); } catch { /* ignore */ }
+            try {
+              const next = base + (base.includes('?') ? '&' : '?') + '_=' + Date.now();
+              img.src = next;
+            } catch { /* ignore */ }
+          };
+        });
+      } catch { /* ignore */ }
     } catch { /* ignore */ }
   }, [expressions]);
+
+  
 
   // 文件上传处理
   const handleFileUpload = useCallback(async (file: File, callback: (url: string, params?: Record<string, unknown>) => void) => {
@@ -384,7 +426,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
         global: {
           urlProcessor: (url: string) => url
         },
-        syntax: {
+       syntax: {
           fontEmphasis: {
             allowWhitespace: true
           },
@@ -398,8 +440,10 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
           // 启用内置emoji，并追加自定义映射（按已加载表情动态生成）
           emoji: {
             useUnicode: false,
-            upperCase: true,
-            customResourceURL: 'https://github.githubassets.com/images/icons/emoji/unicode/${code}.png?v8',
+            // 使用自定义映射的完整URL，不再拼接GitHub模板
+            // 这里将 customEmoji 的 value 直接作为 src，因此占位符设置为 "${code}"
+            upperCase: false,
+            customResourceURL: '${code}',
             customEmoji: Object.fromEntries(
               (expressions || []).flatMap((exp) => {
                 const url = ExpressionsService.toImageUrl(exp.imageUrl) || '';
@@ -415,6 +459,23 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
           toc: enableToc ? {
             allowMultiToc: true
           } : false
+        },
+        // 自定义语法：将 :code: 或 :name: 转为 <img>
+        customSyntax: {
+          customEmoji: {
+            syntaxType: 'inline',
+            makeHtml: (str: string) => {
+              if (!expressions || expressions.length === 0) return str;
+              const re = /:([a-zA-Z0-9_\u4e00-\u9fa5]+):/g;
+              return str.replace(re, (match, name) => {
+                const exp = expressions.find((e) => e.code === name || e.name === name);
+                if (!exp) return match;
+                const url = ExpressionsService.toImageUrl(exp.imageUrl) || '';
+                if (!url) return match;
+                return `<img src="${url}" alt="${name}" title="${name}" class="custom-expression" />`;
+              });
+            },
+          },
         }
       },
       toolbars: {
@@ -446,6 +507,37 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
         },
         afterInit: () => {
           setIsInitialized(true);
+
+          // 监听预览区图片错误，尝试续签 Cookie 后重试一次
+          try {
+            const previewEl = document.querySelector(`#${containerIdRef.current} .cherry-previewer`);
+            if (previewEl) {
+              const bindImg = (img: HTMLImageElement) => {
+                if (img.getAttribute('data-emoji-bound')) return;
+                img.setAttribute('data-emoji-bound', '1');
+                const base = String(img.getAttribute('src') || '');
+                img.onerror = async () => {
+                  try { await ResourceAccessService.ensureSession(); } catch { /* ignore */ }
+                  try {
+                    const next = base + (base.includes('?') ? '&' : '?') + '_=' + Date.now();
+                    img.src = next;
+                  } catch { /* ignore */ }
+                };
+              };
+              // 初始绑定
+              previewEl.querySelectorAll('img.custom-expression').forEach(img => bindImg(img as HTMLImageElement));
+              // 变更绑定
+              const mo = new MutationObserver((muts) => {
+                muts.forEach((m) => {
+                  (m.addedNodes || []).forEach((node) => {
+                    if (node instanceof HTMLImageElement && node.classList.contains('custom-expression')) bindImg(node);
+                    else if (node instanceof HTMLElement) node.querySelectorAll('img.custom-expression').forEach(img => bindImg(img as HTMLImageElement));
+                  });
+                });
+              });
+              mo.observe(previewEl, { childList: true, subtree: true });
+            }
+          } catch { /* ignore */ }
           
           // 添加全屏按钮 - 延迟确保DOM完全渲染
           setTimeout(() => {
@@ -791,4 +883,6 @@ export const MarkdownEditor = forwardRef<MarkdownEditorHandle, MarkdownEditorPro
       </Dialog>
     </div>
   );
-});
+}
+
+export const MarkdownEditor = forwardRef(MarkdownEditorImpl);

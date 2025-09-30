@@ -1,5 +1,5 @@
 import { apiClient, type ApiResponse } from './config';
-import type { AdminExpressionDTO, ExpressionQueryRequest, PageResponse, ExpressionStatus, CreateExpressionRequest, UpdateExpressionRequest } from '@shared/types';
+import type { AdminExpressionDTO, ExpressionQueryRequest, PageResponse, CreateExpressionRequest, UpdateExpressionRequest } from '@shared/types';
 
 /**
  * 管理员表情管理服务
@@ -14,35 +14,28 @@ import type { AdminExpressionDTO, ExpressionQueryRequest, PageResponse, Expressi
  */
 export class AdminExpressionService {
   static async getExpressions(params: ExpressionQueryRequest = {}): Promise<PageResponse<AdminExpressionDTO>> {
-    type RawPage = {
-      records?: AdminExpressionDTO[];
-      total?: number;
-      pageNum?: number;
-      pageSize?: number;
-      pages?: number;
-    };
-    const res = await apiClient.get<ApiResponse<RawPage>>('/admin/expressions', { params });
-    const data = res.data.data || {} as RawPage;
-    return {
-      records: data.records || [],
-      total: data.total || 0,
-      size: data.pageSize || params.pageSize || 10,
-      current: data.pageNum || params.pageNum || 1,
-      pages: data.pages || 0,
-      orders: [],
-      optimizeCountSql: true,
-      searchCount: true,
-      optimizeJoinOfCountSql: false,
-    };
+    const res = await apiClient.get<ApiResponse<PageResponse<AdminExpressionDTO>>>('/admin/expressions', { params });
+    return res.data.data as PageResponse<AdminExpressionDTO>;
   }
 
   static async createExpression(req: CreateExpressionRequest): Promise<AdminExpressionDTO> {
-    const res = await apiClient.post<ApiResponse<AdminExpressionDTO>>('/admin/expressions', req);
+    const body: any = {
+      code: req.code,
+      name: req.name,
+      imageUrl: req.imageUrl,
+    };
+    if (typeof req.sortOrder === 'number') body.sortOrder = req.sortOrder;
+    const res = await apiClient.post<ApiResponse<AdminExpressionDTO>>('/admin/expressions', body);
     return res.data.data;
   }
 
   static async updateExpression(id: string, req: UpdateExpressionRequest): Promise<AdminExpressionDTO> {
-    const res = await apiClient.put<ApiResponse<AdminExpressionDTO>>(`/admin/expressions/${encodeURIComponent(id)}`, req);
+    const body: any = {};
+    if (typeof req.code === 'string') body.code = req.code;
+    if (typeof req.name === 'string') body.name = req.name;
+    if (typeof req.imageUrl === 'string') body.imageUrl = req.imageUrl;
+    if (typeof req.sortOrder === 'number') body.sortOrder = req.sortOrder;
+    const res = await apiClient.put<ApiResponse<AdminExpressionDTO>>(`/admin/expressions/${encodeURIComponent(id)}`, body);
     return res.data.data;
   }
 
@@ -50,14 +43,9 @@ export class AdminExpressionService {
     await apiClient.delete<ApiResponse<void>>(`/admin/expressions/${encodeURIComponent(id)}`);
   }
 
-  static async updateStatus(id: string, status: ExpressionStatus): Promise<AdminExpressionDTO> {
-    const res = await apiClient.put<ApiResponse<AdminExpressionDTO>>(`/admin/expressions/${encodeURIComponent(id)}/status`, { status });
-    return res.data.data;
-  }
-
-  static async updateSortOrder(id: string, sortOrder: number): Promise<AdminExpressionDTO> {
-    const res = await apiClient.put<ApiResponse<AdminExpressionDTO>>(`/admin/expressions/${encodeURIComponent(id)}/sort-order`, null, { params: { sortOrder } });
-    return res.data.data;
+  // 启停切换
+  static async toggle(id: string): Promise<boolean> {
+    const res = await apiClient.put<ApiResponse<boolean>>(`/admin/expressions/${encodeURIComponent(id)}/toggle`);
+    return Boolean(res.data?.data);
   }
 }
-

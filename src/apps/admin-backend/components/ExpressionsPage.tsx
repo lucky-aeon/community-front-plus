@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Image as ImageIcon, Plus, RefreshCw, Edit, Trash2, CheckCircle, XCircle, ArrowUpRight } from 'lucide-react';
 import AdminPagination from '@shared/components/AdminPagination';
 import { AdminExpressionService } from '@shared/services/api/admin-expression.service';
-import type { AdminExpressionDTO, ExpressionQueryRequest, PageResponse, ExpressionStatus, CreateExpressionRequest, UpdateExpressionRequest } from '@shared/types';
+import type { AdminExpressionDTO, ExpressionQueryRequest, PageResponse, CreateExpressionRequest, UpdateExpressionRequest } from '@shared/types';
 import { ResourceAccessService } from '@shared/services/api/resource-access.service';
 import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { showToast } from '@shared/utils/toast';
@@ -23,12 +23,13 @@ export const ExpressionsPage: React.FC = () => {
   const [list, setList] = useState<AdminExpressionDTO[]>([]);
   const [pagination, setPagination] = useState({ current: 1, size: 10, total: 0, pages: 0 });
   const [query, setQuery] = useState<ExpressionQueryRequest>({ pageNum: 1, pageSize: 10 });
+  const [keyword, setKeyword] = useState('');
 
   // 创建/编辑对话框
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState<AdminExpressionDTO | null>(null);
-  const [form, setForm] = useState<{ name: string; code: string; image?: string; sortOrder?: string; status: ExpressionStatus }>(
-    { name: '', code: '', image: '', sortOrder: '0', status: 'ENABLED' }
+  const [form, setForm] = useState<{ name: string; code: string; imageUrl?: string; sortOrder?: string }>(
+    { name: '', code: '', imageUrl: '', sortOrder: '0' }
   );
   const [submitting, setSubmitting] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -51,22 +52,22 @@ export const ExpressionsPage: React.FC = () => {
     }
   }, [query]);
 
-  useEffect(() => { load(); }, [query.pageNum, query.pageSize, query.status, query.keyword]);
+  useEffect(() => { load(); }, [query.pageNum, query.pageSize, query.isActive, query.code, query.name]);
 
-  const statusBadge = useCallback((status: ExpressionStatus) => {
-    const text = status === 'ENABLED' ? '启用' : '停用';
-    const variant = status === 'ENABLED' ? 'default' : 'secondary';
+  const statusBadge = useCallback((isActive: boolean) => {
+    const text = isActive ? '启用' : '停用';
+    const variant = isActive ? 'default' : 'secondary';
     return <Badge variant={variant as any}>{text}</Badge>;
   }, []);
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: '', code: '', image: '', sortOrder: '0', status: 'ENABLED' });
+    setForm({ name: '', code: '', imageUrl: '', sortOrder: '0' });
     setEditOpen(true);
   };
   const openEdit = (row: AdminExpressionDTO) => {
     setEditing(row);
-    setForm({ name: row.name, code: row.code, image: row.image, sortOrder: String(row.sortOrder ?? 0), status: row.status });
+    setForm({ name: row.name, code: row.code, imageUrl: row.imageUrl, sortOrder: String(row.sortOrder ?? 0) });
     setEditOpen(true);
   };
 
@@ -79,10 +80,9 @@ export const ExpressionsPage: React.FC = () => {
       const payload: CreateExpressionRequest | UpdateExpressionRequest = {
         name: form.name.trim(),
         code: form.code.trim(),
-        image: form.image?.trim() || undefined,
+        imageUrl: form.imageUrl?.trim() || undefined,
         sortOrder: form.sortOrder && !isNaN(+form.sortOrder) ? +form.sortOrder : undefined,
-        status: form.status,
-      };
+      } as any;
       if (!editing) {
         await AdminExpressionService.createExpression(payload as CreateExpressionRequest);
         showToast.success('创建成功');
@@ -100,10 +100,9 @@ export const ExpressionsPage: React.FC = () => {
   };
 
   const toggleStatus = async (row: AdminExpressionDTO) => {
-    const target: ExpressionStatus = row.status === 'ENABLED' ? 'DISABLED' : 'ENABLED';
     try {
-      await AdminExpressionService.updateStatus(row.id, target);
-      setList(prev => prev.map(it => it.id === row.id ? { ...it, status: target } : it));
+      const active = await AdminExpressionService.toggle(row.id);
+      setList(prev => prev.map(it => it.id === row.id ? { ...it, isActive: active } : it));
     } catch (e) {
       console.error('更新状态失败:', e);
     }
@@ -135,9 +134,9 @@ export const ExpressionsPage: React.FC = () => {
     try {
       const idMatch = url.match(/\/api\/public\/resource\/(.*?)\//);
       const rid = idMatch?.[1];
-      setForm(prev => ({ ...prev, image: rid || url }));
+      setForm(prev => ({ ...prev, imageUrl: rid || url }));
     } catch {
-      setForm(prev => ({ ...prev, image: url }));
+      setForm(prev => ({ ...prev, imageUrl: url }));
     }
   };
 
@@ -148,10 +147,10 @@ export const ExpressionsPage: React.FC = () => {
         <CardContent className="pt-6 space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div className="sm:col-span-2">
-              <Input placeholder="名称/代码 关键字" value={query.keyword || ''} onChange={(e) => setQuery(prev => ({ ...prev, keyword: e.target.value, pageNum: 1 }))} />
+              <Input placeholder="名称/代码 关键字" value={keyword} onChange={(e) => { const v = e.target.value; setKeyword(v); setQuery(prev => ({ ...prev, code: v || undefined, name: v || undefined, pageNum: 1 })); }} />
             </div>
             <div>
-              <Select value={query.status || 'all'} onValueChange={(v) => setQuery(prev => ({ ...prev, status: v === 'all' ? undefined : (v as ExpressionStatus), pageNum: 1 }))}>
+              <Select value={typeof query.isActive === 'boolean' ? (query.isActive ? 'ENABLED' : 'DISABLED') : 'all'} onValueChange={(v) => setQuery(prev => ({ ...prev, isActive: v === 'all' ? undefined : v === 'ENABLED', pageNum: 1 }))}>
                 <SelectTrigger><SelectValue placeholder="状态" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">全部状态</SelectItem>
@@ -180,7 +179,7 @@ export const ExpressionsPage: React.FC = () => {
                   <TableHead>代码</TableHead>
                   <TableHead>状态</TableHead>
                   <TableHead className="w-[100px]">排序</TableHead>
-                  <TableHead>更新时间</TableHead>
+                  <TableHead>创建时间</TableHead>
                   <TableHead className="w-[220px] text-right">操作</TableHead>
                 </TableRow>
               </TableHeader>
@@ -198,7 +197,7 @@ export const ExpressionsPage: React.FC = () => {
                   </TableRow>
                 ) : (
                   list.map(row => {
-                    const preview = row.image ? ResourceAccessService.toAccessUrl(row.image) : undefined;
+                    const preview = row.imageUrl ? ResourceAccessService.toAccessUrl(row.imageUrl) : undefined;
                     return (
                       <TableRow key={row.id}>
                         <TableCell>
@@ -210,12 +209,12 @@ export const ExpressionsPage: React.FC = () => {
                         </TableCell>
                         <TableCell className="font-medium">{row.name}</TableCell>
                         <TableCell className="text-muted-foreground">{row.code}</TableCell>
-                        <TableCell>{statusBadge(row.status)}</TableCell>
+                        <TableCell>{statusBadge(row.isActive)}</TableCell>
                         <TableCell>{row.sortOrder ?? 0}</TableCell>
-                        <TableCell className="text-muted-foreground">{row.updateTime?.replace('T', ' ')}</TableCell>
+                        <TableCell className="text-muted-foreground">{row.createTime?.replace('T', ' ')}</TableCell>
                         <TableCell className="text-right space-x-2">
                           <Button variant="outline" size="sm" onClick={() => toggleStatus(row)}>
-                            {row.status === 'ENABLED' ? (<><XCircle className="h-4 w-4 mr-1" />停用</>) : (<><CheckCircle className="h-4 w-4 mr-1" />启用</>)}
+                            {row.isActive ? (<><XCircle className="h-4 w-4 mr-1" />停用</>) : (<><CheckCircle className="h-4 w-4 mr-1" />启用</>)}
                           </Button>
                           <Button variant="outline" size="sm" onClick={() => openEdit(row)}><Edit className="h-4 w-4 mr-1" />编辑</Button>
                           <Button variant="destructive" size="sm" onClick={() => confirmDelete(row)}><Trash2 className="h-4 w-4 mr-1" />删除</Button>
@@ -255,7 +254,7 @@ export const ExpressionsPage: React.FC = () => {
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right">图片</Label>
               <div className="col-span-3 flex gap-2">
-                <Input value={form.image || ''} onChange={(e) => setForm(prev => ({ ...prev, image: e.target.value }))} placeholder="资源ID或图片URL" />
+                <Input value={form.imageUrl || ''} onChange={(e) => setForm(prev => ({ ...prev, imageUrl: e.target.value }))} placeholder="资源ID或图片URL" />
                 <Button variant="secondary" onClick={() => setPickerOpen(true)} title="从资源库选择"><ArrowUpRight className="h-4 w-4" /></Button>
               </div>
             </div>
@@ -263,9 +262,9 @@ export const ExpressionsPage: React.FC = () => {
               <Label className="text-right">上传</Label>
               <div className="col-span-3">
                 <ImageUpload
-                  value={form.image || ''}
-                  onChange={(url) => setForm(prev => ({ ...prev, image: url }))}
-                  onUploadSuccess={(rid) => { if (rid) setForm(prev => ({ ...prev, image: rid })); }}
+                  value={form.imageUrl || ''}
+                  onChange={(url) => setForm(prev => ({ ...prev, imageUrl: url }))}
+                  onUploadSuccess={(rid) => { if (rid) setForm(prev => ({ ...prev, imageUrl: rid })); }}
                   placeholder="点击上传或拖拽图片到此处"
                   previewSize="lg"
                 />
@@ -274,18 +273,6 @@ export const ExpressionsPage: React.FC = () => {
             <div className="grid grid-cols-4 items-center gap-4">
               <Label className="text-right">排序</Label>
               <Input className="col-span-3" type="number" min={0} value={form.sortOrder || '0'} onChange={(e) => setForm(prev => ({ ...prev, sortOrder: e.target.value }))} />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">状态</Label>
-              <div className="col-span-3">
-                <Select value={form.status} onValueChange={(v) => setForm(prev => ({ ...prev, status: v as ExpressionStatus }))}>
-                  <SelectTrigger><SelectValue placeholder="请选择" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ENABLED">启用</SelectItem>
-                    <SelectItem value="DISABLED">停用</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
           </div>
 

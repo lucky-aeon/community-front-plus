@@ -1511,43 +1511,37 @@ export interface BannedIpDTO {
 
 // ================ 表情管理（管理员）相关接口定义 ================
 
-// 表情状态
-export type ExpressionStatus = 'ENABLED' | 'DISABLED';
-
-// 管理员视角表情DTO
+// 管理员视角表情DTO（与后端 ExpressionDTO 对齐）
 export interface AdminExpressionDTO {
   id: string;              // 表情ID
-  name: string;            // 名称
   code: string;            // 唯一代码（如 :smile:）
-  image?: string;          // 图片资源ID或URL
-  sortOrder: number;       // 排序权重
-  status: ExpressionStatus;// 状态
+  name: string;            // 名称
+  imageUrl?: string;       // 图片URL或资源ID（后端返回字段名）
+  sortOrder?: number;      // 排序权重
+  isActive: boolean;       // 是否启用
   createTime: string;      // 创建时间
-  updateTime: string;      // 更新时间
 }
 
-// 表情查询请求
+// 表情查询请求（与后端 ExpressionQueryRequest 对齐）
 export interface ExpressionQueryRequest {
   pageNum?: number;
   pageSize?: number;
-  keyword?: string;        // 名称/代码 搜索
-  status?: ExpressionStatus;
-}
-
-// 新增表情请求
-export interface CreateExpressionRequest {
-  name: string;
-  code: string;
-  image?: string;          // 资源ID或URL
-  sortOrder?: number;
-  status?: ExpressionStatus;
-}
-
-// 更新表情请求
-export interface UpdateExpressionRequest {
-  name?: string;
   code?: string;
-  image?: string;
+  name?: string;
+  isActive?: boolean;
+}
+
+// 新增/更新请求
+export interface CreateExpressionRequest {
+  code: string;
+  name: string;
+  imageUrl: string;
   sortOrder?: number;
-  status?: ExpressionStatus;
+}
+
+export interface UpdateExpressionRequest {
+  code?: string;
+  name?: string;
+  imageUrl?: string;
+  sortOrder?: number;
 }
