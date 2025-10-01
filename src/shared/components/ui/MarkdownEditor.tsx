@@ -121,10 +121,14 @@ function MarkdownEditorImpl(
     };
   }, [isFullscreen]);
 
-  // 保证资源访问会话有效（用于 <img src="/api/public/resource/..."> 的 Cookie）
+  // 保证资源访问会话有效（仅登录后才需建立，游客不触发401）
   useEffect(() => {
     (async () => {
-      try { await ResourceAccessService.ensureSession(); } catch { /* ignore */ }
+      try {
+        if (localStorage.getItem('auth_token')) {
+          await ResourceAccessService.ensureSession();
+        }
+      } catch { /* ignore */ }
     })();
   }, []);
 
@@ -684,15 +688,15 @@ function MarkdownEditorImpl(
     };
   }, [getCherryConfig, isEchartsLoaded]);
 
-  // 加载表情列表（一次）
+  // 加载表情列表（需登录；游客跳过以避免 401）
   useEffect(() => {
     let mounted = true;
     (async () => {
+      if (!localStorage.getItem('auth_token')) return;
       try {
         const list = await ExpressionsService.getAll();
         if (!mounted) return;
         setExpressions(list || []);
-        // 初始化后处理一次（若已初始化）
         setTimeout(processCustomEmojis, 120);
       } catch { /* ignore */ }
     })();

@@ -59,7 +59,10 @@ export class ResourceAccessService {
    * - 跨域部署时需 withCredentials 以接收 Set-Cookie
    */
   static async ensureSession(): Promise<void> {
+    // 游客模式下不建立资源访问会话，避免在公开页触发 401
     try {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
       await apiClient.post('/user/resource/access-session', {}, {
         withCredentials: true,
         // 避免因权限/过期导致全局登出
@@ -68,6 +71,8 @@ export class ResourceAccessService {
     } catch {
       // 回退方案：调用用户心跳以续签 RAUTH Cookie（后端已实现）
       try {
+        const token = localStorage.getItem('auth_token');
+        if (!token) return;
         await apiClient.get('/user/heartbeat', {
           withCredentials: true,
           headers: { 'X-Skip-Auth-Logout': 'true' },

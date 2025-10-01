@@ -55,7 +55,7 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
+      <DialogContent className="w-[92vw] sm:max-w-3xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>课程详情</DialogTitle>
         </DialogHeader>
@@ -175,17 +175,17 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
                 {(detail.chapters ?? []).length === 0 ? (
                   <div className="text-sm text-warm-gray-600">暂无章节</div>
                 ) : (
-                  <div className="space-y-2 max-h-[55vh] overflow-y-auto pr-1">
+                  <div className="space-y-2 pr-1">
                     {[...(detail.chapters ?? [])]
                       .sort((a, b) => a.sortOrder - b.sortOrder)
-                      .map((ch) => (
+                      .map((ch, idx) => (
                         <div
                           key={ch.id}
                           className="w-full text-left p-3 rounded-lg border bg-white"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-warm-gray-500 w-10">#{ch.sortOrder}</span>
+                              <span className="text-xs text-warm-gray-500 w-10">#{idx + 1}</span>
                               <div>
                                 <div className="text-sm font-medium text-gray-900 line-clamp-1">{ch.title}</div>
                                 <div className="text-xs text-warm-gray-500 flex items-center gap-1">
