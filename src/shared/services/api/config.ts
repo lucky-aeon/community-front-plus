@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { showToast } from '@shared/utils/toast';
+import { getOrCreateDeviceId, refreshDidCookie } from '@shared/utils/device-id';
 
 // API 基础配置 - 使用相对路径让Vite代理处理
 export const API_BASE_URL = '/api';
@@ -14,9 +15,16 @@ export const apiClient = axios.create({
   timeout: 10000,
 });
 
-// 请求拦截器 - 自动添加 token
+// 请求拦截器 - 自动添加 token 与设备ID
 apiClient.interceptors.request.use(
   (config) => {
+    // 设备ID：稳定、非机密；同时维持 DID Cookie 以兼容无法自定义请求头的场景
+    try {
+      const did = getOrCreateDeviceId();
+      (config.headers as any)['X-Device-ID'] = did;
+      refreshDidCookie();
+    } catch { /* ignore */ }
+
     const token = localStorage.getItem('auth_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -60,6 +68,22 @@ apiClient.interceptors.response.use(
       const skipAuthLogout = headers['X-Skip-Auth-Logout'] === 'true' || (cfg as unknown as { __skipAuthLogout?: boolean }).__skipAuthLogout === true;
       let toastShown = false;
 
+      // 登录被拒绝（设备/IP 限制）：引导到设备管理页
+      try {
+        const url = String(cfg?.url || '');
+        const msg: string = String(data?.message || '');
+        const isLoginAttempt = url.includes('/auth/login');
+        const loginRejected = /登录被拒绝/.test(msg) || (/设备|IP|限制/.test(msg) && /拒绝|无法|失败/.test(msg));
+        if (isLoginAttempt && loginRejected) {
+          // 若当前已有会话（例如尝试切换/重复登录），跳转设备管理页
+          const hasSession = !!localStorage.getItem('auth_token');
+          if (hasSession) {
+            try { window.location.assign('/dashboard/user-backend/devices'); } catch { /* ignore */ }
+          }
+          // 提示文案仍由统一拦截器逻辑处理（不覆盖403规则）
+        }
+      } catch { /* ignore */ }
+
       switch (status) {
         case 401:
           // 未授权：清理会话并触发全局登出，让路由守卫把用户送回登录入口
@@ -72,7 +96,7 @@ apiClient.interceptors.response.use(
                 localStorage.removeItem('auth_token');
                 localStorage.removeItem('user');
                 // 统一过期提示交由拦截器弹出
-                showToast.error('登录已过期，请重新登录');
+                showToast.error('会话已失效/在其他设备登录被挤下线，请重新登录');
                 // 通知应用执行登出逻辑（AuthContext 监听此事件并导航）
                 try { window.dispatchEvent(new CustomEvent('auth:logout')); } catch { /* no-op */ }
               }

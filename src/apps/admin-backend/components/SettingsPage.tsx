@@ -24,12 +24,13 @@ export const SettingsPage: React.FC = () => {
   const isDirty = useMemo(() => selectedPlanId !== initialPlanId, [selectedPlanId, initialPlanId]);
 
   // 会话限制配置
-  const [sessionCfg, setSessionCfg] = useState<UserSessionLimitConfigData>({ maxActiveIps: 2, policy: 'EVICT_OLDEST', banTtlDays: 0 });
-  const [initialSessionCfg, setInitialSessionCfg] = useState<UserSessionLimitConfigData>({ maxActiveIps: 2, policy: 'EVICT_OLDEST', banTtlDays: 0 });
+  const [sessionCfg, setSessionCfg] = useState<UserSessionLimitConfigData>({ maxDevices: 2, maxIpsPerDevice: 3, policy: 'EVICT_OLDEST', banTtlDays: 0 });
+  const [initialSessionCfg, setInitialSessionCfg] = useState<UserSessionLimitConfigData>({ maxDevices: 2, maxIpsPerDevice: 3, policy: 'EVICT_OLDEST', banTtlDays: 0 });
   const [loadingSessionCfg, setLoadingSessionCfg] = useState(false);
   const [savingSessionCfg, setSavingSessionCfg] = useState(false);
   const sessionDirty = useMemo(() =>
-    sessionCfg.maxActiveIps !== initialSessionCfg.maxActiveIps ||
+    sessionCfg.maxDevices !== initialSessionCfg.maxDevices ||
+    sessionCfg.maxIpsPerDevice !== initialSessionCfg.maxIpsPerDevice ||
     sessionCfg.policy !== initialSessionCfg.policy ||
     sessionCfg.banTtlDays !== initialSessionCfg.banTtlDays,
   [sessionCfg, initialSessionCfg]);
@@ -69,9 +70,12 @@ export const SettingsPage: React.FC = () => {
     try {
       setLoadingSessionCfg(true);
       const cfg: SystemConfigDTO = await SystemConfigService.getUserSessionLimitConfig();
-      const data = cfg?.data as Partial<UserSessionLimitConfigData> | undefined;
+      const data = cfg?.data as Partial<UserSessionLimitConfigData & { maxActiveIps?: number; maxDevices?: number; maxIpsPerDevice?: number }> | undefined;
+      const maxDevices = Math.min(10, Math.max(1, Number((data?.maxDevices ?? (data as any)?.maxActiveIps) ?? 2)));
+      const maxIpsPerDevice = Math.min(10, Math.max(1, Number((data?.maxIpsPerDevice ?? 3))));
       const norm: UserSessionLimitConfigData = {
-        maxActiveIps: Math.min(10, Math.max(1, Number(data?.maxActiveIps ?? 2))),
+        maxDevices,
+        maxIpsPerDevice,
         policy: (data?.policy === 'DENY_NEW' || data?.policy === 'EVICT_OLDEST') ? data.policy : 'EVICT_OLDEST',
         banTtlDays: Math.max(0, Number(data?.banTtlDays ?? 0))
       };
@@ -79,7 +83,7 @@ export const SettingsPage: React.FC = () => {
       setSessionCfg(norm);
     } catch {
       // 404等情况：采用默认
-      const defVal: UserSessionLimitConfigData = { maxActiveIps: 2, policy: 'EVICT_OLDEST', banTtlDays: 0 };
+      const defVal: UserSessionLimitConfigData = { maxDevices: 2, maxIpsPerDevice: 3, policy: 'EVICT_OLDEST', banTtlDays: 0 };
       setInitialSessionCfg(defVal);
       setSessionCfg(defVal);
     } finally {
@@ -226,14 +230,27 @@ export const SettingsPage: React.FC = () => {
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="maxActiveIps">最大并发活跃IP数 (1-10)</Label>
+              <Label htmlFor="maxDevices">最大并发设备数 (1-10)</Label>
               <Input
-                id="maxActiveIps"
+                id="maxDevices"
                 type="number"
                 min={1}
                 max={10}
-                value={sessionCfg.maxActiveIps}
-                onChange={(e) => setSessionCfg(prev => ({ ...prev, maxActiveIps: Math.min(10, Math.max(1, Number(e.target.value || 0))) }))}
+                value={sessionCfg.maxDevices}
+                onChange={(e) => setSessionCfg(prev => ({ ...prev, maxDevices: Math.min(10, Math.max(1, Number(e.target.value || 0))) }))}
+                disabled={sessionLoading || savingSessionCfg}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="maxIpsPerDevice">同一设备活跃IP容忍数 (1-10)</Label>
+              <Input
+                id="maxIpsPerDevice"
+                type="number"
+                min={1}
+                max={10}
+                value={sessionCfg.maxIpsPerDevice}
+                onChange={(e) => setSessionCfg(prev => ({ ...prev, maxIpsPerDevice: Math.min(10, Math.max(1, Number(e.target.value || 0))) }))}
                 disabled={sessionLoading || savingSessionCfg}
               />
             </div>
@@ -279,8 +296,11 @@ export const SettingsPage: React.FC = () => {
             <Button
               onClick={async () => {
                 // 校验
-                if (sessionCfg.maxActiveIps < 1 || sessionCfg.maxActiveIps > 10) {
-                  return showToast.error('最大并发活跃IP数需在 1-10 范围内');
+                if (sessionCfg.maxDevices < 1 || sessionCfg.maxDevices > 10) {
+                  return showToast.error('设备数量必须是 1-10 之间的整数');
+                }
+                if (sessionCfg.maxIpsPerDevice < 1 || sessionCfg.maxIpsPerDevice > 10) {
+                  return showToast.error('同设备活跃 IP 容忍数需在 1-10 范围内');
                 }
                 try {
                   setSavingSessionCfg(true);

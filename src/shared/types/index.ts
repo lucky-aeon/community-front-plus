@@ -1380,7 +1380,10 @@ export interface UpdateSystemConfigRequest {
 // 用户会话限制配置（管理员可动态调整部分）
 export type SessionEvictionPolicy = 'DENY_NEW' | 'EVICT_OLDEST';
 export interface UserSessionLimitConfigData {
-  maxActiveIps: number;                 // 默认最大并发活跃IP数 (1-10)
+  // 最大并发设备数（基于 deviceId 控制）
+  maxDevices: number;                   // 1-10，默认 1-3 按业务配置
+  // 同一设备允许的活跃 IP 数上限（用于容忍梯子/网络切换）
+  maxIpsPerDevice: number;              // 1-10，默认 3
   policy: SessionEvictionPolicy;        // 超配额策略
   banTtlDays: number;                   // 封禁时长（天，0=永久）
 }

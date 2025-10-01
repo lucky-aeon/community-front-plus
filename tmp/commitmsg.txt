@@ -1,0 +1,9 @@
+feat(core): 生成 deviceId 并全局注入；管理员设置对齐设备限制配置
+
+- 新增 device-id 工具，首次生成 UUID，持久化 localStorage 与 DID Cookie（1 年）
+- Axios 请求拦截器统一注入 X-Device-ID，刷新 DID Cookie；登录/登出/心跳/普通 API 均生效
+- 401 提示调整：会话已失效/在其他设备登录被挤下线，引导重登
+- 登录被拒绝（设备/IP 限制）且已有会话时跳转设备管理页
+- 管理端设置页：将“最大并发活跃 IP 数”改为“最大并发设备数”，新增“同一设备活跃 IP 容忍数”
+- 类型与配置对齐：UserSessionLimitConfigData 增加 maxDevices、maxIpsPerDevice，向后兼容旧字段读取
+- 资源访问仍走 RAUTH Cookie，静态资源无需额外 Header
