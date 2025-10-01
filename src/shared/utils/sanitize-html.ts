@@ -60,6 +60,11 @@ export function sanitizeHtml(input?: string | null): string {
           const img = el as HTMLImageElement;
           if (!img.getAttribute('loading')) img.setAttribute('loading', 'lazy');
           img.removeAttribute('srcset'); // avoid large bandwidth surprises
+          // Many news/image CDNs block hotlinking when Referer is present.
+          // Use no-referrer so images from third-party hosts can display.
+          if (!img.getAttribute('referrerpolicy')) img.setAttribute('referrerpolicy', 'no-referrer');
+          // Defensive: normalize alt text to empty string if missing to avoid layout jank
+          if (!img.getAttribute('alt')) img.setAttribute('alt', '');
         }
       });
     };

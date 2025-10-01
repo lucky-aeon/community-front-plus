@@ -107,8 +107,8 @@ export const AiNewsPage: React.FC = () => {
         {/* 条目分节渲染 */}
         <div className="prose prose-neutral max-w-none">
           {items.map((it, idx) => (
-            <section key={it.id} className="not-prose py-6">
-              <h2 className="text-xl font-semibold leading-snug mb-2">
+            <section key={it.id} className="py-6">
+              <h2 className="not-prose text-xl font-semibold leading-snug mb-2">
                 {idx + 1}、{it.title}
               </h2>
               <div className="prose prose-neutral max-w-none content-html">
