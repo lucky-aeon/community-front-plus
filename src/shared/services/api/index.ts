@@ -119,6 +119,8 @@ export type {
   DailyItemStatus,
   DailySource,
   // 前台 AI 日报
+  TodayDailyDTO,
+  HistoryOverviewDTO,
   HistoryDateDTO,
   DailyQueryRequest,
   FrontDailyItemDTO,

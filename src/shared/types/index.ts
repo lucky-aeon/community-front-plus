@@ -737,6 +737,19 @@ export interface IngestResult {
 
 // ================ 用户前台 AI 日报相关接口定义 ================
 
+// 今日摘要
+export interface TodayDailyDTO {
+  date: string;      // yyyy-MM-dd（最新一期日期）
+  titles: string[];  // 当日全部标题（不含详情）
+}
+
+// 往期概览（分页）
+export interface HistoryOverviewDTO {
+  title: string;     // 大标题（一般为日期或“AI日报 yyyy-MM-dd”）
+  date: string;      // yyyy-MM-dd
+  count: number;     // 当日条目数
+}
+
 // 历史日期项（含该日条数）
 export interface HistoryDateDTO {
   date: string; // yyyy-MM-dd

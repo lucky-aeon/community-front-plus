@@ -59,6 +59,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     initializeAuth();
   }, []);
 
+  
+
   // 会话心跳：登录状态下每30秒校验一次
   useEffect(() => {
     if (!user) return;
@@ -181,6 +183,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     })();
   };
+
+  // 监听全局 401 登出事件（由 Axios 拦截器触发）
+  useEffect(() => {
+    const onLogout = () => {
+      // 统一走现有登出流程：清空本地状态、请求后端、并在受保护区域跳转首页
+      logout();
+      // 清理并发保护标记，允许后续再次触发
+      try { (window as unknown as { __authLoggingOut?: boolean }).__authLoggingOut = false; } catch { /* ignore */ }
+    };
+    window.addEventListener('auth:logout', onLogout as EventListener);
+    return () => window.removeEventListener('auth:logout', onLogout as EventListener);
+  }, [logout]);
 
   const refreshUser = async () => {
     try {

@@ -62,13 +62,23 @@ apiClient.interceptors.response.use(
 
       switch (status) {
         case 401:
-          // 未授权
+          // 未授权：清理会话并触发全局登出，让路由守卫把用户送回登录入口
           if (!skipAuthLogout) {
-            // 仅在未跳过时清除会话并提示
-            localStorage.removeItem('auth_token');
-            localStorage.removeItem('user');
-            showToast.error('登录已过期，请重新登录');
-            toastShown = true;
+            // 避免并发请求重复触发登出与多次提示
+            try {
+              const w = window as unknown as { __authLoggingOut?: boolean };
+              if (!w.__authLoggingOut) {
+                w.__authLoggingOut = true;
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('user');
+                // 统一过期提示交由拦截器弹出
+                showToast.error('登录已过期，请重新登录');
+                // 通知应用执行登出逻辑（AuthContext 监听此事件并导航）
+                try { window.dispatchEvent(new CustomEvent('auth:logout')); } catch { /* no-op */ }
+              }
+            } finally {
+              toastShown = true;
+            }
           }
           break;
         case 403:

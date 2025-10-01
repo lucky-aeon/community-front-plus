@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { PageContainer } from '@shared/components/layout/PageContainer';
 import { DashboardOverview } from '@shared/components/business/DashboardOverview';
+import { AiDailyHero } from '@shared/components/business/AiDailyHero';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@shared/routes/routes';
@@ -26,6 +27,9 @@ export const HomePage: React.FC = () => {
 
   return (
     <PageContainer className="space-y-8">
+      {/* 顶部：AI 日报横幅摘要 */}
+      <AiDailyHero />
+
       {/* 套餐即将到期提示（<=7天） */}
       {(() => {
         if (!user?.currentSubscriptionEndTime) return null;
