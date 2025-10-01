@@ -11,6 +11,9 @@ import { Link, useNavigate, useSearchParams, useParams } from 'react-router-dom'
 
 export const AiNewsPage: React.FC = () => {
   const [history, setHistory] = useState<HistoryOverviewDTO[]>([]);
+  const [historyMeta, setHistoryMeta] = useState({ current: 1, size: 6, total: 0, pages: 0 });
+  const [loadingMoreHistory, setLoadingMoreHistory] = useState(false);
+  const historyMoreRef = React.useRef<HTMLDivElement | null>(null);
   const [today, setToday] = useState<TodayDailyDTO | null>(null);
   const [query, setQuery] = useState<DailyQueryRequest>({ pageNum: 1, pageSize: 10, date: undefined });
   const [items, setItems] = useState<FrontDailyItemDTO[]>([]);
@@ -24,10 +27,26 @@ export const AiNewsPage: React.FC = () => {
 
   const loadHistory = useCallback(async () => {
     try {
-      const page = await AppAiNewsService.pageHistory({ pageNum: 1, pageSize: 6 });
+      const size = historyMeta.size || 6;
+      const page = await AppAiNewsService.pageHistory({ pageNum: 1, pageSize: size });
       setHistory(page.records || []);
+      setHistoryMeta({ current: page.current, size: page.size, total: page.total, pages: page.pages });
     } catch (e) { console.error('加载AI日报往期失败:', e); }
-  }, []);
+  }, [historyMeta.size]);
+
+  const loadMoreHistory = useCallback(async () => {
+    if (loadingMoreHistory) return;
+    const { current, pages, size } = historyMeta;
+    if (current >= pages) return;
+    try {
+      setLoadingMoreHistory(true);
+      const next = current + 1;
+      const resp = await AppAiNewsService.pageHistory({ pageNum: next, pageSize: size });
+      setHistory(prev => [...prev, ...(resp.records || [])]);
+      setHistoryMeta({ current: resp.current, size: resp.size, total: resp.total, pages: resp.pages });
+    } catch (e) { console.error('加载更多往期失败:', e); }
+    finally { setLoadingMoreHistory(false); }
+  }, [historyMeta, loadingMoreHistory]);
 
   const loadDaily = useCallback(async () => {
     try {
@@ -62,7 +81,7 @@ export const AiNewsPage: React.FC = () => {
   const formatDateTime = (s?: string) => !s ? '-' : new Date(s).toLocaleString('zh-CN');
   const activeDate = query.date || 'latest';
   const latestDate = today?.date;
-  const displayPastDates = useMemo(() => history.slice(0, 6), [history]);
+  const displayPastDates = useMemo(() => history, [history]);
 
   // 从 URL 同步查询条件，并在日期视图一次性拉全当天内容
   useEffect(() => {
@@ -153,6 +172,21 @@ export const AiNewsPage: React.FC = () => {
   }, [searchParams, dateParamFromPath]);
 
   const isDateRoute = !!(dateParamFromPath || searchParams.get('date'));
+  // 进入“最新”视图时，监听滚动触底加载更多往期
+  useEffect(() => {
+    if (activeDate !== 'latest' || isDateRoute) return;
+    const el = historyMoreRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          loadMoreHistory();
+        }
+      });
+    }, { root: null, rootMargin: '0px', threshold: 0.1 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [activeDate, isDateRoute, historyMoreRef.current, loadMoreHistory]);
   return (
     <div className="px-4 py-6">
       <div className="flex items-center gap-2 mb-4">
@@ -227,6 +261,10 @@ export const AiNewsPage: React.FC = () => {
                     </div>
                   </div>
                 ))}
+                <div ref={historyMoreRef} />
+                <div className="text-center py-3 text-sm text-muted-foreground">
+                  {historyMeta.current < historyMeta.pages ? (loadingMoreHistory ? '加载中…' : '下拉加载更多') : '没有更多了'}
+                </div>
               </div>
             </section>
           )}
