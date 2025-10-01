@@ -23,7 +23,12 @@ interface DisplayTestimonial {
   avatar: string;
 }
 
-export const Testimonials: React.FC = () => {
+type TestimonialsProps = {
+  // 是否显示头像（首页不展示头像）
+  showAvatar?: boolean;
+};
+
+export const Testimonials: React.FC<TestimonialsProps> = ({ showAvatar = false }) => {
   const [testimonials, setTestimonials] = useState<DisplayTestimonial[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -60,7 +65,7 @@ export const Testimonials: React.FC = () => {
             name: maskUserName(item.userNickname || `用户${index + 1}`), // 用户名脱敏
             content: item.content,
             rating: item.rating,
-            avatar: getRandomAvatar(index)
+            avatar: showAvatar ? getRandomAvatar(index) : ''
           }));
 
         setTestimonials(displayData);
@@ -75,7 +80,7 @@ export const Testimonials: React.FC = () => {
     };
 
     loadTestimonials();
-  }, []);
+  }, [showAvatar]);
 
   // 渲染加载状态
   const renderLoading = () => (
@@ -86,13 +91,20 @@ export const Testimonials: React.FC = () => {
             <Skeleton className="h-5 w-20" />
           </div>
           <Skeleton className="h-20 w-full mb-6" />
-          <div className="flex items-center">
-            <Skeleton className="h-12 w-12 rounded-full mr-4" />
+          {showAvatar ? (
+            <div className="flex items-center">
+              <Skeleton className="h-12 w-12 rounded-full mr-4" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+            </div>
+          ) : (
             <div className="space-y-2">
-              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-28" />
               <Skeleton className="h-3 w-32" />
             </div>
-          </div>
+          )}
         </Card>
       ))}
     </div>
@@ -136,21 +148,21 @@ export const Testimonials: React.FC = () => {
                       "{testimonial.content}"
                     </p>
 
-                    <div className="flex items-center">
-                      <img
-                        src={testimonial.avatar}
-                        alt={testimonial.name}
-                        className="h-12 w-12 rounded-full object-cover mr-4"
-                        onError={(e) => {
-                          // 头像加载失败时使用默认头像
-                          e.currentTarget.src = DEFAULT_AVATARS[0];
-                        }}
-                      />
+                    <div className={showAvatar ? 'flex items-center' : ''}>
+                      {showAvatar && (
+                        <img
+                          src={testimonial.avatar}
+                          alt={testimonial.name}
+                          className="h-12 w-12 rounded-full object-cover mr-4"
+                          onError={(e) => {
+                            // 头像加载失败时使用默认头像
+                            e.currentTarget.src = DEFAULT_AVATARS[0];
+                          }}
+                        />
+                      )}
                       <div>
                         <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
-                        <p className="text-sm text-gray-600">
-                          敲鸭社区学员
-                        </p>
+                        <p className="text-sm text-gray-600">敲鸭社区学员</p>
                       </div>
                     </div>
                   </Card>

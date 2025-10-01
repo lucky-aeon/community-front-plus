@@ -32,7 +32,7 @@ export const MarketingPage: React.FC = () => {
         <Hero />
         <CourseGrid onAuthRequired={handleAuthRequired} />
         <PricingSection onPlanSelect={() => setIsPaymentOpen(true)} />
-        <Testimonials />
+        <Testimonials showAvatar={false} />
       </main>
 
       <footer className="bg-gray-900 text-white py-12">
