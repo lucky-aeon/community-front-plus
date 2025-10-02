@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BookOpen, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CoursesService, ChaptersService } from '@shared/services/api';
+import { useChapterProgressHeartbeat } from '@shared/hooks/useChapterProgressHeartbeat';
 import { FrontCourseDetailDTO, FrontChapterDetailDTO, FrontChapterDTO } from '@shared/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,6 +24,41 @@ export const ChapterDetailPage: React.FC = () => {
   const [isChapterLoading, setIsChapterLoading] = useState(true);
   const [courseError, setCourseError] = useState<string | null>(null);
   const [chapterError, setChapterError] = useState<string | null>(null);
+
+  // ============= 学习进度心跳上报（基于预计阅读时长的粗略估计） =============
+  const readingSeconds = useMemo(() => (chapterDetail?.readingTime || 0) * 60, [chapterDetail?.readingTime]);
+  const startRef = useRef<number | null>(null);
+  const lastTickRef = useRef<number | null>(null);
+  const elapsedRef = useRef<number>(0);
+
+  const getProgress = useCallback(() => {
+    if (!readingSeconds || readingSeconds <= 0 || !chapterDetail) {
+      return null;
+    }
+    const now = Date.now();
+    if (startRef.current === null) startRef.current = now;
+    let deltaSec = 0;
+    if (lastTickRef.current !== null) {
+      deltaSec = Math.max(0, Math.round((now - lastTickRef.current) / 1000));
+    } else {
+      deltaSec = Math.max(0, Math.round((now - startRef.current) / 1000));
+    }
+    lastTickRef.current = now;
+    elapsedRef.current += deltaSec;
+    const percent = Math.min(100, Math.floor((elapsedRef.current / readingSeconds) * 100));
+    return {
+      progressPercent: percent,
+      timeSpentDeltaSec: deltaSec > 0 ? deltaSec : undefined,
+    };
+  }, [readingSeconds, chapterDetail?.id]);
+
+  useChapterProgressHeartbeat({
+    courseId: course?.id || '',
+    chapterId: chapterDetail?.id || '',
+    getProgress,
+    intervalSec: 10,
+    enabled: !!course && !!chapterDetail && readingSeconds > 0,
+  });
 
   // 载入课程信息
   useEffect(() => {
@@ -229,7 +265,7 @@ export const ChapterDetailPage: React.FC = () => {
               <Badge variant="secondary">共 {sortedChapters.length} 章</Badge>
             </div>
             <div className="space-y-1">
-              {sortedChapters.map((ch) => {
+              {sortedChapters.map((ch, idx) => {
                 const active = ch.id === chapterDetail.id;
                 return (
                   <button
@@ -240,7 +276,7 @@ export const ChapterDetailPage: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-warm-gray-500 w-10">#{ch.sortOrder}</span>
+                      <span className="text-xs text-warm-gray-500 w-10">#{idx + 1}</span>
                       <div className="min-w-0">
                         <div className="text-sm font-medium text-gray-900 truncate">{ch.title}</div>
                         <div className="text-xs text-warm-gray-500">预计 {ch.readingTime} 分钟</div>

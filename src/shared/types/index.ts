@@ -1638,3 +1638,48 @@ export interface UpdateExpressionRequest {
   imageUrl?: string;
   sortOrder?: number;
 }
+
+// ================ 学习进度与记录相关类型 ================
+
+// 上报章节学习进度请求
+export interface ReportChapterProgressRequest {
+  courseId: string;                 // 课程ID（必填）
+  chapterId: string;                // 章节ID（必填）
+  progressPercent: number;          // 进度百分比 0-100（必填）
+  positionSec?: number;             // 当前播放/阅读位置（秒，可选）
+  timeSpentDeltaSec?: number;       // 本次新增有效学习时长（秒，可选）
+}
+
+// 课程层汇总进度 DTO（与后端 CourseProgressDTO 对齐）
+export interface CourseProgressDTO {
+  courseId: string;
+  totalChapters: number;
+  completedChapters: number;
+  progressPercent: number;
+  lastAccessChapterId?: string;
+  lastAccessTime?: string;          // ISO 时间
+  completed: boolean;
+  completedAt?: string;             // ISO 时间
+  hasCertificate: boolean;
+}
+
+// 学习记录单项 DTO（与后端 LearningRecordItemDTO 对齐）
+export interface LearningRecordItemDTO {
+  courseId: string;
+  courseTitle: string;
+  totalChapters: number;
+  completedChapters: number;
+  progressPercent: number;
+  completed: boolean;
+  completedAt?: string;             // ISO 时间
+  lastAccessChapterId?: string;
+  lastAccessChapterTitle?: string;
+  lastPositionSec?: number;
+  lastAccessTime?: string;          // ISO 时间
+}
+
+// 学习记录查询（分页）
+export interface LearningRecordQueryRequest {
+  pageNum?: number;
+  pageSize?: number;
+}

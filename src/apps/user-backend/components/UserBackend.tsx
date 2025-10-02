@@ -7,6 +7,7 @@ import { MyTestimonialPage } from './MyTestimonialPage';
 import { MessageCenterPage } from './MessageCenterPage';
 import { ProfileSettingsPage } from './ProfileSettingsPage';
 import { MyResourcesPage } from './MyResourcesPage';
+import { MyLearningPage } from './MyLearningPage';
 import { DeviceManagementPage } from './DeviceManagementPage';
 import { FollowsPage } from './FollowsPage';
 import { CreatePostPage } from '../../user-portal/components/CreatePostPage';
@@ -82,6 +83,7 @@ export const UserBackend: React.FC = () => {
         <Route path="/articles/edit/:id" element={<EditArticlePage />} />
         <Route path="/testimonial" element={<MyTestimonialPage />} />
         <Route path="/resources" element={<MyResourcesPage />} />
+        <Route path="/learning" element={<MyLearningPage />} />
         <Route path="/messages" element={<MessageCenterPage />} />
         <Route path="/profile" element={<ProfileSettingsPage />} />
         

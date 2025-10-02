@@ -33,6 +33,7 @@ export { apiClient, type ApiResponse } from './config';
 export { UserSubscriptionService } from './user-subscription.service';
 export { AdminAiNewsService } from './admin-ai-news.service';
 export { AppAiNewsService } from './app-ai-news.service';
+export { UserLearningService } from './user-learning.service';
 
 // 导出类型定义
 export type {
@@ -124,4 +125,9 @@ export type {
   HistoryDateDTO,
   DailyQueryRequest,
   FrontDailyItemDTO,
+  // 学习进度
+  ReportChapterProgressRequest,
+  CourseProgressDTO,
+  LearningRecordItemDTO,
+  LearningRecordQueryRequest,
 } from '@shared/types';

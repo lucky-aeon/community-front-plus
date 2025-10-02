@@ -15,7 +15,8 @@ import {
   X,
   ChevronRight,
   LogOut,
-  Star
+  Star,
+  BookOpen
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { MembershipBadge, type MembershipTier } from '@shared/components/ui/MembershipBadge';
@@ -112,7 +113,8 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
         { id: 'articles', name: '我的文章', icon: FileText, path: '/dashboard/user-backend/articles' },
         { id: 'comments', name: '我的评论', icon: MessageSquare, path: '/dashboard/user-backend/comments' },
         { id: 'testimonial', name: '我的评价', icon: Star, path: '/dashboard/user-backend/testimonial' },
-        { id: 'resources', name: '资源管理', icon: Folder, path: '/dashboard/user-backend/resources' }
+        { id: 'resources', name: '资源管理', icon: Folder, path: '/dashboard/user-backend/resources' },
+        { id: 'learning', name: '我的学习', icon: BookOpen, path: '/dashboard/user-backend/learning' }
       ]
     },
     {
