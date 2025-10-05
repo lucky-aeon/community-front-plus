@@ -215,7 +215,7 @@ export const UsersPage: React.FC = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="min-w-[100px]">用户ID</TableHead>
-                  <TableHead className="min-w-[250px]">用户信息</TableHead>
+                  <TableHead className="min-w-[280px]">用户信息</TableHead>
                   <TableHead className="min-w-[80px]">状态</TableHead>
                   <TableHead className="min-w-[80px]">设备数</TableHead>
                   <TableHead className="min-w-[100px]">创建时间</TableHead>
@@ -270,6 +270,16 @@ export const UsersPage: React.FC = () => {
                           <div>
                             <div className="font-medium">{user.name}</div>
                             <div className="text-sm text-muted-foreground">{user.email}</div>
+                            {user.tags && (user.tags as any[]).length > 0 && (
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {(user.tags as any[]).slice(0, 4).map((t: any, i: number) => (
+                                  <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0.5">{String(t)}</Badge>
+                                ))}
+                                {(user.tags as any[]).length > 4 && (
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">+{(user.tags as any[]).length - 4}</Badge>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </TableCell>

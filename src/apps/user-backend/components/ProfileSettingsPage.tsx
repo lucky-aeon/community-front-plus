@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { GithubOAuthService } from '@shared/services/api/oauth-github.service';
 import type { UserSocialBindStatusDTO } from '@shared/types/oauth';
 import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
+import { Badge } from '@/components/ui/badge';
 
 export const ProfileSettingsPage: React.FC = () => {
   const { user } = useAuth();
@@ -268,6 +269,20 @@ export const ProfileSettingsPage: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
                   title="邮箱地址不可修改"
                 />
+              </div>
+
+              {/* 用户标签（只读展示） */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">标签</label>
+                {currentUserData?.tags && currentUserData.tags.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {currentUserData.tags.map((t, i) => (
+                      <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0.5">{t}</Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500">暂无标签</p>
+                )}
               </div>
 
               {/* 个人简介 */}

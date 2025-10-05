@@ -19,6 +19,7 @@ import { ResourcesPage } from './ResourcesPage';
 import { SocialAccountsPage } from './SocialAccountsPage';
 import { ExpressionsPage } from './ExpressionsPage';
 import { AiDailyNewsPage } from './AiDailyNewsPage';
+import { TagsPage } from './TagsPage';
 
 // 临时的占位页面组件
 const ComingSoonPage: React.FC<{ title: string }> = ({ title }) => (
@@ -56,6 +57,7 @@ export const AdminBackend: React.FC = () => {
         <Route path="/categories" element={<CategoriesPage />} />
         <Route path="/courses" element={<CoursesPage />} />
         <Route path="/resources" element={<ResourcesPage />} />
+        <Route path="/tags" element={<TagsPage />} />
         <Route path="/expressions" element={<ExpressionsPage />} />
         <Route path="/ai-news" element={<AiDailyNewsPage />} />
         <Route path="/update-logs" element={<UpdateLogPage />} />

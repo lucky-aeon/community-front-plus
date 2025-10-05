@@ -35,6 +35,7 @@ import { Sidebar, SidebarHeader, SidebarContent, SidebarFooter, SidebarSection, 
 // import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@shared/utils/cn';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -79,6 +80,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       items: [
         { id: 'posts', name: '文章管理', icon: FileText, path: '/dashboard/admin/posts' },
         { id: 'categories', name: '分类管理', icon: Tag, path: '/dashboard/admin/categories' },
+        { id: 'tags', name: '标签管理', icon: Tag, path: '/dashboard/admin/tags' },
         { id: 'courses', name: '课程管理', icon: BookOpen, path: '/dashboard/admin/courses' },
         { id: 'resources', name: '资源管理', icon: Folder, path: '/dashboard/admin/resources' },
         { id: 'expressions', name: '表情管理', icon: Smile, path: '/dashboard/admin/expressions' },
@@ -139,6 +141,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
                 <Button variant="secondary" className="w-full mt-3" onClick={handleBackToFrontend}>
                   <ArrowLeft className="h-4 w-4 mr-2" /> 返回前台
                 </Button>
+              )}
+              {/* 用户标签 */}
+              {!isCollapsed && user?.tags && user.tags.length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {user.tags.slice(0, 4).map((t, idx) => (
+                    <Badge key={idx} variant="secondary" className="text-[10px] px-1.5 py-0.5">{t}</Badge>
+                  ))}
+                  {user.tags.length > 4 && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">+{user.tags.length - 4}</Badge>
+                  )}
+                </div>
               )}
             </div>
 

@@ -21,6 +21,7 @@ export interface BackendUser {
   maxConcurrentDevices: number;
   createTime: string;
   updateTime: string;
+  tags?: string[];
   // ===== 后端用户信息中包含的当前套餐回显字段（扁平） =====
   currentSubscriptionPlanId?: string | null;
   currentSubscriptionPlanName?: string | null;
@@ -304,6 +305,7 @@ export class AuthService {
       email: backendUser.email,
       avatar: normalizeAvatar(backendUser.avatar) || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`,
       maxConcurrentDevices: backendUser.maxConcurrentDevices,
+      tags: backendUser.tags || [],
       // 不在前端推断套餐等级
       membershipTier: 'basic',
       membershipExpiry: end ? new Date(end) : undefined,

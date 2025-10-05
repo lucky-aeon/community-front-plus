@@ -24,6 +24,7 @@ import { UserService } from '@shared/services/api';
 import type { UserDTO } from '@shared/types';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { useUserMenuCodes } from '@/hooks/useUserMenuCodes';
 import { getMenuCodeByNavId } from '@shared/constants/menu-codes';
 import { NotificationsService } from '@shared/services/api';
@@ -195,20 +196,30 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
               <AvatarImage src={user?.avatar || undefined} alt={user?.name || ''} />
               <AvatarFallback>{(user?.name || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.name}
-              </p>
-              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-              <div className="flex items-center mt-1">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {user?.name}
+                </p>
+                <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                <div className="flex items-center mt-1">
                     <MembershipBadge
                       tier={(user?.membershipTier || 'basic') as MembershipTier}
                       size="sm"
                       text={user?.currentSubscriptionPlanName || undefined}
                       level={user?.currentSubscriptionPlanLevel as 1 | 2 | 3 | undefined}
                     />
+                </div>
+                {user?.tags && user.tags.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1">
+                    {user.tags.slice(0, 5).map((t, i) => (
+                      <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0.5">{t}</Badge>
+                    ))}
+                    {user.tags.length > 5 && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">+{user.tags.length - 5}</Badge>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
           </div>
         </div>
 

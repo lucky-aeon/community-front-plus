@@ -3,7 +3,8 @@ import { ResourceAccessService } from './resource-access.service';
 import { 
   UpdateProfileRequest, 
   ChangePasswordRequest, 
-  UserDTO 
+  UserDTO,
+  UserPublicProfileDTO,
 } from '@shared/types';
 
 /**
@@ -22,6 +23,15 @@ export class UserService {
   static async getCurrentUser(): Promise<UserDTO> {
     const response = await apiClient.get<ApiResponse<UserDTO>>('/user');
     return response.data.data;
+  }
+
+  /**
+   * 获取指定用户的公开资料（含标签）
+   * GET /api/user/{userId}
+   */
+  static async getUserPublicProfile(userId: string): Promise<UserPublicProfileDTO> {
+    const response = await apiClient.get<ApiResponse<UserPublicProfileDTO>>(`/user/${encodeURIComponent(userId)}`);
+    return response.data.data as UserPublicProfileDTO;
   }
 
   /**
@@ -107,6 +117,7 @@ export class UserService {
           name: userDTO.name,
           email: userDTO.email,
           avatar: normalizeAvatar(userDTO.avatar, user.avatar), // 支持资源ID或URL
+          tags: Array.isArray(userDTO.tags) ? userDTO.tags : user.tags,
           // 会员到期时间（仅回显，不推断等级）
           membershipExpiry: membershipExpiry ? new Date(membershipExpiry) : user.membershipExpiry,
           currentSubscriptionPlanId: userDTO.currentSubscriptionPlanId || user.currentSubscriptionPlanId,
@@ -139,6 +150,7 @@ export class UserService {
       name: userDTO.name,
       email: userDTO.email,
       avatar: userDTO.avatar || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`,
+      tags: userDTO.tags || [],
       // 不在前端推断套餐等级
       membershipTier: 'basic' as const,
       membershipExpiry: end ? new Date(end) : undefined,
