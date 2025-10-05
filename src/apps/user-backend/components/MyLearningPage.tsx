@@ -62,7 +62,7 @@ export const MyLearningPage: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">我的学习</h1>
-          <p className="text-gray-600 mt-1">查看你学习过的课程进度与最近学习位置</p>
+          <p className="text-gray-600 mt-1">查看你学习过的课程进度与最近学习</p>
         </div>
         <div className="text-sm text-gray-500">
           {pageInfo && <span>共 {pageInfo.total} 门课程</span>}
@@ -133,9 +133,6 @@ export const MyLearningPage: React.FC = () => {
                   >
                     {rec.lastAccessChapterTitle || `#${rec.lastAccessChapterId}`}
                   </button>
-                  {typeof rec.lastPositionSec === 'number' && (
-                    <span className="ml-2 text-gray-500">位置 {Math.max(0, rec.lastPositionSec)}s</span>
-                  )}
                 </div>
               )}
             </Card>
@@ -184,4 +181,3 @@ export const MyLearningPage: React.FC = () => {
 };
 
 export default MyLearningPage;
-
