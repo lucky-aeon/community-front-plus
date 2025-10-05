@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ROUTES } from '@shared/routes/routes';
 import { useNavigate } from 'react-router-dom';
 import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
+import { RecentLearningBanner } from '@shared/components/business/RecentLearningBanner';
 
 export const HomePage: React.FC = () => {
   const { user } = useAuth();
@@ -29,6 +30,9 @@ export const HomePage: React.FC = () => {
     <PageContainer className="space-y-8">
       {/* 顶部：AI 日报横幅摘要 */}
       <AiDailyHero />
+
+      {/* 最近学习：顶部强调卡片（使用现有学习记录接口） */}
+      <RecentLearningBanner />
 
       {/* 套餐即将到期提示（<=7天） */}
       {(() => {

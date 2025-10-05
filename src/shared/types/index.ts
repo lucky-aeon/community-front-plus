@@ -3,6 +3,8 @@ export interface User {
   email: string;
   name: string;
   avatar?: string;
+  // 用户标签（后端标签系统返回）
+  tags?: string[];
   // 并发设备上限（来自后端用户信息）
   maxConcurrentDevices?: number;
   membershipTier: 'guest' | 'basic' | 'premium' | 'vip';
@@ -173,6 +175,8 @@ export interface BackendUser {
   maxConcurrentDevices: number;
   createTime: string;
   updateTime: string;
+  // 标签集合（新增）
+  tags?: string[];
 }
 
 // 登录响应数据
@@ -357,6 +361,7 @@ export interface PublicPostQueryRequest {
   pageNum?: number;                    // 页码，从1开始，默认为1
   pageSize?: number;                   // 每页大小，默认为10，最大为100
   categoryType?: 'ARTICLE' | 'QA';     // 分类类型过滤（可选）
+  categoryId?: string;                 // 分类ID过滤（可选）：同分类文章
 }
 
 // 文章分类
@@ -421,6 +426,7 @@ export interface UserDTO {
   emailNotificationEnabled: boolean;
   maxConcurrentDevices: number;
   role?: UserRole;             // 后端将新增的角色字段：ADMIN/USER
+  tags?: string[];             // 用户标签（新增）
   createTime: string;
   updateTime: string;
   // ========== 后端新增：用户当前套餐相关字段 ==========
@@ -430,6 +436,16 @@ export interface UserDTO {
   currentSubscriptionStartTime?: string; // ISO字符串
   currentSubscriptionEndTime?: string;   // ISO字符串
   currentSubscriptionPlanLevel?: number; // 1/2/3（如果后端提供则直传）
+}
+
+// 公开用户资料（对接 UserPublicProfileDTO）
+export interface UserPublicProfileDTO {
+  id: string;
+  name: string;
+  description?: string;
+  avatar?: string;
+  createTime?: string;
+  tags?: string[];
 }
 
 // 用户套餐状态（与后端 SubscriptionStatus 对齐）
@@ -799,6 +815,7 @@ export interface AdminUserDTO {
   status: 'ACTIVE' | 'INACTIVE'; // 用户状态
   emailNotificationEnabled: boolean; // 邮箱通知是否启用
   maxConcurrentDevices: number;  // 最大并发设备数
+  tags?: string[];               // 用户标签（可选，若后端列表返回支持）
   createTime: string;            // 创建时间
   updateTime: string;            // 更新时间
 }
@@ -1144,6 +1161,87 @@ export interface SubscribeToggleResponse {
 
 // 兼容性：保留旧的接口名称作为类型别名
 export type FollowToggleResponse = SubscribeToggleResponse;
+
+// ================ 标签管理相关接口定义 ================
+
+// 标签目标对象类型（与后端 TagTargetType 对齐）
+export type TagTargetType = 'COURSE' | 'CHAPTER' | 'POST' | 'ACTIVITY';
+
+// 标签来源类型（与后端 TagSourceType 对齐）
+export type TagSourceType = 'MANUAL' | 'COURSE_COMPLETION';
+
+// 标签定义 DTO（与后端 TagDefinitionDTO 对齐）
+export interface TagDefinitionDTO {
+  id: string;
+  code: string;
+  name: string;
+  category: string;
+  iconUrl?: string;
+  description?: string;
+  publicVisible?: boolean;
+  uniquePerUser?: boolean;
+  enabled?: boolean;
+  createTime?: string;
+  updateTime?: string;
+}
+
+// 标签查询请求（对接后端 TagQueryRequest）
+export interface TagQueryRequest {
+  pageNum?: number;
+  pageSize?: number;
+  name?: string;
+  category?: string;
+  enabled?: boolean;
+}
+
+// 创建/更新标签请求
+export interface CreateTagRequest {
+  code: string;
+  name: string;
+  category: string;
+  iconUrl?: string;
+  description?: string;
+  publicVisible?: boolean;
+  uniquePerUser?: boolean;
+  enabled?: boolean;
+}
+
+export interface UpdateTagRequest {
+  name: string;
+  category: string;
+  iconUrl?: string;
+  description?: string;
+  publicVisible?: boolean;
+  uniquePerUser?: boolean;
+  enabled?: boolean;
+}
+
+// 添加作用域请求
+export interface AddScopeRequest {
+  targetType: TagTargetType;
+  targetId: string;
+}
+
+// 人工授予/撤销用户标签
+export interface ManualAssignRequest {
+  userId: string;
+  tagId: string;
+  sourceType?: TagSourceType;
+  sourceId?: string;
+}
+
+export interface ManualRevokeRequest {
+  userId: string;
+  tagId: string;
+}
+
+// 标签范围 DTO
+export interface TagScopeDTO {
+  id: string;
+  targetType: TagTargetType; // 目前使用 COURSE
+  targetId: string;          // 目标对象ID（如课程ID）
+  createTime?: string;
+}
 
 // ================ 用户关注管理列表 DTO ================
 

@@ -15,7 +15,8 @@ import { LikeButton } from '@shared/components/ui/LikeButton';
 // 评论组件
 import { routeUtils } from '@shared/routes/routes';
 import { PostsService } from '@shared/services/api/posts.service';
-import { FrontPostDetailDTO, FrontPostDTO } from '@shared/types';
+import { FrontPostDetailDTO, FrontPostDTO, UserPublicProfileDTO } from '@shared/types';
+import { UserService } from '@shared/services/api/user.service';
 
 export const PostDetailPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -24,6 +25,8 @@ export const PostDetailPage: React.FC = () => {
   // 评论计数由后端返回，评论模块已移除
   const [post, setPost] = useState<FrontPostDetailDTO | null>(null);
   const [relatedPosts, setRelatedPosts] = useState<FrontPostDTO[]>([]);
+  const [authorProfile, setAuthorProfile] = useState<UserPublicProfileDTO | null>(null);
+  const [sameCategoryPosts, setSameCategoryPosts] = useState<FrontPostDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -50,6 +53,13 @@ export const PostDetailPage: React.FC = () => {
         // 获取文章详情
         const postDetail = await PostsService.getPublicPostDetail(postId);
         setPost(postDetail);
+        // 并行拉取作者公开资料（含标签）
+        try {
+          const profile = await UserService.getUserPublicProfile(postDetail.authorId);
+          setAuthorProfile(profile);
+        } catch (e) {
+          console.error('获取作者公开资料失败:', e);
+        }
         
         // 获取作者的其他文章（最多3篇），同分类类型优先
         try {
@@ -63,6 +73,23 @@ export const PostDetailPage: React.FC = () => {
         } catch (relatedError) {
           console.error('获取作者其他文章失败:', relatedError);
           // 相关文章失败不影响主文章展示
+        }
+
+        // 获取同类型文章（同分类，最多5篇）
+        try {
+          if (postDetail.categoryId) {
+            const sameCategoryResp = await PostsService.getPublicPosts({
+              pageNum: 1,
+              pageSize: 6,
+              categoryId: postDetail.categoryId,
+            });
+            const filtered = sameCategoryResp.records.filter(p => p.id !== postId).slice(0, 5);
+            setSameCategoryPosts(filtered);
+          } else {
+            setSameCategoryPosts([]);
+          }
+        } catch (sameCatErr) {
+          console.error('获取同类型文章失败:', sameCatErr);
         }
       } catch (error) {
         console.error('获取文章详情失败:', error);
@@ -167,6 +194,16 @@ export const PostDetailPage: React.FC = () => {
               </Avatar>
               <div className="space-y-2">
                 <h4 className="font-medium text-gray-900">{post.authorName}</h4>
+                {authorProfile?.tags && authorProfile.tags.length > 0 && (
+                  <div className="flex flex-wrap justify-center gap-1">
+                    {authorProfile.tags.slice(0, 6).map((t, i) => (
+                      <Badge key={i} variant="secondary" className="text-[10px] px-1.5 py-0.5">{t}</Badge>
+                    ))}
+                    {authorProfile.tags.length > 6 && (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0.5">+{authorProfile.tags.length - 6}</Badge>
+                    )}
+                  </div>
+                )}
                 {post.authorDescription && (
                   <p className="text-sm text-gray-600 line-clamp-3">{post.authorDescription}</p>
                 )}
@@ -179,33 +216,54 @@ export const PostDetailPage: React.FC = () => {
               className="w-full mt-4"
             />
           </Card>
-          {/* Related Posts */}
-          <Card className="p-4">
-            <h3 className="font-semibold text-gray-900 mb-3">作者的其他文章</h3>
-            <div className="space-y-3">
-              {relatedPosts.map((relatedPost) => (
-                <div 
-                  key={relatedPost.id} 
-                  className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                  onClick={() => navigate(routeUtils.getPostDetailRoute(relatedPost.id))}
-                >
-                  <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
-                    {relatedPost.title}
-                  </h4>
-                  <div className="flex items-center space-x-2 text-xs text-gray-500">
-                    <span>{relatedPost.likeCount} 赞</span>
-                    <span>{relatedPost.commentCount} 评论</span>
-                    <span>{relatedPost.viewCount} 浏览</span>
+          {/* Related Posts - 作者的其他文章（无数据不展示） */}
+          {relatedPosts.length > 0 && (
+            <Card className="p-4">
+              <h3 className="font-semibold text-gray-900 mb-3">作者的其他文章</h3>
+              <div className="space-y-3">
+                {relatedPosts.map((relatedPost) => (
+                  <div 
+                    key={relatedPost.id} 
+                    className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                    onClick={() => navigate(routeUtils.getPostDetailRoute(relatedPost.id))}
+                  >
+                    <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                      {relatedPost.title}
+                    </h4>
+                    <div className="flex items-center space-x-2 text-xs text-gray-500">
+                      <span>{relatedPost.likeCount} 赞</span>
+                      <span>{relatedPost.commentCount} 评论</span>
+                      <span>{relatedPost.viewCount} 浏览</span>
+                    </div>
                   </div>
-                </div>
-              ))}
-              {relatedPosts.length === 0 && (
-                <div className="text-center py-4 text-gray-500 text-sm">
-                  暂无相关文章
-                </div>
-              )}
-            </div>
-          </Card>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Same Category Posts - 同类型文章（无数据不展示） */}
+          {sameCategoryPosts.length > 0 && (
+            <Card className="p-4">
+              <h3 className="font-semibold text-gray-900 mb-3">同类型文章</h3>
+              <div className="space-y-3">
+                {sameCategoryPosts.map((p) => (
+                  <div
+                    key={p.id}
+                    className="cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                    onClick={() => navigate(routeUtils.getPostDetailRoute(p.id))}
+                  >
+                    <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">
+                      {p.title}
+                    </h4>
+                    <div className="flex items-center space-x-2 text-xs text-gray-500">
+                      <span>{p.likeCount} 赞</span>
+                      <span>{p.viewCount} 浏览</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
         </div>
 
         {/* Main Content */}
