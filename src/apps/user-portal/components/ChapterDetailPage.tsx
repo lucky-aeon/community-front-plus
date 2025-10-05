@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BookOpen, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { CoursesService, ChaptersService } from '@shared/services/api';
-import { useChapterProgressHeartbeat } from '@shared/hooks/useChapterProgressHeartbeat';
+import { useTextChapterProgress } from '@shared/hooks/useTextChapterProgress';
+import { useVideoChapterProgress } from '@shared/hooks/useVideoChapterProgress';
 import { FrontCourseDetailDTO, FrontChapterDetailDTO, FrontChapterDTO } from '@shared/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -10,9 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
+import { VideoPlayer, VideoPlayerRef } from '@shared/components/ui/VideoPlayer';
 import { ReactionBar } from '@shared/components/ui/ReactionBar';
 import { Comments } from '@shared/components/ui/Comments';
 import { LikeButton } from '@shared/components/ui/LikeButton';
+import { extractVideoUrl, removeVideoTags } from '@shared/utils/videoUtils';
 
 export const ChapterDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -25,39 +28,34 @@ export const ChapterDetailPage: React.FC = () => {
   const [courseError, setCourseError] = useState<string | null>(null);
   const [chapterError, setChapterError] = useState<string | null>(null);
 
-  // ============= 学习进度心跳上报（基于预计阅读时长的粗略估计） =============
-  const readingSeconds = useMemo(() => (chapterDetail?.readingTime || 0) * 60, [chapterDetail?.readingTime]);
-  const startRef = useRef<number | null>(null);
-  const lastTickRef = useRef<number | null>(null);
-  const elapsedRef = useRef<number>(0);
+  // 视频播放器引用
+  const videoPlayerRef = useRef<VideoPlayerRef>(null);
 
-  const getProgress = useCallback(() => {
-    if (!readingSeconds || readingSeconds <= 0 || !chapterDetail) {
-      return null;
-    }
-    const now = Date.now();
-    if (startRef.current === null) startRef.current = now;
-    let deltaSec = 0;
-    if (lastTickRef.current !== null) {
-      deltaSec = Math.max(0, Math.round((now - lastTickRef.current) / 1000));
-    } else {
-      deltaSec = Math.max(0, Math.round((now - startRef.current) / 1000));
-    }
-    lastTickRef.current = now;
-    elapsedRef.current += deltaSec;
-    const percent = Math.min(100, Math.floor((elapsedRef.current / readingSeconds) * 100));
-    return {
-      progressPercent: percent,
-      timeSpentDeltaSec: deltaSec > 0 ? deltaSec : undefined,
-    };
-  }, [readingSeconds, chapterDetail?.id]);
+  // 判断章节类型（默认为 TEXT）
+  const isVideoChapter = chapterDetail?.contentType === 'VIDEO';
 
-  useChapterProgressHeartbeat({
+  // 提取视频 URL（如果是视频章节）
+  const videoUrl = useMemo(() => {
+    if (!isVideoChapter || !chapterDetail?.content) return null;
+    return extractVideoUrl(chapterDetail.content);
+  }, [isVideoChapter, chapterDetail?.content]);
+
+  // 图文章节进度追踪
+  useTextChapterProgress({
     courseId: course?.id || '',
     chapterId: chapterDetail?.id || '',
-    getProgress,
+    readingTimeMinutes: chapterDetail?.readingTime || 0,
+    containerSelector: '.prose-content',
+    enabled: !!course && !!chapterDetail && !isVideoChapter,
+  });
+
+  // 视频章节进度追踪
+  useVideoChapterProgress({
+    courseId: course?.id || '',
+    chapterId: chapterDetail?.id || '',
+    videoRef: { get current() { return videoPlayerRef.current?.videoElement || null; } },
     intervalSec: 10,
-    enabled: !!course && !!chapterDetail && readingSeconds > 0,
+    enabled: !!course && !!chapterDetail && isVideoChapter && !!videoUrl,
   });
 
   // 载入课程信息
@@ -238,20 +236,56 @@ export const ChapterDetailPage: React.FC = () => {
         {/* 内容区 */}
         <div className="space-y-6 lg:col-span-2">
           <Card className="p-6">
-            <div className="prose-content">
-              <MarkdownEditor
-                value={chapterDetail.content || ''}
-                onChange={() => {}}
-                previewOnly
-                height="auto"
-                toolbar={false}
-                enableFullscreen={false}
-                enableToc
-                className="!border-none !shadow-none !bg-transparent"
-              />
+            {isVideoChapter ? (
+              // 视频章节
+              <div className="space-y-6">
+                {videoUrl ? (
+                  <VideoPlayer
+                    ref={videoPlayerRef}
+                    src={videoUrl}
+                    className="w-full aspect-video"
+                  />
+                ) : (
+                  <Alert>
+                    <AlertTitle>视频未找到</AlertTitle>
+                    <AlertDescription>
+                      无法从章节内容中提取视频 URL。请联系管理员检查章节配置。
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {/* 视频下方的文字说明（如果有） */}
+                {chapterDetail.content && removeVideoTags(chapterDetail.content).trim() && (
+                  <div className="prose-content">
+                    <MarkdownEditor
+                      value={removeVideoTags(chapterDetail.content)}
+                      onChange={() => {}}
+                      previewOnly
+                      height="auto"
+                      toolbar={false}
+                      enableFullscreen={false}
+                      enableToc={false}
+                      className="!border-none !shadow-none !bg-transparent"
+                    />
+                  </div>
+                )}
+              </div>
+            ) : (
+              // 图文章节
+              <div className="prose-content">
+                <MarkdownEditor
+                  value={chapterDetail.content || ''}
+                  onChange={() => {}}
+                  previewOnly
+                  height="auto"
+                  toolbar={false}
+                  enableFullscreen={false}
+                  enableToc
+                  className="!border-none !shadow-none !bg-transparent"
+                />
+              </div>
+            )}
             {/* 表情回复 */}
             <ReactionBar businessType={'CHAPTER'} businessId={chapterDetail.id} />
-            </div>
           </Card>
 
           <Comments businessId={chapterDetail.id} businessType={'CHAPTER'} authorId={course.authorId} />

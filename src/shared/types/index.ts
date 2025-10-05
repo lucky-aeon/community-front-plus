@@ -1080,6 +1080,9 @@ export interface ActivityLogQueryRequest {
   ip?: string;                   // IP地址模糊搜索，可选
 }
 
+// 章节内容类型
+export type ChapterContentType = 'VIDEO' | 'TEXT';
+
 // 前台章节详情DTO（API返回的章节详细信息）
 export interface FrontChapterDetailDTO {
   id: string;                    // 章节ID
@@ -1092,6 +1095,7 @@ export interface FrontChapterDetailDTO {
   createTime: string;            // 章节创建时间
   updateTime: string;            // 章节更新时间
   likeCount?: number;            // 点赞数（前台章节详情返回）
+  contentType?: ChapterContentType; // 章节内容类型：VIDEO 或 TEXT
 }
 
 // ================ 关注功能相关接口定义 ================
