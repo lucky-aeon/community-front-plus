@@ -8,8 +8,7 @@ import {
   BookOpen,
   ChevronRight,
   Crown,
-  Sparkles,
-  TrendingUp
+  Sparkles
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -85,8 +84,7 @@ export const RecentContent: React.FC<RecentContentProps> = ({
       publishTime: post.publishTime,
       category: post.categoryName,
       coverImage: post.coverImage,
-      tags: post.tags,
-      isHot: post.isTop
+      tags: post.tags
     }));
   };
 
@@ -187,13 +185,6 @@ export const RecentContent: React.FC<RecentContentProps> = ({
                           <Badge variant="outline" className="bg-premium-100 text-premium-700 text-xs border-transparent">
                             <Sparkles className="h-3 w-3 mr-1" />
                             会员专享
-                          </Badge>
-                        )}
-
-                        {item.isHot && (
-                          <Badge variant="outline" className="bg-red-100 text-red-700 text-xs animate-pulse border-transparent">
-                            <TrendingUp className="h-3 w-3 mr-1" />
-                            热门
                           </Badge>
                         )}
                       </div>

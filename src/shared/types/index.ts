@@ -362,6 +362,7 @@ export interface PublicPostQueryRequest {
   pageSize?: number;                   // 每页大小，默认为10，最大为100
   categoryType?: 'ARTICLE' | 'QA';     // 分类类型过滤（可选）
   categoryId?: string;                 // 分类ID过滤（可选）：同分类文章
+  title?: string;                      // 标题关键词搜索（可选）
 }
 
 // 文章分类

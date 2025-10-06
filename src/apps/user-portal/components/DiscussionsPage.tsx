@@ -20,13 +20,14 @@ export const DiscussionsPage: React.FC = () => {
   const pageSize = 10;
 
   // 获取文章列表
-  const fetchPosts = async (page: number = 1, categoryType?: 'ARTICLE' | 'QA') => {
+  const fetchPosts = async (page: number = 1, categoryType?: 'ARTICLE' | 'QA', title?: string) => {
     try {
       setIsLoading(true);
       const response = await PostsService.getPublicPosts({
         pageNum: page,
         pageSize,
-        categoryType
+        categoryType,
+        title: title?.trim() || undefined
       });
       setPosts(response.records);
       setPageData(response);
@@ -46,25 +47,30 @@ export const DiscussionsPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
-  // 根据 tab/page 拉取数据
+  // 根据 tab/page/searchTerm 拉取数据（带防抖）
   useEffect(() => {
     const categoryType = activeTab === 'articles' ? 'ARTICLE' : activeTab === 'questions' ? 'QA' : undefined;
-    fetchPosts(currentPage, categoryType);
+    const timer = setTimeout(() => {
+      fetchPosts(currentPage, categoryType, searchTerm);
+    }, 300); // 300ms 防抖
+    return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, currentPage]);
+  }, [activeTab, currentPage, searchTerm]);
+
+  // 搜索词变化时，重置页码
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+      setSearchParams({ tab: activeTab, page: '1' });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm]);
 
   // 分页切换
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     setSearchParams({ tab: activeTab, page: String(page) });
   };
-
-  // 本地搜索过滤（在已加载的数据中搜索）
-  const filteredPosts = posts.filter(post => {
-    if (!searchTerm.trim()) return true;
-    return post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           (post.summary && post.summary.toLowerCase().includes(searchTerm.toLowerCase()));
-  });
 
   const tabs = [
     { id: 'all', name: '全部讨论' },
@@ -159,7 +165,7 @@ export const DiscussionsPage: React.FC = () => {
               </div>
             ) : (
               <RecentContent
-                posts={filteredPosts}
+                posts={posts}
                 pageData={pageData}
                 currentPage={currentPage}
                 onPageChange={handlePageChange}
@@ -168,7 +174,7 @@ export const DiscussionsPage: React.FC = () => {
               />
             )}
 
-            {!isLoading && filteredPosts.length === 0 && (
+            {!isLoading && posts.length === 0 && (
               <div className="text-center py-12">
                 <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">暂无相关讨论</h3>
