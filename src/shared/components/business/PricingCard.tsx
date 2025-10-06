@@ -36,7 +36,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, onSelect, button
           
           <div className="flex items-baseline justify-center space-x-2">
             <span className="text-4xl font-bold text-gray-900">¥{plan.price}</span>
-            {plan.originalPrice && (
+            {plan.originalPrice !== undefined && plan.originalPrice > plan.price && (
               <span className="text-xl text-gray-500 line-through">
                 ¥{plan.originalPrice}
               </span>
@@ -46,7 +46,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, onSelect, button
             }</span>
           </div>
           
-          {plan.originalPrice && plan.originalPrice > plan.price && (
+          {plan.originalPrice !== undefined && plan.originalPrice > plan.price && (
             <Badge variant="success" className="mt-2">
               立省 ¥{plan.originalPrice - plan.price}
             </Badge>
