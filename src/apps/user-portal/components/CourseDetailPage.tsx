@@ -319,8 +319,9 @@ export const CourseDetailPage: React.FC = () => {
                 </div>
               )}
 
-              {/* 单次购买（按课程价格） */}
-              {typeof course.price === 'number' && (
+              {/* 单次购买（按课程价格）
+                 规则：当价格为 0 且存在套餐时，不展示“单次购买 ¥0”行，避免误导 */}
+              {typeof course.price === 'number' && !(course.price === 0 && (course.unlockPlans?.length ?? 0) > 0) && (
                 <div className="pt-2">
                   <div className="text-sm text-warm-gray-600 mb-2">或直接购买本课程：</div>
                   <div className="flex items-center justify-between p-3 rounded-lg border bg-white">
