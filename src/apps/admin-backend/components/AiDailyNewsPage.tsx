@@ -225,7 +225,7 @@ export const AiDailyNewsPage: React.FC = () => {
 
       {/* 详情弹窗 */}
       <Dialog open={detail.open} onOpenChange={(open) => setDetail({ open, item: null })}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-3xl">
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>AI 日报详情</DialogTitle>
             <DialogDescription>
@@ -251,4 +251,3 @@ export const AiDailyNewsPage: React.FC = () => {
     </div>
   );
 };
-

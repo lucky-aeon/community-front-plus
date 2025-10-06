@@ -96,7 +96,7 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-2xl">
+      <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Package className="w-5 h-5" />

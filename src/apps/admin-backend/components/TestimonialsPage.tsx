@@ -468,7 +468,7 @@ export const TestimonialsPage: React.FC = () => {
           setSortOrderDialog({ open, testimonial: null, newSortOrder: '', submitting: false });
         }
       }}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>设置排序权重</DialogTitle>
             <DialogDescription>
@@ -512,7 +512,7 @@ export const TestimonialsPage: React.FC = () => {
 
       {/* 评价详情对话框 */}
       <Dialog open={detailDialog.open} onOpenChange={(open) => setDetailDialog({ open, testimonial: null })}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-2xl">
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>评价详情</DialogTitle>
           </DialogHeader>

@@ -520,7 +520,7 @@ export const SubscriptionPlansPage: React.FC = () => {
           }
         }
       }}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-2xl">
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editDialog.mode === 'create' ? '新建套餐' : '编辑套餐'}</DialogTitle>
             <DialogDescription>填写套餐基础信息和权益</DialogDescription>
@@ -610,7 +610,7 @@ export const SubscriptionPlansPage: React.FC = () => {
           if (!open) setBindDialog({ open: false, loading: false, saving: false, items: [], selected: [] });
         }
       }}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-4xl">
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>绑定课程 - {bindDialog.plan?.name}</DialogTitle>
             <DialogDescription>从左侧选择课程并移动到右侧以绑定到该套餐</DialogDescription>
@@ -645,7 +645,7 @@ export const SubscriptionPlansPage: React.FC = () => {
           if (!open) setBindMenusDialog({ open: false, loading: false, saving: false, items: [], selected: [] });
         }
       }}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-4xl">
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>绑定菜单 - {bindMenusDialog.plan?.name}</DialogTitle>
             <DialogDescription>从左侧选择菜单并移动到右侧以绑定到该套餐</DialogDescription>
@@ -680,7 +680,7 @@ export const SubscriptionPlansPage: React.FC = () => {
           if (!open) setBindPermsDialog({ open: false, loading: false, saving: false, items: [], selected: [] });
         }
       }}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-4xl">
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-4xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>绑定权限 - {bindPermsDialog.plan?.name}</DialogTitle>
             <DialogDescription>从左侧选择权限并移动到右侧以绑定到该套餐</DialogDescription>

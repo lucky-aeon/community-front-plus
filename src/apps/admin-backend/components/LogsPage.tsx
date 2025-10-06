@@ -290,7 +290,7 @@ export const LogsPage: React.FC = () => {
 
       {/* 详情对话框 */}
       <Dialog open={contextDialog.open} onOpenChange={(open) => setContextDialog(prev => ({ ...prev, open }))}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>日志详情</DialogTitle>
             <DialogDescription>查看上下文数据与完整请求信息</DialogDescription>

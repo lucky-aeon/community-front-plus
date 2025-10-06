@@ -390,7 +390,7 @@ export const TagsPage: React.FC = () => {
 
       {/* 新增/编辑对话框 */}
       <Dialog open={editOpen} onOpenChange={(o) => { if (!o) setEditOpen(false); }}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? '编辑标签' : '新增标签'}</DialogTitle>
             <DialogDescription>填写标签信息并保存</DialogDescription>
@@ -450,7 +450,7 @@ export const TagsPage: React.FC = () => {
 
       {/* 授予标签对话框 */}
       <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>授予标签：{editing?.name}</DialogTitle>
             <DialogDescription>输入用户ID，将该标签授予用户</DialogDescription>
@@ -487,7 +487,7 @@ export const TagsPage: React.FC = () => {
 
       {/* 撤销标签对话框 */}
       <Dialog open={revokeOpen} onOpenChange={setRevokeOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>撤销标签：{editing?.name}</DialogTitle>
             <DialogDescription>输入用户ID，撤销该用户的此标签</DialogDescription>

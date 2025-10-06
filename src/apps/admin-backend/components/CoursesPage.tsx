@@ -456,7 +456,7 @@ export const CoursesPage: React.FC = () => {
         }
       }}>
         <DialogContent
-          className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-5xl"
+          className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-5xl max-h-[90vh] overflow-y-auto"
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
           <DialogHeader>

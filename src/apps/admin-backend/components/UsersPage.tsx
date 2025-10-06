@@ -381,7 +381,7 @@ export const UsersPage: React.FC = () => {
           setDeviceDialog({ open, user: null, newDeviceCount: '', submitting: false });
         }
       }}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>修改设备数量</DialogTitle>
             <DialogDescription>

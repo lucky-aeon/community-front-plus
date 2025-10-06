@@ -20,7 +20,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ open, onOpenChange }
   const [privacyOpen, setPrivacyOpen] = useState(false);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold">选择支付方式</DialogTitle>
         </DialogHeader>

@@ -429,7 +429,7 @@ export const CDKPage: React.FC = () => {
           }));
         }
       }}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-2xl">
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>生成CDK</DialogTitle>
             <DialogDescription>选择类型、绑定目标与数量，支持批量生成（最多1000个）。</DialogDescription>

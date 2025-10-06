@@ -203,7 +203,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <DialogContent
-        className="max-w-md"
+        className="max-w-md max-h-[85vh] overflow-y-auto"
         // 禁止按下 ESC 或点击遮罩层时自动关闭，避免失败场景误关
         onEscapeKeyDown={(e) => e.preventDefault()}
         onPointerDownOutside={(e) => e.preventDefault()}

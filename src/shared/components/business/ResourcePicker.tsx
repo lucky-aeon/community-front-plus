@@ -124,7 +124,7 @@ export const ResourcePicker: React.FC<ResourcePickerProps> = ({ open, onClose, o
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent className="sm:max-w-4xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>资源库</DialogTitle>
           <DialogDescription>选择或搜索已有资源，可复制链接或插入到编辑器</DialogDescription>

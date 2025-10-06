@@ -258,7 +258,7 @@ export const CategoriesPage: React.FC = () => {
           if (!open) setEditDialog({ open: false, mode: 'create', submitting: false, form: { name: '', type: '', sortOrder: '1', description: '' } });
         }
       }}>
-        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-2xl">
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editDialog.mode === 'create' ? '新建分类' : '编辑分类'}</DialogTitle>
             <DialogDescription>填写分类基本信息</DialogDescription>

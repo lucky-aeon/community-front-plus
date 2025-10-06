@@ -259,7 +259,7 @@ export const ExpressionsPage: React.FC = () => {
 
       {/* 新增/编辑对话框 */}
       <Dialog open={editOpen} onOpenChange={(o) => { if (!o) setEditOpen(false); }}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? '编辑表情' : '新增表情'}</DialogTitle>
             <DialogDescription>填写表情信息并保存</DialogDescription>
