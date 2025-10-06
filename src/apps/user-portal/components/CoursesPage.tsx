@@ -117,6 +117,7 @@ export const CoursesPage: React.FC = () => {
                 onClick={handleCardClick}
                 showAuthor={false}
                 hideContent
+                hideHeroTitle
               />
             ))}
           </div>

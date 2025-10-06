@@ -597,6 +597,7 @@ export interface CourseDTO {
   originalPrice?: number;        // 课程原价
   status: CourseStatus;          // 课程状态
   authorId: string;              // 作者ID
+  sortOrder?: number;            // 排序值（越大越靠前，后端倒序）
   totalReadingTime: number;      // 总阅读时间（分钟）
   createTime: string;            // 创建时间
   updateTime: string;            // 更新时间
@@ -617,6 +618,7 @@ export interface CreateCourseRequest {
   price?: number;                // 课程售价，可选
   originalPrice?: number;        // 课程原价，可选
   status: CourseStatus;          // 课程状态，必填
+  sortOrder?: number;            // 排序值（可选，越大越靠前）
 }
 
 // 更新课程请求参数
@@ -633,6 +635,7 @@ export interface UpdateCourseRequest {
   price?: number;                // 课程售价，可选
   originalPrice?: number;        // 课程原价，可选
   status?: CourseStatus;         // 课程状态，可选
+  sortOrder?: number;            // 排序值（可选，越大越靠前）
 }
 
 // 课程查询请求参数

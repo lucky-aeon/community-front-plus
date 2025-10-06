@@ -63,8 +63,9 @@ export const CoursesPage: React.FC = () => {
       techStack: string[];
       coverUrl?: string;
       coverResourceId?: string;
+      sortOrder?: string;
     };
-  }>({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '' } });
+  }>({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '', sortOrder: '' } });
 
   // 删除
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; item?: CourseDTO }>({ open: false });
@@ -107,7 +108,7 @@ export const CoursesPage: React.FC = () => {
   const handleQuery = () => { setFilters(prev => ({ ...prev, pageNum: 1 })); loadCourses(1, pagination.size); };
 
   // 打开创建/编辑
-  const openCreate = () => setEditDialog({ open: true, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '' } });
+  const openCreate = () => setEditDialog({ open: true, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '', sortOrder: '' } });
   const openEdit = (item: CourseDTO) => setEditDialog({
     open: true,
     mode: 'edit',
@@ -128,7 +129,8 @@ export const CoursesPage: React.FC = () => {
         }
         return item.coverImage || '';
       })(),
-      coverResourceId: (item.coverImage && !(item.coverImage.startsWith('http') || item.coverImage.startsWith('/'))) ? item.coverImage : ''
+      coverResourceId: (item.coverImage && !(item.coverImage.startsWith('http') || item.coverImage.startsWith('/'))) ? item.coverImage : '',
+      sortOrder: item.sortOrder != null ? String(item.sortOrder) : ''
     }
   });
 
@@ -147,6 +149,7 @@ export const CoursesPage: React.FC = () => {
       ...(form.tags && form.tags.length ? { tags: form.tags } : {}),
       ...(form.techStack && form.techStack.length ? { techStack: form.techStack } : {}),
       ...(form.coverResourceId ? { coverImage: form.coverResourceId } : (form.coverUrl ? { coverImage: form.coverUrl } : {})),
+      ...(form.sortOrder !== undefined && form.sortOrder !== '' ? { sortOrder: Number(form.sortOrder) } : {}),
     };
     try {
       setEditDialog(prev => ({ ...prev, submitting: true }));
@@ -155,7 +158,7 @@ export const CoursesPage: React.FC = () => {
       } else if (id) {
         await CoursesService.updateCourse(id, payloadBase as UpdateCourseRequest);
       }
-      setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '' } });
+      setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [], coverUrl: '', coverResourceId: '', sortOrder: '' } });
       await loadCourses();
     } catch (e) {
       console.error('保存课程失败', e);
@@ -358,6 +361,7 @@ export const CoursesPage: React.FC = () => {
                   <TableHead className="min-w-[280px]">标题/描述</TableHead>
                   <TableHead className="min-w-[80px]">状态</TableHead>
                   <TableHead className="min-w-[80px]">评分</TableHead>
+                  <TableHead className="min-w-[90px]">排序</TableHead>
                   <TableHead className="min-w-[120px]">价格</TableHead>
                   <TableHead className="min-w-[120px]">标签</TableHead>
                   <TableHead className="min-w-[140px]">总阅读时长</TableHead>
@@ -369,7 +373,7 @@ export const CoursesPage: React.FC = () => {
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
-                      {Array.from({ length: 8 }).map((__, j) => (
+                      {Array.from({ length: 9 }).map((__, j) => (
                         <TableCell key={j}><Skeleton className="h-4 w-[120px]" /></TableCell>
                       ))}
                     </TableRow>
@@ -389,6 +393,7 @@ export const CoursesPage: React.FC = () => {
                       </TableCell>
                       <TableCell>{statusBadge(item.status)}</TableCell>
                       <TableCell>{item.rating ?? '-'}</TableCell>
+                      <TableCell>{item.sortOrder ?? '-'}</TableCell>
                       <TableCell>
                         {item.price != null ? `¥${item.price}` : '-'}
                         {item.originalPrice != null && item.originalPrice !== item.price && (
@@ -447,7 +452,7 @@ export const CoursesPage: React.FC = () => {
       <Dialog open={editDialog.open} onOpenChange={(open) => {
         if (!editDialog.submitting) {
           setEditDialog(prev => ({ ...prev, open }));
-          if (!open) setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } });
+          if (!open) setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [], sortOrder: '' } });
         }
       }}>
         <DialogContent
@@ -484,6 +489,17 @@ export const CoursesPage: React.FC = () => {
                     <SelectItem value="COMPLETED">已完成</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>排序值</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={editDialog.form.sortOrder ?? ''}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, form: { ...prev.form, sortOrder: e.target.value } }))}
+                  placeholder="越大越靠前（后端倒序）"
+                />
               </div>
 
               <div className="space-y-2">
@@ -563,7 +579,7 @@ export const CoursesPage: React.FC = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [] } })} disabled={editDialog.submitting}>取消</Button>
+            <Button variant="outline" onClick={() => setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [], sortOrder: '' } })} disabled={editDialog.submitting}>取消</Button>
             <Button onClick={submitEdit} disabled={editDialog.submitting}>{editDialog.submitting ? '保存中...' : '保存'}</Button>
           </DialogFooter>
         </DialogContent>
@@ -577,7 +593,7 @@ export const CoursesPage: React.FC = () => {
         }
       }}>
         <DialogContent
-          className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-4xl"
+          className="data-[state=open]:animate-none data-[state=closed]:animate-none max-w-4xl max-h-[85vh] overflow-y-auto"
           onEscapeKeyDown={(e) => e.preventDefault()}
         >
           <DialogHeader>

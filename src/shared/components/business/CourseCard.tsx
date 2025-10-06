@@ -13,11 +13,12 @@ interface CourseCardProps {
   showAuthor?: boolean; // 是否显示作者，默认显示
   hideContent?: boolean; // 列表页不展示简介/标签
   hideHero?: boolean; // 是否隐藏顶部封面/渐变区
+  hideHeroTitle?: boolean; // 是否隐藏封面区域的标题
   hideStatus?: boolean; // 是否隐藏状态徽章
   hidePrice?: boolean; // 是否隐藏价格
 }
 
-export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAuthor = true, hideContent = false, hideHero = false, hideStatus = false, hidePrice = false }) => {
+export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAuthor = true, hideContent = false, hideHero = false, hideHeroTitle = false, hideStatus = false, hidePrice = false }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDING': return 'bg-amber-100 text-amber-800 border-amber-200';
@@ -85,9 +86,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
                 <BookOpen className="h-12 w-12 text-white drop-shadow-sm" />
               </div>
             )}
-            <h4 className="text-lg font-bold text-center leading-tight drop-shadow-sm line-clamp-2">
-              {course.title}
-            </h4>
+            {!hideHeroTitle && (
+              <h4 className="text-lg font-bold text-center leading-tight drop-shadow-sm line-clamp-2">
+                {course.title}
+              </h4>
+            )}
           </div>
           {!hideStatus && (
             <div className="absolute top-4 left-4">
