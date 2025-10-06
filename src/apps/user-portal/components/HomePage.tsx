@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { PageContainer } from '@shared/components/layout/PageContainer';
 import { DashboardOverview } from '@shared/components/business/DashboardOverview';
 import { AiDailyHero } from '@shared/components/business/AiDailyHero';
+import { PinnedPostsBanner } from '@shared/components/business/PinnedPostsBanner';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ROUTES } from '@shared/routes/routes';
@@ -33,6 +34,9 @@ export const HomePage: React.FC = () => {
 
       {/* 最近学习：顶部强调卡片（使用现有学习记录接口） */}
       <RecentLearningBanner />
+
+      {/* 置顶推荐文章 */}
+      <PinnedPostsBanner />
 
       {/* 套餐即将到期提示（<=7天） */}
       {(() => {
