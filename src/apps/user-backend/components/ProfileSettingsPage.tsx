@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Eye, EyeOff, Bell, BellOff, Crown, Calendar, Clock, Github } from 'lucide-react';
+import { Save, Eye, EyeOff, Bell, BellOff, Crown, Calendar, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { UserService } from '@shared/services/api';
@@ -10,8 +10,7 @@ import { showToast } from '@shared/utils/toast';
 import { AvatarUpload } from '@shared/components/common/AvatarUpload';
 import { ROUTES } from '@shared/routes/routes';
 import { useNavigate } from 'react-router-dom';
-import { GithubOAuthService } from '@shared/services/api/oauth-github.service';
-import type { UserSocialBindStatusDTO } from '@shared/types/oauth';
+// 已隐藏 GitHub 绑定入口，如需恢复可引入相关服务
 import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
 import { Badge } from '@/components/ui/badge';
 
@@ -24,7 +23,7 @@ export const ProfileSettingsPage: React.FC = () => {
   const [currentUserData, setCurrentUserData] = useState<UserDTO | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string>(user?.avatar || ''); // 新增头像状态
   const [avatarResourceId, setAvatarResourceId] = useState<string>('');   // 新增：待保存的头像资源ID
-  const [githubBind, setGithubBind] = useState<UserSocialBindStatusDTO | null>(null);
+  
 
   const [isRedeemOpen, setIsRedeemOpen] = useState(false);
 
@@ -59,18 +58,7 @@ export const ProfileSettingsPage: React.FC = () => {
     loadUserData();
   }, []);
 
-  // 加载 GitHub 绑定状态
-  useEffect(() => {
-    const loadBind = async () => {
-      try {
-        const status = await GithubOAuthService.getBindStatus();
-        setGithubBind(status);
-      } catch (e) {
-        // 静默处理（未绑定或接口出错由拦截器提示）
-      }
-    };
-    loadBind();
-  }, []);
+  // GitHub 绑定状态已隐藏，无需加载
 
   // 头像上传成功处理
   const handleAvatarUploadSuccess = async (avatarAccessUrl: string) => {
@@ -376,57 +364,7 @@ export const ProfileSettingsPage: React.FC = () => {
 
         {/* 右侧信息 */}
         <div className="space-y-6">
-          {/* GitHub 绑定 */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">GitHub 账号</h3>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                  {githubBind?.avatarUrl ? (
-                    <img src={githubBind.avatarUrl} alt="GitHub Avatar" className="h-10 w-10 object-cover" />
-                  ) : (
-                    <Github className="h-6 w-6 text-gray-500" />
-                  )}
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-900">{githubBind?.login || '未绑定'}</div>
-                  <div className="text-xs text-gray-500">{githubBind?.bound ? '已绑定' : '未绑定'}</div>
-                </div>
-              </div>
-              <div className="space-x-2">
-                {githubBind?.bound ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        await GithubOAuthService.unbindGithub();
-                        const status = await GithubOAuthService.getBindStatus();
-                        setGithubBind(status);
-                      } catch (e) { /* 拦截器提示 */ }
-                    }}
-                  >
-                    解绑
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        await GithubOAuthService.startAuthorizeRedirect();
-                      } catch (e) {
-                        // 失败提示由 axios 拦截器统一处理，这里仅记录日志
-                        console.error('获取 GitHub 授权地址失败', e);
-                      }
-                    }}
-                  >
-                    绑定 GitHub
-                  </Button>
-                )}
-              </div>
-            </div>
-          </Card>
+          {/* GitHub 绑定入口已隐藏 */}
 
           {/* 邮箱通知设置 */}
           <Card className="p-6">
