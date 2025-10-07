@@ -11,7 +11,7 @@ import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/Mark
 import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { CategorySelect } from '@shared/components/common/CategorySelect';
 import { PostsService } from '@shared/services/api/posts.service';
-import { PostDTO } from '@shared/types';
+import { PostDTO, UpdatePostRequest } from '@shared/types';
 import { showToast } from '@shared/utils/toast';
 import { ResourceAccessService } from '@shared/services/api/resource-access.service';
 
@@ -164,7 +164,7 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
     try {
       setIsSubmitting(true);
       
-      const postParams = {
+      let postParams: UpdatePostRequest = {
         title: title.trim(),
         content: content.trim(),
         categoryId,
@@ -175,6 +175,11 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
         // 始终携带 tags 字段
         tags: tags.map(t => t.trim()).filter(Boolean),
       };
+
+      // 编辑态：若原本存在封面且被删除，显式传空字符串以指示后端清空
+      if (isEditMode && initialData && initialData.coverImage && !coverResourceId && !coverImage.trim()) {
+        postParams.coverImage = '';
+      }
 
       let result: PostDTO;
       
@@ -375,9 +380,14 @@ export const CreatePostPage: React.FC<CreatePostPageProps> = ({ onPostCreated, i
                 value={coverImage}
                 onChange={(url) => {
                   setCoverImage(url);
-                  // 如果用户清空或替换为外链，清理资源ID
-                  if (!url || url.startsWith('http') || url.startsWith('/')) {
-                    // 保留 setCoverResourceId 由 onUploadSuccess 决定；这里不清空非空 ID
+                  // 用户删除封面时，清空资源ID，避免提交旧的资源ID
+                  if (!url) {
+                    setCoverResourceId('');
+                    return;
+                  }
+                  // 外链/相对路径由 onUploadSuccess 决定资源ID是否覆盖
+                  if (url.startsWith('http') || url.startsWith('/')) {
+                    // 保持当前资源ID不变
                   }
                 }}
                 error={errors.coverImage}

@@ -416,7 +416,8 @@ export const ProfileSettingsPage: React.FC = () => {
                       try {
                         await GithubOAuthService.startAuthorizeRedirect();
                       } catch (e) {
-                        showToast.error('获取 GitHub 授权地址失败，请稍后重试');
+                        // 失败提示由 axios 拦截器统一处理，这里仅记录日志
+                        console.error('获取 GitHub 授权地址失败', e);
                       }
                     }}
                   >

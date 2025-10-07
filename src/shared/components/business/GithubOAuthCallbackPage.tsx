@@ -39,8 +39,8 @@ export const GithubOAuthCallbackPage: React.FC = () => {
           }
         }
       } catch (e) {
-        // 错误提示已由拦截器兜底，但这里再给一层保障
-        showToast.error('GitHub 授权处理失败，请重试');
+        // 失败提示由 axios 拦截器统一处理，这里仅记录日志并回到首页
+        console.error('GitHub 授权处理失败', e);
         navigate('/', { replace: true });
       } finally {
         setProcessing(false);

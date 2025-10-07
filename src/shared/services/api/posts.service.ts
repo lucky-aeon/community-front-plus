@@ -35,7 +35,12 @@ export class PostsService {
    * PUT /api/user/posts/{id}
    */
   static async updatePost(id: string, params: UpdatePostRequest): Promise<PostDTO> {
-    const response = await apiClient.put<ApiResponse<PostDTO>>(`/user/posts/${id}`, params);
+    // 若前端传递了 null 表示删除封面，统一转为空字符串，后端以空字符串表示清空
+    const payload: any = { ...params };
+    if (payload.coverImage === null) {
+      payload.coverImage = '';
+    }
+    const response = await apiClient.put<ApiResponse<PostDTO>>(`/user/posts/${id}`, payload);
     const data = response.data.data;
     return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as PostDTO;
   }
