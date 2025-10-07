@@ -20,6 +20,14 @@ export interface AdminPaginationProps {
 
 function getPages(current: number, totalPages: number, siblingCount: number, boundaryCount: number) {
   const pages: (number | 'start-ellipsis' | 'end-ellipsis')[] = [];
+
+  // 小总页数场景：不需要省略号，直接展示全部页码
+  // 阈值 = 两侧边界*2 + 当前页 + 两侧兄弟*2
+  const maxWithoutEllipsis = boundaryCount * 2 + siblingCount * 2 + 3;
+  if (totalPages <= maxWithoutEllipsis) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1);
+  }
+
   const startPages = Array.from({ length: Math.min(boundaryCount, totalPages) }, (_, i) => i + 1);
   const endPages = Array.from({ length: Math.min(boundaryCount, totalPages) }, (_, i) => totalPages - i).reverse();
 
@@ -35,6 +43,7 @@ function getPages(current: number, totalPages: number, siblingCount: number, bou
   // 合并
   pages.push(...startPages);
   if (start > boundaryCount + 2) pages.push('start-ellipsis');
+  // 在极端情况下确保 start <= end
   for (let i = start; i <= end; i++) pages.push(i);
   if (end < totalPages - boundaryCount - 1) pages.push('end-ellipsis');
   endPages.forEach((p) => {
