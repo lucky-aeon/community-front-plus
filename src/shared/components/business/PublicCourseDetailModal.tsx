@@ -45,7 +45,8 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
 
   const firstChapter = useMemo(() => {
     if (!detail?.chapters?.length) return undefined;
-    return [...detail.chapters].sort((a, b) => a.sortOrder - b.sortOrder)[0];
+    // 保持后端顺序，不在前端排序
+    return detail.chapters[0];
   }, [detail]);
 
   const openUrl = (url?: string | null) => {
@@ -176,9 +177,7 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
                   <div className="text-sm text-warm-gray-600">暂无章节</div>
                 ) : (
                   <div className="space-y-2 pr-1">
-                    {[...(detail.chapters ?? [])]
-                      .sort((a, b) => a.sortOrder - b.sortOrder)
-                      .map((ch, idx) => (
+                    {(detail.chapters ?? []).map((ch, idx) => (
                         <div
                           key={ch.id}
                           className="w-full text-left p-3 rounded-lg border bg-white"

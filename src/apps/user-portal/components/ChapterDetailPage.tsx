@@ -96,19 +96,18 @@ export const ChapterDetailPage: React.FC = () => {
     fetchChapterDetail();
   }, [chapterId]);
 
-  // 派生：章节序列与前后章节
-  const sortedChapters = useMemo<FrontChapterDTO[]>(() => {
-    if (!course?.chapters) return [];
-    return [...course.chapters].sort((a, b) => a.sortOrder - b.sortOrder);
+  // 派生：章节序列与前后章节（保持后端顺序，不在前端排序）
+  const orderedChapters = useMemo<FrontChapterDTO[]>(() => {
+    return course?.chapters ? [...course.chapters] : [];
   }, [course]);
 
   const currentIndex = useMemo(() => {
-    if (!sortedChapters.length || !chapterId) return -1;
-    return sortedChapters.findIndex((c) => c.id === chapterId);
-  }, [sortedChapters, chapterId]);
+    if (!orderedChapters.length || !chapterId) return -1;
+    return orderedChapters.findIndex((c) => c.id === chapterId);
+  }, [orderedChapters, chapterId]);
 
-  const prevChapter = currentIndex > 0 ? sortedChapters[currentIndex - 1] : undefined;
-  const nextChapter = currentIndex >= 0 && currentIndex < sortedChapters.length - 1 ? sortedChapters[currentIndex + 1] : undefined;
+  const prevChapter = currentIndex > 0 ? orderedChapters[currentIndex - 1] : undefined;
+  const nextChapter = currentIndex >= 0 && currentIndex < orderedChapters.length - 1 ? orderedChapters[currentIndex + 1] : undefined;
 
   const formatDate = (iso?: string) =>
     iso ? new Date(iso).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '-';
@@ -296,10 +295,10 @@ export const ChapterDetailPage: React.FC = () => {
           <Card className="p-6 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold">课程目录</h2>
-              <Badge variant="secondary">共 {sortedChapters.length} 章</Badge>
+              <Badge variant="secondary">共 {orderedChapters.length} 章</Badge>
             </div>
             <div className="space-y-1">
-              {sortedChapters.map((ch, idx) => {
+              {orderedChapters.map((ch, idx) => {
                 const active = ch.id === chapterDetail.id;
                 return (
                   <button

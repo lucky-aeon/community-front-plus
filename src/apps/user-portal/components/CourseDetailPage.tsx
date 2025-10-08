@@ -72,7 +72,8 @@ export const CourseDetailPage: React.FC = () => {
 
   const firstChapter = useMemo<FrontChapterDTO | undefined>(() => {
     if (!course?.chapters?.length) return undefined;
-    return [...course.chapters].sort((a, b) => a.sortOrder - b.sortOrder)[0];
+    // 保持后端返回顺序，不在前端重新排序
+    return course.chapters[0];
   }, [course]);
 
   const startLearning = () => {
@@ -379,9 +380,7 @@ export const CourseDetailPage: React.FC = () => {
               <div className="text-sm text-warm-gray-600">暂无章节</div>
             ) : (
               <div className="space-y-2">
-                {[...chapters]
-                  .sort((a, b) => a.sortOrder - b.sortOrder)
-                  .map((ch) => (
+                {chapters.map((ch) => (
                     <button
                       key={ch.id}
                       onClick={() => {
