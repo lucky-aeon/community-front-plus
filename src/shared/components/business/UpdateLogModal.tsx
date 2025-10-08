@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { UpdateLogDTO, ChangeType } from '@shared/types';
 import { cn } from '@shared/utils/cn';
+import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 
 interface UpdateLogModalProps {
   updateLog: UpdateLogDTO | null;
@@ -107,9 +108,9 @@ export const UpdateLogModal: React.FC<UpdateLogModalProps> = ({
       />
 
       {/* 模态框内容 */}
-      <div className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden">
-        {/* 固定头部 */}
-        <div className="sticky top-0 z-10 bg-white border-b border-honey-border p-6">
+      <div className="relative w-full max-w-4xl max-h-[90vh] mx-4 bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+        {/* 头部（高度自适应，整体作为独立区块） */}
+        <div className="flex-shrink-0 bg-white border-b border-honey-border p-6">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center space-x-3 mb-3">
@@ -145,11 +146,6 @@ export const UpdateLogModal: React.FC<UpdateLogModalProps> = ({
               <h2 className="text-2xl font-bold text-gray-900 mb-2 leading-tight">
                 {updateLog.title}
               </h2>
-
-              {/* 描述 */}
-              <p className="text-warm-gray-600 leading-relaxed">
-                {updateLog.description}
-              </p>
             </div>
 
             {/* 关闭按钮 */}
@@ -164,8 +160,24 @@ export const UpdateLogModal: React.FC<UpdateLogModalProps> = ({
           </div>
         </div>
 
-        {/* 滚动内容区域 */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+        {/* 滚动内容区域：余下空间滚动 */}
+        <div className="flex-1 p-6 overflow-y-auto">
+          {/* 日志内容（Markdown） */}
+          {updateLog.description && (
+            <div className="prose-content mb-6">
+              <MarkdownEditor
+                value={updateLog.description || ''}
+                onChange={() => {}}
+                previewOnly
+                height="auto"
+                toolbar={false}
+                className="!border-none !shadow-none !bg-transparent"
+                enableFullscreen={false}
+                enableToc={false}
+              />
+            </div>
+          )}
+
           {Object.entries(groupedChanges).length > 0 ? (
             <div className="space-y-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">变更详情</h3>
@@ -202,9 +214,18 @@ export const UpdateLogModal: React.FC<UpdateLogModalProps> = ({
                           <h5 className="font-semibold text-gray-900 mb-2 leading-snug">
                             {change.title}
                           </h5>
-                          <p className="text-sm text-warm-gray-600 leading-relaxed">
-                            {change.description}
-                          </p>
+                          <div className="text-sm text-warm-gray-600 leading-relaxed prose-content">
+                            <MarkdownEditor
+                              value={change.description || ''}
+                              onChange={() => {}}
+                              previewOnly
+                              height="auto"
+                              toolbar={false}
+                              className="!border-none !shadow-none !bg-transparent !p-0"
+                              enableFullscreen={false}
+                              enableToc={false}
+                            />
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -224,7 +245,7 @@ export const UpdateLogModal: React.FC<UpdateLogModalProps> = ({
         </div>
 
         {/* 底部操作区域 */}
-        <div className="sticky bottom-0 bg-white border-t border-honey-border p-6">
+        <div className="flex-shrink-0 bg-white border-t border-honey-border p-6">
           <div className="flex items-center justify-end">
             <Button
               onClick={onClose}
