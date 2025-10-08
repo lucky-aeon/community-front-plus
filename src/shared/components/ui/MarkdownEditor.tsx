@@ -782,7 +782,7 @@ function MarkdownEditorImpl(
 
   return (
     <div 
-      className={`markdown-editor-wrapper relative ${className} ${isFullscreen ? 'fixed inset-0 z-50 bg-white' : ''}`}
+      className={`markdown-editor-wrapper ${isFullscreen ? 'fixed inset-0 z-[1200] bg-white overflow-auto' : 'relative'} ${className}`}
       style={{ 
         height: isFullscreen ? '100vh' : (typeof height === 'number' ? `${height}px` : height),
         width: isFullscreen ? '100vw' : '100%'
