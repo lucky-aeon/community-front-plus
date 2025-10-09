@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 项目概述
+## 项目概述 
 
 这是一个基于 React + TypeScript + Vite 的现代化社区平台前端应用，采用模块化的多应用架构设计。
 
