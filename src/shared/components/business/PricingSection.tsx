@@ -99,7 +99,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onPlanSelect }) 
         ) : mappedPlans.length === 0 ? (
           <div className="text-center text-gray-500">暂无可用套餐</div>
         ) : mappedPlans.length === 1 ? (
-          <div className={cn('grid gap-8 max-w-5xl mx-auto grid-cols-1 md:grid-cols-3')}>
+          <div className={cn('grid gap-8 max-w-5xl mx-auto grid-cols-1 md:grid-cols-3 items-stretch')}>
             <div className="md:col-start-2">
               <PricingCard plan={mappedPlans[0]} onSelect={onPlanSelect} />
             </div>
@@ -107,7 +107,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onPlanSelect }) 
         ) : (
           <div
             className={cn(
-              'grid gap-8 max-w-5xl mx-auto',
+              'grid gap-8 max-w-5xl mx-auto items-stretch',
               mappedPlans.length === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3'
             )}
           >

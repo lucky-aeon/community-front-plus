@@ -17,7 +17,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, onSelect, button
   const isCurrentPlan = user?.membershipTier === plan.tier;
 
   return (
-    <Card className={`relative overflow-hidden ${plan.isPopular ? 'ring-2 ring-purple-500 scale-105' : ''}`}>
+    <Card className={`relative overflow-hidden flex flex-col h-full ${plan.isPopular ? 'ring-2 ring-purple-500 scale-105' : ''}`}>
       {plan.isPopular && (
         <div className="absolute top-0 left-0 right-0">
           <div className="bg-gradient-to-r from-purple-500 to-pink-500 text-white text-center py-2 text-sm font-semibold">
@@ -27,7 +27,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, onSelect, button
         </div>
       )}
 
-      <div className={`p-8 ${plan.isPopular ? 'pt-12' : ''}`}>
+      <div className={`p-8 flex flex-col flex-1 ${plan.isPopular ? 'pt-12' : ''}`}>
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-2">
             {plan.tier === 'vip' && <Crown className="h-6 w-6 text-yellow-500" />}
@@ -53,7 +53,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({ plan, onSelect, button
           )}
         </div>
 
-        <ul className="space-y-4 mb-8">
+        <ul className="space-y-4 mb-8 flex-1">
           {plan.features.map((feature, index) => (
             <li key={index} className="flex items-start space-x-3">
               <Check className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
