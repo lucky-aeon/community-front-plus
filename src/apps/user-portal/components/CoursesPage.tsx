@@ -92,7 +92,7 @@ export const CoursesPage: React.FC = () => {
       {/* 课程网格 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             {Array.from({ length: pageSize }).map((_, i) => (
               <Card key={i} className="overflow-hidden">
                 <Skeleton className="h-48 w-full" />
@@ -109,7 +109,7 @@ export const CoursesPage: React.FC = () => {
             ))}
           </div>
         ) : sortedCourses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             {sortedCourses.map((course) => (
               <CourseCard
                 key={course.id}

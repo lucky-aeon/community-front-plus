@@ -37,6 +37,7 @@ export const CourseGrid: React.FC<CourseGridProps> = () => {
     originalPrice: c.originalPrice,
     createTime: c.createTime,
     likeCount: c.likeCount,
+    unlockPlans: c.unlockPlans,
   });
 
   const loadCourses = useCallback(async () => {
@@ -87,7 +88,7 @@ export const CourseGrid: React.FC<CourseGridProps> = () => {
         )}
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
             {Array.from({ length: 6 }).map((_, i) => (
               <Card key={i} className="overflow-hidden">
                 <Skeleton className="h-48 w-full" />
@@ -104,7 +105,7 @@ export const CourseGrid: React.FC<CourseGridProps> = () => {
             ))}
           </div>
         ) : courses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
             {courses.map((course) => (
               <CourseCard
                 key={course.id}

@@ -820,6 +820,7 @@ export interface AdminUserDTO {
   status: 'ACTIVE' | 'INACTIVE'; // 用户状态
   emailNotificationEnabled: boolean; // 邮箱通知是否启用
   maxConcurrentDevices: number;  // 最大并发设备数
+  currentPlanName?: string;      // 当前订阅套餐名称
   tags?: string[];               // 用户标签（可选，若后端列表返回支持）
   createTime: string;            // 创建时间
   updateTime: string;            // 更新时间
@@ -917,6 +918,8 @@ export interface FrontCourseDTO {
   likeCount?: number;            // 点赞数（前台列表返回）
   // 新增：解锁标记（用于列表页展示）
   unlocked?: boolean;            // 是否已解锁
+  // 新增：可解锁的套餐（首页/公开列表可选返回）
+  unlockPlans?: UnlockPlanDTO[];
 }
 
 // 前台课程详情章节信息
@@ -987,6 +990,8 @@ export interface PublicCourseDTO {
   resources?: CourseResource[];
   createTime: string;
   likeCount?: number;            // 点赞数（公开列表返回）
+  // 新增：可解锁的套餐（用于首页提示“Plus/Pro 可解锁”）
+  unlockPlans?: UnlockPlanDTO[];
 }
 
 // 公开课程详情DTO（未登录可见，包含章节列表）
@@ -1007,6 +1012,8 @@ export interface PublicCourseDetailDTO {
   updateTime?: string;
   chapters: FrontChapterDTO[];
   likeCount?: number;            // 点赞数（公开详情返回）
+  // 新增：可解锁的套餐（与课程详情一致）
+  unlockPlans?: UnlockPlanDTO[];
 }
 
 // ================ 管理员用户活动日志相关接口定义 ================

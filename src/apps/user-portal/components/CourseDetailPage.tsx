@@ -320,9 +320,8 @@ export const CourseDetailPage: React.FC = () => {
                 </div>
               )}
 
-              {/* 单次购买（按课程价格）
-                 规则：当价格为 0 且存在套餐时，不展示“单次购买 ¥0”行，避免误导 */}
-              {typeof course.price === 'number' && !(course.price === 0 && (course.unlockPlans?.length ?? 0) > 0) && (
+              {/* 单次购买（按课程价格） - 价格为0表示不支持单次购买，直接隐藏 */}
+              {typeof course.price === 'number' && course.price > 0 && (
                 <div className="pt-2">
                   <div className="text-sm text-warm-gray-600 mb-2">或直接购买本课程：</div>
                   <div className="flex items-center justify-between p-3 rounded-lg border bg-white">
@@ -380,7 +379,7 @@ export const CourseDetailPage: React.FC = () => {
               <div className="text-sm text-warm-gray-600">暂无章节</div>
             ) : (
               <div className="space-y-2">
-                {chapters.map((ch) => (
+                {chapters.map((ch, idx) => (
                     <button
                       key={ch.id}
                       onClick={() => {
@@ -391,7 +390,7 @@ export const CourseDetailPage: React.FC = () => {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-warm-gray-500 w-10">#{ch.sortOrder}</span>
+                          <span className="text-xs text-warm-gray-500 w-10 text-left font-mono tabular-nums shrink-0">#{idx + 1}</span>
                           <div>
                             <div className="text-sm font-medium text-gray-900 line-clamp-1">{ch.title}</div>
                             <div className="text-xs text-warm-gray-500 flex items-center gap-1">

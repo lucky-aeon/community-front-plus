@@ -216,6 +216,7 @@ export const UsersPage: React.FC = () => {
                 <TableRow>
                   <TableHead className="min-w-[100px]">用户ID</TableHead>
                   <TableHead className="min-w-[280px]">用户信息</TableHead>
+                  <TableHead className="min-w-[100px]">订阅套餐</TableHead>
                   <TableHead className="min-w-[80px]">状态</TableHead>
                   <TableHead className="min-w-[80px]">设备数</TableHead>
                   <TableHead className="min-w-[100px]">创建时间</TableHead>
@@ -238,6 +239,7 @@ export const UsersPage: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-16" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-8" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-8 w-20 ml-auto" /></TableCell>
@@ -246,7 +248,7 @@ export const UsersPage: React.FC = () => {
                 ) : users.length === 0 ? (
                   // 空数据状态
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                       暂无用户数据
                     </TableCell>
                   </TableRow>
@@ -282,6 +284,13 @@ export const UsersPage: React.FC = () => {
                             )}
                           </div>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        {user.currentPlanName ? (
+                          <Badge variant="outline">{user.currentPlanName}</Badge>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         {renderStatusBadge(user.status)}

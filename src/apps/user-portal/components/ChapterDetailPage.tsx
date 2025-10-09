@@ -309,7 +309,7 @@ export const ChapterDetailPage: React.FC = () => {
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-xs text-warm-gray-500 w-10">#{idx + 1}</span>
+                      <span className="text-xs text-warm-gray-500 w-10 text-left font-mono tabular-nums shrink-0">#{idx + 1}</span>
                       <div className="min-w-0">
                         <div className="text-sm font-medium text-gray-900 truncate">{ch.title}</div>
                         <div className="text-xs text-warm-gray-500">预计 {ch.readingTime} 分钟</div>

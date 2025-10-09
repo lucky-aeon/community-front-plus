@@ -12,7 +12,7 @@ export const TermsModal: React.FC<LegalModalProps> = ({ open, onOpenChange }) =>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>服务条款</DialogTitle>
-          <DialogDescription>最近更新：{new Date().toLocaleDateString()}</DialogDescription>
+          <DialogDescription>最近更新：2025年10月9日</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 text-sm text-gray-700 leading-6">
           <p>
@@ -39,6 +39,9 @@ export const TermsModal: React.FC<LegalModalProps> = ({ open, onOpenChange }) =>
             <li>
               本平台提供的是<span className="font-semibold">在线数字内容/会员服务</span>。<span className="font-semibold text-red-600">服务一经开通不支持退款</span>
               （法律法规另有规定或平台另行承诺的除外）；为确保知情同意，我们会在支付页显著提示并要求确认。
+            </li>
+            <li>
+              <span className="font-semibold">价格调整保护：</span>平台保留调整订阅价格的权利。价格调整仅适用于调整生效后新购买的订阅，已购买的订阅在其有效期内不受价格调整影响，仍按原购买时的价格与权益执行。
             </li>
             <li>如遇<span className="font-semibold">重复支付、无法开通、重大服务故障</span>等情形，请联系微信 <span className="font-mono">xhyQAQ250</span> 协助处理。</li>
             <li>如发现违规使用（如账号共享、恶意爬取、传播课程），平台有权采取限制或终止服务等措施。</li>
@@ -67,7 +70,7 @@ export const PrivacyModal: React.FC<LegalModalProps> = ({ open, onOpenChange }) 
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>隐私政策</DialogTitle>
-          <DialogDescription>最近更新：{new Date().toLocaleDateString()}</DialogDescription>
+          <DialogDescription>最近更新：2025年10月9日</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 text-sm text-gray-700 leading-6">
           <p>

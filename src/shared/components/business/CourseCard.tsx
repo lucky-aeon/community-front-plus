@@ -52,13 +52,21 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
 
   const hasCover = Boolean(course.coverImage);
 
+  const planNames = (course.unlockPlans || [])
+    .sort((a, b) => a.level - b.level)
+    .map(p => p.name)
+    .filter((v, i, arr) => arr.indexOf(v) === i);
+  const canSinglePurchase = typeof course.price === 'number' && course.price > 0;
+
   return (
     <Card
       className={cn(
         "group overflow-hidden cursor-pointer",
         "transform transition-all duration-300 ease-out",
         "hover:scale-[1.02] hover:shadow-xl hover:shadow-honey-200/30",
-        "bg-white border border-honey-100 rounded-2xl"
+        "bg-white border border-honey-100 rounded-2xl",
+        // 等高卡片，并让底部按钮对齐
+        "flex flex-col h-full"
       )}
       onClick={handleCardClick}
     >
@@ -118,7 +126,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
       )}
 
       {/* Content Section */}
-      <div className={cn("p-6 space-y-4")}> 
+      <div className={cn("p-6 gap-4 flex-1 flex flex-col")}> 
         {/* 当隐藏Hero时，单独展示状态徽章 */}
         {hideHero && !hideStatus && (
           <div className="flex items-center justify-between">
@@ -203,8 +211,19 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
           </div>
         )}
 
-        {/* Price and Action */}
-        <div className={cn("space-y-3", hideHero ? "pt-0" : "pt-2 border-t border-warm-gray-100")}> 
+        {/* Price / Unlock hints and Action */}
+        <div className={cn("space-y-3 mt-auto", hideHero ? "pt-0" : "pt-2 border-t border-warm-gray-100")}>
+          {/* 解锁提示（首页不展示价格时也显示） */}
+          <div className="space-y-1">
+            {planNames.length > 0 && (
+              <div className="text-xs text-warm-gray-600">会员可解锁：{planNames.join(' / ')}</div>
+            )}
+            {canSinglePurchase ? (
+              <div className="text-[12px] text-warm-gray-500">支持单次购买 · 永久观看</div>
+            ) : (
+              <div className="text-[12px] text-warm-gray-500">仅会员可解锁</div>
+            )}
+          </div>
           {!hidePrice && course.price !== undefined && (
             <div className="flex items-center justify-between">
               <div className="flex items-baseline space-x-2">
