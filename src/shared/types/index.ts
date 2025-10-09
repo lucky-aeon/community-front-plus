@@ -1797,3 +1797,55 @@ export interface LearningRecordQueryRequest {
   pageNum?: number;
   pageSize?: number;
 }
+
+// ================ 管理后台仪表盘聚合指标 ================
+
+export type DashboardTimeRange = 'DAY' | 'WEEK' | 'MONTH';
+
+// 通用趋势点
+export interface TrendPointDTO {
+  date: string;               // 点位日期（或周/月起始标识），后端保证顺序
+  value: number;              // 数值（计数）
+  label?: string | null;      // 可选标签
+}
+
+// 金额趋势点
+export interface AmountPointDTO {
+  date: string;
+  amount: number;             // 金额（单位：元）
+}
+
+export interface ActiveUserTrendDTO {
+  totalTrend: TrendPointDTO[];
+  // 订阅/套餐细分：键为套餐名（如 free/plus/无套餐 等），值为趋势点数组
+  subscriptionTrends: Record<string, TrendPointDTO[]>;
+}
+
+export interface OrderTrendDTO {
+  countTrend: TrendPointDTO[]; // 订单数
+  amountTrend: AmountPointDTO[]; // GMV
+}
+
+export interface RegistrationTrendDTO {
+  trend: TrendPointDTO[];     // 注册用户数
+}
+
+export interface CourseTrendDTO {
+  trend: TrendPointDTO[];     // 课程趋势（若后端提供）
+}
+
+export interface DashboardMetricsDTO {
+  activeUserTrend: ActiveUserTrendDTO;
+  orderTrend: OrderTrendDTO;
+  registrationTrend: RegistrationTrendDTO;
+  courseTrend?: CourseTrendDTO;
+  // 新增：课程学习榜（当前时间窗 TopN）
+  courseLearningMetrics?: CourseLearningMetricDTO[];
+}
+
+// 课程学习排行榜项
+export interface CourseLearningMetricDTO {
+  courseId: string;
+  courseTitle: string;
+  learners: number; // 学习人数
+}
