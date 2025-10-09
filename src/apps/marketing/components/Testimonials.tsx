@@ -133,9 +133,9 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ showAvatar = false }
           <>
             {error && renderError()}
             {testimonials.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
                 {testimonials.map((testimonial) => (
-                  <Card key={testimonial.id} className="p-8 relative hover:shadow-lg transition-shadow duration-300">
+                  <Card key={testimonial.id} className="p-8 relative hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
                     <Quote className="absolute top-4 right-4 h-8 w-8 text-blue-200" />
 
                     <div className="flex items-center mb-4">
@@ -144,11 +144,11 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ showAvatar = false }
                       ))}
                     </div>
 
-                    <p className="text-gray-700 mb-6 leading-relaxed line-clamp-4">
+                    <p className="text-gray-700 mb-6 leading-relaxed line-clamp-4 flex-1">
                       "{testimonial.content}"
                     </p>
 
-                    <div className={showAvatar ? 'flex items-center' : ''}>
+                    <div className={showAvatar ? 'flex items-center mt-auto' : 'mt-auto'}>
                       {showAvatar && (
                         <img
                           src={testimonial.avatar}
