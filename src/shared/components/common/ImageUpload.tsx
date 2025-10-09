@@ -119,7 +119,11 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '上传失败';
       onError?.(errorMessage);
-      showToast.error(errorMessage);
+      // 统一规则：Axios 异常已由拦截器弹窗；组件层不重复弹错
+      const toastShown = typeof error === 'object' && error !== null && (error as any).__toastShown === true;
+      if (!toastShown) {
+        showToast.error(errorMessage);
+      }
     } finally {
       setIsUploading(false);
       setUploadProgress(0);

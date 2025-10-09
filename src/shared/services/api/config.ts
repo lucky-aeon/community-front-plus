@@ -66,6 +66,8 @@ apiClient.interceptors.response.use(
       const cfg = error.config || {};
       const headers = (cfg.headers || {}) as Record<string, string>;
       const skipAuthLogout = headers['X-Skip-Auth-Logout'] === 'true' || (cfg as unknown as { __skipAuthLogout?: boolean }).__skipAuthLogout === true;
+      const urlStr = String(cfg?.url || '');
+      const isAccessSession = urlStr.includes('/user/resource/access-session');
       let toastShown = false;
 
       // 登录被拒绝（设备/IP 限制）：引导到设备管理页
@@ -106,7 +108,13 @@ apiClient.interceptors.response.use(
           }
           break;
         case 403:
-          showToast.error('权限不足');
+          // 资源访问会话的 403：静默处理（不弹窗）
+          if (isAccessSession) {
+            toastShown = true;
+            break;
+          }
+          // 统一 403 文案（禁止覆盖）：权限不足，请升级套餐
+          showToast.error('权限不足，请升级套餐');
           toastShown = true;
           break;
         case 404:

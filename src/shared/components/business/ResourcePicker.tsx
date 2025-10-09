@@ -41,7 +41,7 @@ export const ResourcePicker: React.FC<ResourcePickerProps> = ({ open, onClose, o
       setData(resp);
     } catch (e) {
       console.error('加载资源失败:', e);
-      showToast.error('加载资源失败');
+      // Axios 错误已由拦截器统一提示；这里不重复弹窗
     } finally {
       setLoading(false);
     }

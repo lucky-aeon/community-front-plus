@@ -119,7 +119,10 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : '头像上传失败';
       onError?.(errorMessage);
-      showToast.error(errorMessage);
+      const toastShown = typeof error === 'object' && error !== null && (error as any).__toastShown === true;
+      if (!toastShown) {
+        showToast.error(errorMessage);
+      }
     } finally {
       setIsUploading(false);
       setUploadProgress(0);

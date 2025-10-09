@@ -342,7 +342,9 @@ function MarkdownEditorImpl(
       if (isCanceled) {
         showToast.info('上传已取消');
       } else {
-        showToast.error(message);
+        // Axios 异常交由拦截器提示；非 Axios（如 XHR）则本地提示
+        const toastShown = typeof error === 'object' && error !== null && (error as any).__toastShown === true;
+        if (!toastShown) showToast.error(message);
       }
     }
   }, []);

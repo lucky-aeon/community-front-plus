@@ -77,7 +77,7 @@ export const ProfileSettingsPage: React.FC = () => {
   // 头像上传错误处理
   const handleAvatarUploadError = (error: string) => {
     console.error('头像上传失败:', error);
-    showToast.error(`头像上传失败: ${error}`);
+    // 统一：Axios 失败由拦截器提示；此处不重复弹错
   };
 
   const handleInputChange = (field: string, value: string) => {
