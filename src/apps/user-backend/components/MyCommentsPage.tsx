@@ -23,6 +23,8 @@ export const MyCommentsPage: React.FC = () => {
   const [pageInfo, setPageInfo] = useState<PageResponse<CommentDTO> | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; commentId: string | null }>({ isOpen: false, commentId: null });
+  // 展示维度：我发表的 | 回复我的 | 全部
+  const [activeTab, setActiveTab] = useState<'mine' | 'toMe' | 'all'>('mine');
 
   // 回复相关状态
   const [replyingCommentId, setReplyingCommentId] = useState<string | null>(null);
@@ -142,8 +144,17 @@ export const MyCommentsPage: React.FC = () => {
   }, [replyingCommentId]);
 
   // 搜索过滤处理
-  const filteredComments = comments.filter(comment => 
-    searchTerm === '' || comment.content.toLowerCase().includes(searchTerm.toLowerCase())
+  const isMine = (c: CommentDTO) => Boolean(user && c.commentUserId === user.id);
+  const isReplyToMe = (c: CommentDTO) => Boolean(user && c.replyUserId === user.id && c.commentUserId !== user.id);
+
+  const mineComments = comments.filter(isMine);
+  const toMeComments = comments.filter(isReplyToMe);
+
+  const byTab = (list: CommentDTO[]) =>
+    list.filter(comment => searchTerm === '' || comment.content.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  const filteredComments = byTab(
+    activeTab === 'mine' ? mineComments : activeTab === 'toMe' ? toMeComments : comments
   );
 
   const getBusinessTypeBadge = (businessType: BusinessType) => {
@@ -212,26 +223,51 @@ export const MyCommentsPage: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">我的评论</h1>
-          <p className="text-gray-600 mt-1">管理你发布的所有评论内容</p>
+          <p className="text-gray-600 mt-1">管理你发布的评论与收到的回复</p>
         </div>
-        <div className="text-sm text-gray-500">
-          {pageInfo && (
-            <span>共 {pageInfo.total} 条评论</span>
-          )}
+        <div className="text-sm text-gray-500 space-x-3">
+          {pageInfo && <span>共 {pageInfo.total} 条</span>}
+          <span>当前页我发表 {mineComments.length} 条</span>
+          <span>当前页回复我的 {toMeComments.length} 条</span>
         </div>
       </div>
 
-      {/* 搜索功能 */}
+      {/* 过滤与搜索 */}
       <Card className="p-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <input
-            type="text"
-            placeholder="搜索评论内容..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex rounded-lg overflow-hidden border border-gray-200 w-full md:w-auto">
+            <button
+              type="button"
+              className={`px-4 py-2 text-sm ${activeTab === 'mine' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              onClick={() => setActiveTab('mine')}
+            >
+              我发表的
+            </button>
+            <button
+              type="button"
+              className={`px-4 py-2 text-sm border-l border-gray-200 ${activeTab === 'toMe' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              onClick={() => setActiveTab('toMe')}
+            >
+              回复我的
+            </button>
+            <button
+              type="button"
+              className={`px-4 py-2 text-sm border-l border-gray-200 ${activeTab === 'all' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              onClick={() => setActiveTab('all')}
+            >
+              全部
+            </button>
+          </div>
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <input
+              type="text"
+              placeholder="搜索评论内容..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
         </div>
       </Card>
 
@@ -269,6 +305,13 @@ export const MyCommentsPage: React.FC = () => {
                     <span className="text-sm text-gray-500">
                       {new Date(comment.createTime).toLocaleString('zh-CN')}
                     </span>
+                    {/* 来源标记：我发表 / 回复我的 */}
+                    {isMine(comment) && (
+                      <Badge variant="outline" className="text-green-700 border-green-200 bg-green-50">我发表</Badge>
+                    )}
+                    {isReplyToMe(comment) && (
+                      <Badge variant="secondary" className="text-blue-700 bg-blue-50 border-blue-200">回复我的</Badge>
+                    )}
                     {comment.businessName && (
                       <button
                         type="button"
@@ -302,15 +345,17 @@ export const MyCommentsPage: React.FC = () => {
                       <span>查看内容</span>
                       <ChevronRight className="h-4 w-4" />
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ isOpen: true, commentId: comment.id }); }}
-                      className="flex items-center space-x-1 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      <span>删除</span>
-                    </Button>
+                    {CommentsService.canDeleteComment(comment, user?.id) && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={(e) => { e.stopPropagation(); setDeleteConfirm({ isOpen: true, commentId: comment.id }); }}
+                        className="flex items-center space-x-1 text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span>删除</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -333,10 +378,11 @@ export const MyCommentsPage: React.FC = () => {
                   <div className="flex items-center space-x-6 text-sm text-gray-500">
                     <span>{comment.likeCount || 0} 点赞</span>
                     <span>{comment.replyCount || 0} 回复</span>
-                    {comment.replyUserName && (
-                      <span className="text-blue-600">
-                        回复 @{comment.replyUserName}
-                      </span>
+                    {comment.replyUserName && isMine(comment) && (
+                      <span className="text-blue-600">你 回复 @{comment.replyUserName}</span>
+                    )}
+                    {isReplyToMe(comment) && (
+                      <span className="text-orange-600">{comment.commentUserName} 回复了你</span>
                     )}
                   </div>
                   
