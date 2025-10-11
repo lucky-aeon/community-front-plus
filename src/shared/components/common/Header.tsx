@@ -95,7 +95,7 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.avatar || undefined} alt={user.name} />
+                    <AvatarImage src={user.avatar || '/avatars/avatar_1.png'} alt={user.name} />
                     <AvatarFallback>{(user.name || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <div className="hidden sm:block">

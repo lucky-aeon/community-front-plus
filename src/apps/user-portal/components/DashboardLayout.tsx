@@ -66,7 +66,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             <div className={`px-2 pb-3 ${isCollapsed ? 'text-center' : ''}`}>
               <div className="flex items-center gap-3">
                 <Avatar className={`${isCollapsed ? 'h-8 w-8 mx-auto' : 'h-10 w-10'} shrink-0`}>
-                  <AvatarImage src={user?.avatar || undefined} alt={user?.name || ''} />
+                  <AvatarImage src={user?.avatar || '/avatars/avatar_1.png'} alt={user?.name || ''} />
                   <AvatarFallback>{(user?.name || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 {!isCollapsed && (

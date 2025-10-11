@@ -193,7 +193,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <Avatar className="h-12 w-12">
-              <AvatarImage src={user?.avatar || undefined} alt={user?.name || ''} />
+              <AvatarImage src={user?.avatar || '/avatars/avatar_1.png'} alt={user?.name || ''} />
               <AvatarFallback>{(user?.name || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
             </Avatar>
               <div className="flex-1 min-w-0">

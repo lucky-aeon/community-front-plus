@@ -303,7 +303,7 @@ export class AuthService {
       id: backendUser.id,
       name: backendUser.name,
       email: backendUser.email,
-      avatar: normalizeAvatar(backendUser.avatar) || `https://images.pexels.com/photos/2379004/pexels-photo-2379004.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop`,
+      avatar: normalizeAvatar(backendUser.avatar) || `/avatars/avatar_1.png`,
       maxConcurrentDevices: backendUser.maxConcurrentDevices,
       tags: backendUser.tags || [],
       // 不在前端推断套餐等级
