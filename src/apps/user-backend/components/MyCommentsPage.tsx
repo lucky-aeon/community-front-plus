@@ -24,7 +24,7 @@ export const MyCommentsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; commentId: string | null }>({ isOpen: false, commentId: null });
   // 展示维度：我发表的 | 回复我的 | 全部
-  const [activeTab, setActiveTab] = useState<'mine' | 'toMe' | 'all'>('mine');
+  const [activeTab, setActiveTab] = useState<'mine' | 'toMe' | 'all'>('all');
 
   // 回复相关状态
   const [replyingCommentId, setReplyingCommentId] = useState<string | null>(null);
