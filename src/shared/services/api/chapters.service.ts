@@ -99,7 +99,9 @@ export class ChaptersService {
    */
   static async getFrontChapterDetail(id: string): Promise<FrontChapterDetailDTO> {
     const response = await apiClient.get<ApiResponse<FrontChapterDetailDTO>>(`/app/chapters/${id}`);
-    return response.data.data;
+    const data = response.data.data as FrontChapterDetailDTO;
+    // 稳定字段：aiSummary 位于 data.aiSummary
+    return data;
   }
 
   /**

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { BookOpen, Clock, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { CoursesService, ChaptersService } from '@shared/services/api';
 import { useTextChapterProgress } from '@shared/hooks/useTextChapterProgress';
 import { useVideoChapterProgress } from '@shared/hooks/useVideoChapterProgress';
@@ -27,6 +27,8 @@ export const ChapterDetailPage: React.FC = () => {
   const [isChapterLoading, setIsChapterLoading] = useState(true);
   const [courseError, setCourseError] = useState<string | null>(null);
   const [chapterError, setChapterError] = useState<string | null>(null);
+  // AI 总结：折叠
+  const [aiCollapsed, setAiCollapsed] = useState(true);
 
   // 视频播放器引用
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
@@ -235,6 +237,36 @@ export const ChapterDetailPage: React.FC = () => {
         {/* 内容区 */}
         <div className="space-y-6 lg:col-span-2">
           <Card className="p-6">
+            {/* 🤖 AI 总结（章节） */}
+            {chapterDetail?.aiSummary && (
+              <div className="bg-purple-50 p-4 rounded-lg mb-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-purple-900">🤖 AI 总结（基于章节与评论）</h3>
+                  <button
+                    type="button"
+                    className="text-xs text-purple-700 hover:text-purple-900 inline-flex items-center gap-1"
+                    onClick={() => setAiCollapsed((v) => !v)}
+                  >
+                    {aiCollapsed ? '展开' : '收起'}
+                    {aiCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                  </button>
+                </div>
+                {!aiCollapsed && (
+                  <div className="prose-content mt-3">
+                    <MarkdownEditor
+                      value={chapterDetail.aiSummary}
+                      onChange={() => {}}
+                      previewOnly
+                      height="auto"
+                      toolbar={false}
+                      enableFullscreen={false}
+                      enableToc={false}
+                      className="!border-none !shadow-none !bg-transparent"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
             {isVideoChapter ? (
               // 视频章节
               <div className="space-y-6">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, MessageSquare, CheckCircle, Eye } from 'lucide-react';
+import { ArrowLeft, MessageSquare, CheckCircle, Eye, ChevronDown, ChevronUp } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card } from '@/components/ui/card';
@@ -29,6 +29,8 @@ export const PostDetailPage: React.FC = () => {
   const [sameCategoryPosts, setSameCategoryPosts] = useState<FrontPostDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // AI 总结：折叠
+  const [aiCollapsed, setAiCollapsed] = useState(true);
 
   const scrollToComments = () => {
     const el = document.getElementById('comments');
@@ -302,6 +304,37 @@ export const PostDetailPage: React.FC = () => {
             {/* 表情操作也放到顶部 */}
             <ReactionBar businessType={'POST'} businessId={post.id} className="mb-4 -mt-4" />
             <Separator className="my-4" />
+
+            {/* AI Summary */}
+            {post.aiSummary && (
+              <div className="bg-purple-50 p-4 rounded-lg mb-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-purple-900">🤖 AI 总结（基于文章与评论）</h3>
+                  <button
+                    type="button"
+                    className="text-xs text-purple-700 hover:text-purple-900 inline-flex items-center gap-1"
+                    onClick={() => setAiCollapsed((v) => !v)}
+                  >
+                    {aiCollapsed ? '展开' : '收起'}
+                    {aiCollapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                  </button>
+                </div>
+                {!aiCollapsed && (
+                  <div className="prose-content mt-3">
+                    <MarkdownEditor
+                      value={post.aiSummary}
+                      onChange={() => {}}
+                      previewOnly
+                      height="auto"
+                      toolbar={false}
+                      className="!border-none !shadow-none !bg-transparent"
+                      enableFullscreen={false}
+                      enableToc={false}
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Post Summary - 移到内容上方 */}
             {post.summary && (

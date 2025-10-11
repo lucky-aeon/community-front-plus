@@ -147,11 +147,12 @@ export class PostsService {
    */
   static async getPublicPostDetail(id: string): Promise<FrontPostDetailDTO> {
     const response = await apiClient.get<ApiResponse<FrontPostDetailDTO>>(`/app/posts/${id}`);
-    const data = response.data.data;
+    const data = response.data.data as FrontPostDetailDTO;
+    // 以稳定字段为准：aiSummary 位于 data.aiSummary
     return {
       ...data,
-      coverImage: ResourceAccessService.toAccessUrl(data.coverImage),
-      authorAvatar: ResourceAccessService.toAccessUrl(data.authorAvatar)
+      coverImage: ResourceAccessService.toAccessUrl((data as any).coverImage),
+      authorAvatar: ResourceAccessService.toAccessUrl((data as any).authorAvatar)
     } as FrontPostDetailDTO;
   }
 

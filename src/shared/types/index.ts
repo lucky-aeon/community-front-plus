@@ -256,6 +256,8 @@ export interface FrontPostDetailDTO {
   title: string;
   content: string;         // 完整文章内容
   summary?: string;
+  // 🤖 AI 总结（基于文章与评论的自动总结，后端可选返回）
+  aiSummary?: string;
   coverImage?: string;
   authorId: string;        // 作者ID
   authorName: string;      // 作者名称
@@ -1117,6 +1119,8 @@ export interface FrontChapterDetailDTO {
   id: string;                    // 章节ID
   title: string;                 // 章节标题
   content: string;               // 章节内容（Markdown格式）
+  // 🤖 AI 总结（基于章节与评论的自动总结，后端可选返回）
+  aiSummary?: string;
   courseId: string;              // 所属课程ID
   courseName: string;            // 所属课程名称
   sortOrder: number;             // 章节排序
