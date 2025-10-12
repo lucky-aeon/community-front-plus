@@ -91,10 +91,15 @@ export const RecentCourseChapters: React.FC<RecentCourseChaptersProps> = ({
               <div
                 key={item.id}
                 className="group p-3 rounded-lg cursor-pointer border border-gray-100 hover:border-blue-200 hover:bg-blue-50/40 transition-colors"
-                onClick={() => isChapterMode
-                  ? ('courseId' in item ? handleChapterClick(item.courseId, item.id) : undefined)
-                  : handleCourseClick(item.id)
-                }
+                onClick={() => {
+                  if (isChapterMode) {
+                    const chapter = item as LatestChapterDTO;
+                    handleChapterClick(chapter.courseId, chapter.id);
+                  } else {
+                    const course = item as FrontCourseDTO;
+                    handleCourseClick(course.id);
+                  }
+                }}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 space-y-1.5">

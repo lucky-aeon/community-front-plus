@@ -124,7 +124,7 @@ export const RecentLearningBanner: React.FC<RecentLearningBannerProps> = ({ clas
 
           <div className="mt-1 sm:mt-2">
             <button
-              className="text-left text-gray-900 hover:text-blue-600 font-medium truncate"
+              className="block w-full text-left text-gray-900 hover:text-blue-600 font-medium truncate"
               title={first.courseTitle}
               onClick={gotoCourse}
             >
@@ -134,7 +134,7 @@ export const RecentLearningBanner: React.FC<RecentLearningBannerProps> = ({ clas
               <div className="mt-1 text-sm text-gray-600">
                 最近章节：
                 <button
-                  className="text-blue-600 hover:underline"
+                  className="block w-full text-blue-600 hover:underline truncate"
                   onClick={goContinue}
                 >
                   {first.lastAccessChapterTitle || `#${first.lastAccessChapterId}`}
@@ -167,4 +167,3 @@ export const RecentLearningBanner: React.FC<RecentLearningBannerProps> = ({ clas
 };
 
 export default RecentLearningBanner;
-
