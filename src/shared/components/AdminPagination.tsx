@@ -42,10 +42,22 @@ function getPages(current: number, totalPages: number, siblingCount: number, bou
 
   // 合并
   pages.push(...startPages);
-  if (start > boundaryCount + 2) pages.push('start-ellipsis');
-  // 在极端情况下确保 start <= end
+  // 左侧：如果刚好只差一页（start === boundary+2），补上 boundary+1；如果差距更大，展示省略号
+  if (start > boundaryCount + 2) {
+    pages.push('start-ellipsis');
+  } else if (start === boundaryCount + 2) {
+    pages.push(boundaryCount + 1);
+  }
+
+  // 中间页
   for (let i = start; i <= end; i++) pages.push(i);
-  if (end < totalPages - boundaryCount - 1) pages.push('end-ellipsis');
+
+  // 右侧：如果刚好只差一页（end === totalPages - boundary - 1），补上 totalPages - boundary；如果差距更大，展示省略号
+  if (end < totalPages - boundaryCount - 1) {
+    pages.push('end-ellipsis');
+  } else if (end === totalPages - boundaryCount - 1) {
+    pages.push(totalPages - boundaryCount);
+  }
   endPages.forEach((p) => {
     if (!pages.includes(p)) pages.push(p);
   });
