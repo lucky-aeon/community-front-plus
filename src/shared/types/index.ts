@@ -1720,6 +1720,13 @@ export interface BannedIpDTO {
   remainSeconds: number;               // 剩余封禁时间（秒）
 }
 
+// 被封禁用户数据传输对象（与后端 BannedUserDTO 对齐）
+export interface BannedUserDTO {
+  userId: string;                      // 用户ID
+  bannedUntil?: string | null;         // 封禁到期时间（ISO字符串格式；永久封禁为 null）
+  remainSeconds: number;               // 剩余封禁时间（秒；永久封禁为 -1）
+}
+
 // ================ 表情管理（管理员）相关接口定义 ================
 
 // 管理员视角表情DTO（与后端 ExpressionDTO 对齐）
