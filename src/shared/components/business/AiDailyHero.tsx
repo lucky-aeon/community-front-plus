@@ -74,7 +74,10 @@ export const AiDailyHero: React.FC = () => {
           <h2 className="mt-4 text-xl md:text-2xl font-bold leading-snug">
             {title}
           </h2>
-          <Button onClick={() => navigate('/dashboard/ai-news')} className="mt-6 bg-honey-500 hover:bg-honey-600">
+          <Button
+            onClick={() => navigate(today?.date ? `/dashboard/ai-news/daily/${encodeURIComponent(today.date)}` : '/dashboard/ai-news')}
+            className="mt-6 bg-honey-500 hover:bg-honey-600"
+          >
             查看日报
           </Button>
         </div>
