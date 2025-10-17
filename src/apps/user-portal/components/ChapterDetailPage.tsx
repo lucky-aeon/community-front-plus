@@ -329,7 +329,8 @@ export const ChapterDetailPage: React.FC = () => {
               <h2 className="text-lg font-bold">课程目录</h2>
               <Badge variant="secondary">共 {orderedChapters.length} 章</Badge>
             </div>
-            <div className="space-y-1">
+            {/* 限高并可滚动，避免目录过长撑高页面 */}
+            <div className="space-y-1 max-h-[60vh] overflow-y-auto pr-1">
               {orderedChapters.map((ch, idx) => {
                 const active = ch.id === chapterDetail.id;
                 return (
