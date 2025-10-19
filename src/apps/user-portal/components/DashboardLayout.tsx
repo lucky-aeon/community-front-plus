@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Home, MessageSquare, BookOpen, Menu, X, ChevronLeft, ChevronRight, Settings, FileText, LogOut } from 'lucide-react';
+import { Home, MessageSquare, BookOpen, Menu, X, ChevronLeft, ChevronRight, Settings, FileText, LogOut, ListChecks } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { navigationConfig } from '@shared/routes/routes';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
@@ -26,7 +26,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const { isAllowed } = useUserMenuCodes();
 
   // 图标映射
-  const iconMap = { Home, MessageSquare, BookOpen, FileText } as const;
+  const iconMap = { Home, MessageSquare, BookOpen, FileText, ListChecks } as const;
   const navigation = navigationConfig.map((item) => ({ ...item, icon: iconMap[item.icon as keyof typeof iconMap] }));
 
   const handleUserBackendClick = () => {

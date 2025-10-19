@@ -15,7 +15,7 @@ import AdminPagination from '@shared/components/AdminPagination';
 import { CategoriesService } from '@shared/services/api/categories.service';
 import type { CategoryDTO, CategoryQueryRequest, PageResponse } from '@shared/types';
 
-type CategoryType = 'ARTICLE' | 'QA';
+type CategoryType = 'ARTICLE' | 'QA' | 'INTERVIEW';
 
 export const CategoriesPage: React.FC = () => {
   const [list, setList] = useState<CategoryDTO[]>([]);
@@ -122,7 +122,7 @@ export const CategoriesPage: React.FC = () => {
     }
   };
 
-  const typeText = (t: CategoryType) => (t === 'ARTICLE' ? '文章' : '问答');
+  const typeText = (t: CategoryType) => (t === 'ARTICLE' ? '文章' : t === 'QA' ? '问答' : '题库');
   const activeBadge = (active: boolean) => <Badge variant={active ? 'default' : 'secondary'}>{active ? '启用' : '停用'}</Badge>;
 
   return (
@@ -139,6 +139,7 @@ export const CategoriesPage: React.FC = () => {
                 <SelectItem value="all">全部</SelectItem>
                 <SelectItem value="ARTICLE">文章</SelectItem>
                 <SelectItem value="QA">问答</SelectItem>
+                <SelectItem value="INTERVIEW">题库</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filters.parentId || 'all'} onValueChange={(v) => setFilters(prev => ({ ...prev, parentId: v === 'all' ? undefined : v }))} disabled={!filters.type}>
@@ -275,6 +276,7 @@ export const CategoriesPage: React.FC = () => {
                 <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
                   <SelectItem value="ARTICLE">文章</SelectItem>
                   <SelectItem value="QA">问答</SelectItem>
+                  <SelectItem value="INTERVIEW">题库</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -8,6 +8,9 @@ import { MessageCenterPage } from './MessageCenterPage';
 import { ProfileSettingsPage } from './ProfileSettingsPage';
 import { MyResourcesPage } from './MyResourcesPage';
 import { MyLearningPage } from './MyLearningPage';
+import { MyInterviewQuestionsPage } from './MyInterviewQuestionsPage';
+import { CreateInterviewQuestionPage } from './CreateInterviewQuestionPage';
+import { EditInterviewQuestionPage } from './EditInterviewQuestionPage';
 import { DeviceManagementPage } from './DeviceManagementPage';
 import { FollowsPage } from './FollowsPage';
 import { CreatePostPage } from '../../user-portal/components/CreatePostPage';
@@ -84,6 +87,9 @@ export const UserBackend: React.FC = () => {
         <Route path="/testimonial" element={<MyTestimonialPage />} />
         <Route path="/resources" element={<MyResourcesPage />} />
         <Route path="/learning" element={<MyLearningPage />} />
+        <Route path="/interviews" element={<MyInterviewQuestionsPage />} />
+        <Route path="/interviews/create" element={<CreateInterviewQuestionPage />} />
+        <Route path="/interviews/edit/:id" element={<EditInterviewQuestionPage />} />
         <Route path="/messages" element={<MessageCenterPage />} />
         <Route path="/profile" element={<ProfileSettingsPage />} />
         

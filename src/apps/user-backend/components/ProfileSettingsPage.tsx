@@ -70,7 +70,7 @@ export const ProfileSettingsPage: React.FC = () => {
       // await UserService.updateAvatar(avatarAccessUrl);
     } catch (error) {
       console.error('更新头像失败:', error);
-      showToast.error('头像上传成功，但更新失败，请刷新页面');
+      // Axios 错误由拦截器统一提示；此处不重复弹窗
     }
   };
 

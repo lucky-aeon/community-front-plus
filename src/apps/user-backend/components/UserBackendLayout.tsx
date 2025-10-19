@@ -112,6 +112,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
       title: '内容管理',
       items: [
         { id: 'articles', name: '我的文章', icon: FileText, path: '/dashboard/user-backend/articles' },
+        { id: 'interviews_user', name: '我的题库', icon: BookOpen, path: '/dashboard/user-backend/interviews' },
         { id: 'comments', name: '我的评论', icon: MessageSquare, path: '/dashboard/user-backend/comments' },
         { id: 'testimonial', name: '我的评价', icon: Star, path: '/dashboard/user-backend/testimonial' },
         { id: 'resources', name: '资源管理', icon: Folder, path: '/dashboard/user-backend/resources' },

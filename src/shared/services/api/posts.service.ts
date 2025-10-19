@@ -163,7 +163,7 @@ export class PostsService {
   /**
    * 获取文章分类列表
    */
-  static async getCategories(type?: 'ARTICLE' | 'QA'): Promise<Category[]> {
+  static async getCategories(type?: 'ARTICLE' | 'QA' | 'INTERVIEW' | string): Promise<Category[]> {
     const params = type ? { type } : {};
     const response = await apiClient.get<ApiResponse<Category[]>>('/app/categories/tree', { params });
     return response.data.data;

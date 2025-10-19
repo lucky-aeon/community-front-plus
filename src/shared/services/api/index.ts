@@ -34,6 +34,8 @@ export { UserSubscriptionService } from './user-subscription.service';
 export { AdminAiNewsService } from './admin-ai-news.service';
 export { AppAiNewsService } from './app-ai-news.service';
 export { UserLearningService } from './user-learning.service';
+export { InterviewQuestionsService } from './interview-questions.service';
+export { AdminInterviewQuestionsService } from './admin-interview-questions.service';
 
 // 导出类型定义
 export type {
@@ -130,4 +132,10 @@ export type {
   CourseProgressDTO,
   LearningRecordItemDTO,
   LearningRecordQueryRequest,
+  // 面试题
+  InterviewQuestionDTO,
+  InterviewQuestionQueryRequest,
+  CreateInterviewQuestionRequest,
+  UpdateInterviewQuestionRequest,
+  InterviewProblemStatus,
 } from '@shared/types';

@@ -141,7 +141,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           return;
         }
         await resetPassword(email, formData.code, formData.password);
-        showToast.success('密码重置成功，请使用新密码登录');
         switchMode('login');
         return;
       }
@@ -178,10 +177,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     try {
       if (isRegister) {
         await sendRegisterCode(email);
-        showToast.success('验证码已发送，请注意查收邮箱');
       } else if (isForgot) {
         await sendPasswordResetCode(email);
-        showToast.success('重置验证码已发送，请查收邮箱');
       }
       // 启动 5 分钟倒计时
       setCooldown(300);

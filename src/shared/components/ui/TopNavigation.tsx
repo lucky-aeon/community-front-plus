@@ -13,7 +13,8 @@ import {
   Shield,
   Key,
   Bell,
-  Newspaper
+  Newspaper,
+  ListChecks
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -87,6 +88,14 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
       icon: Newspaper,
       description: '每日AI资讯精选',
       code: MENU_CODE.DASHBOARD_AI_NEWS
+    },
+    {
+      id: 'interviews',
+      name: '题库',
+      path: '/dashboard/interviews',
+      icon: ListChecks,
+      description: '面试题与解答',
+      code: MENU_CODE.DASHBOARD_INTERVIEWS
     },
   ];
 

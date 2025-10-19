@@ -4,10 +4,12 @@ export const MENU_CODE = {
   DASHBOARD_HOME: 'MENU_DASHBOARD_HOME',
   DASHBOARD_DISCUSSIONS: 'MENU_DASHBOARD_DISCUSSIONS',
   DASHBOARD_COURSES: 'MENU_DASHBOARD_COURSES',
+  DASHBOARD_INTERVIEWS: 'MENU_DASHBOARD_INTERVIEWS',
   DASHBOARD_CHANGELOG: 'MENU_DASHBOARD_CHANGELOG',
   DASHBOARD_AI_NEWS: 'MENU_DASHBOARD_AI_NEWS',
   USER_BACKEND: 'MENU_USER_BACKEND',
   USER_ARTICLES: 'MENU_USER_ARTICLES',
+  USER_INTERVIEWS: 'MENU_USER_INTERVIEWS',
   USER_COMMENTS: 'MENU_USER_COMMENTS',
   USER_TESTIMONIAL: 'MENU_USER_TESTIMONIAL',
   USER_RESOURCES: 'MENU_USER_RESOURCES',
@@ -26,10 +28,12 @@ export const NAV_ID_TO_CODE: Record<string, MenuCode | undefined> = {
   home: MENU_CODE.DASHBOARD_HOME,
   discussions: MENU_CODE.DASHBOARD_DISCUSSIONS,
   courses: MENU_CODE.DASHBOARD_COURSES,
+  interviews: MENU_CODE.DASHBOARD_INTERVIEWS,
   changelog: MENU_CODE.DASHBOARD_CHANGELOG,
   'ai-news': MENU_CODE.DASHBOARD_AI_NEWS,
   // 用户中心左侧导航 id
   articles: MENU_CODE.USER_ARTICLES,
+  interviews_user: MENU_CODE.USER_INTERVIEWS,
   comments: MENU_CODE.USER_COMMENTS,
   testimonial: MENU_CODE.USER_TESTIMONIAL,
   resources: MENU_CODE.USER_RESOURCES,
@@ -54,11 +58,14 @@ const PATH_PREFIX_TO_CODE_ORDERED: Array<{ prefix: string; code: MenuCode }> = [
   // 用户门户
   { prefix: '/dashboard/membership', code: MENU_CODE.MEMBERSHIP },
   { prefix: '/dashboard/ai-news', code: MENU_CODE.DASHBOARD_AI_NEWS },
+  { prefix: '/dashboard/interviews', code: MENU_CODE.DASHBOARD_INTERVIEWS },
   { prefix: '/dashboard/discussions', code: MENU_CODE.DASHBOARD_DISCUSSIONS },
   { prefix: '/dashboard/courses', code: MENU_CODE.DASHBOARD_COURSES },
   { prefix: '/dashboard/changelog', code: MENU_CODE.DASHBOARD_CHANGELOG },
   { prefix: '/dashboard/home', code: MENU_CODE.DASHBOARD_HOME },
   { prefix: '/dashboard', code: MENU_CODE.DASHBOARD_HOME },
+  // 用户中心 - 题库
+  { prefix: '/dashboard/user-backend/interviews', code: MENU_CODE.USER_INTERVIEWS },
 ];
 
 export function getMenuCodeByPathname(pathname: string): MenuCode | null {

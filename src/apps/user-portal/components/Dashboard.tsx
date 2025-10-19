@@ -11,6 +11,8 @@ import { ChapterDetailPage } from './ChapterDetailPage';
 import { UserBackend } from '../../user-backend/components/UserBackend';
 import { MembershipPage } from './MembershipPage';
 import { AiNewsPage } from './AiNewsPage';
+import { InterviewQuestionsPage } from './InterviewQuestionsPage';
+import { InterviewQuestionDetailPage } from './InterviewQuestionDetailPage';
 import { AiNewsDetailPage } from './AiNewsDetailPage';
 
 export const Dashboard: React.FC = () => {
@@ -40,6 +42,8 @@ export const Dashboard: React.FC = () => {
               <Route path="/ai-news" element={<AiNewsPage />} />
               <Route path="/ai-news/daily/:date" element={<AiNewsPage />} />
               <Route path="/ai-news/:id" element={<AiNewsDetailPage />} />
+              <Route path="/interviews" element={<InterviewQuestionsPage />} />
+              <Route path="/interviews/:id" element={<InterviewQuestionDetailPage />} />
 
               {/* 404 处理 */}
               <Route path="*" element={<Navigate to="/dashboard/home" replace />} />

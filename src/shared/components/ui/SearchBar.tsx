@@ -18,13 +18,17 @@ interface SearchBarProps {
   placeholder?: string;
   onSearch?: (query: string) => void;
   onResultClick?: (result: SearchResult) => void;
+  showRecent?: boolean; // 是否展示最近搜索
+  showSuggestions?: boolean; // 是否展示下拉搜索结果
 }
 
 export const SearchBar: React.FC<SearchBarProps> = ({
   className,
   placeholder = "搜索课程、文章、讨论...",
   onSearch,
-  onResultClick
+  onResultClick,
+  showRecent = true,
+  showSuggestions = true,
 }) => {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -79,9 +83,9 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setQuery(value);
-    setIsOpen(true);
+    setIsOpen(showSuggestions);
 
-    if (value.length > 0) {
+    if (value.length > 0 && showSuggestions) {
       setIsLoading(true);
       // 模拟搜索延迟
       setTimeout(() => {
@@ -143,7 +147,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           type="text"
           value={query}
           onChange={handleInputChange}
-          onFocus={() => setIsOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              onSearch?.(query);
+              setIsOpen(false);
+            }
+          }}
+          onFocus={() => setIsOpen(showSuggestions || showRecent)}
           placeholder={placeholder}
           className={cn(
             "pl-10 pr-10 h-10 bg-white/90 backdrop-blur-sm border-honey-border",
@@ -218,7 +228,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             )}
 
             {/* Recent Searches */}
-            {!isLoading && query.length === 0 && (
+            {!isLoading && showRecent && query.length === 0 && (
               <div className="py-2">
                 <div className="px-4 py-2 text-xs font-semibold text-warm-gray-500 uppercase tracking-wider border-b border-gray-100">
                   最近搜索

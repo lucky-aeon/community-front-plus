@@ -117,7 +117,7 @@ export class CategoriesService {
    * @param type 可选的分类类型筛选
    * @returns 主分类列表
    */
-  static async getRootCategories(type?: 'ARTICLE' | 'QA'): Promise<CategoryDTO[]> {
+  static async getRootCategories(type?: 'ARTICLE' | 'QA' | 'INTERVIEW' | string): Promise<CategoryDTO[]> {
     const response = await this.getCategoriesList({
       pageNum: 1,
       pageSize: 100, // 获取较多数据

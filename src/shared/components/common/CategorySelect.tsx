@@ -19,7 +19,7 @@ interface CategorySelectProps {
   required?: boolean;
   error?: string;
   className?: string;
-  categoryType?: 'ARTICLE' | 'QA';  // 根据文章类型过滤分类
+  categoryType?: 'ARTICLE' | 'QA' | 'INTERVIEW' | string;  // 根据类型过滤分类
 }
 
 export const CategorySelect: React.FC<CategorySelectProps> = ({
@@ -60,43 +60,7 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({
       } catch (error) {
         console.error('获取分类列表失败:', error);
         setLoadError('获取分类列表失败');
-        // 设置默认分类数据以防API失败
-        const defaultType = categoryType || 'ARTICLE';
-        setCategories([
-          {
-            id: 'default-1',
-            name: '技术分享',
-            type: defaultType,
-            level: 1,
-            parentId: null,
-            sortOrder: 1,
-            isActive: true,
-            createTime: new Date().toISOString(),
-            updateTime: new Date().toISOString()
-          },
-          {
-            id: 'default-2',
-            name: '学习心得',
-            type: defaultType,
-            level: 1,
-            parentId: null,
-            sortOrder: 2,
-            isActive: true,
-            createTime: new Date().toISOString(),
-            updateTime: new Date().toISOString()
-          },
-          {
-            id: 'default-3',
-            name: '项目经验',
-            type: defaultType,
-            level: 1,
-            parentId: null,
-            sortOrder: 3,
-            isActive: true,
-            createTime: new Date().toISOString(),
-            updateTime: new Date().toISOString()
-          }
-        ]);
+        setCategories([]);
       } finally {
         setLoading(false);
       }
@@ -105,10 +69,13 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({
     fetchCategories();
   }, [categoryType]);
 
-  // 如果按类型过滤后未包含当前值，回退拉取全部类型以保证编辑态能正确显示
+  // 如果按类型过滤后未包含当前值：
+  // 仅当未指定 categoryType 时尝试回退获取全部类型；
+  // 指定了类型（如 INTERVIEW）时不回退，保持严格类型集合。
   useEffect(() => {
     const ensureSelectedExists = async () => {
       if (!value || loading || loadError) return;
+      if (categoryType) return; // 严格类型：不做回退
       const flat = new Set(flattenCategories(categories).map(c => c.id));
       if (flat.has(value)) return;
       try {
@@ -123,7 +90,7 @@ export const CategorySelect: React.FC<CategorySelectProps> = ({
     };
     ensureSelectedExists();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value, categories]);
+  }, [value, categories, categoryType]);
 
 
   return (

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { MessageSquare, Send, Loader2, Trash2, CornerDownRight, LogIn, FileText, BookOpen, Book, Clock, ChevronRight, AtSign } from 'lucide-react';
+import { MessageSquare, Send, Loader2, Trash2, CornerDownRight, LogIn, FileText, BookOpen, Book, Clock, ChevronRight, AtSign, ListChecks } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -146,6 +146,8 @@ export const Comments: React.FC<CommentsProps> = ({
         return { label: '课程', Icon: BookOpen, badgeCls: 'bg-blue-50 text-blue-700 border-blue-200', iconCls: 'text-blue-600' };
       case 'CHAPTER':
         return { label: '章节', Icon: Book, badgeCls: 'bg-purple-50 text-purple-700 border-purple-200', iconCls: 'text-purple-600' };
+      case 'INTERVIEW_QUESTION':
+        return { label: '题库', Icon: ListChecks, badgeCls: 'bg-amber-50 text-amber-700 border-amber-200', iconCls: 'text-amber-600' };
       default:
         return { label: '内容', Icon: FileText, badgeCls: 'bg-gray-50 text-gray-700 border-gray-200', iconCls: 'text-gray-600' };
     }

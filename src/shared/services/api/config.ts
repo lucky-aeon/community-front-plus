@@ -98,7 +98,7 @@ apiClient.interceptors.response.use(
                 localStorage.removeItem('auth_token');
                 localStorage.removeItem('user');
                 // 统一过期提示交由拦截器弹出
-                showToast.error('会话已失效/在其他设备登录被挤下线，请重新登录');
+                showToast.error('登录已过期，请重新登录');
                 // 通知应用执行登出逻辑（AuthContext 监听此事件并导航）
                 try { window.dispatchEvent(new CustomEvent('auth:logout')); } catch { /* no-op */ }
               }
@@ -113,18 +113,28 @@ apiClient.interceptors.response.use(
             toastShown = true;
             break;
           }
-          // 统一 403 文案（禁止覆盖）：权限不足，请升级套餐
-          showToast.error('权限不足，请升级套餐');
+          // 统一 403 文案（禁止覆盖）
+          showToast.error('权限不足');
           toastShown = true;
           break;
-        case 404:
-          showToast.error('请求的资源未找到');
-          toastShown = true;
+        case 404: {
+          // 优先显示后端 message，否则兜底
+          const msg = data?.message || '请求的资源未找到';
+          if (msg.trim() !== '') {
+            showToast.error(msg);
+            toastShown = true;
+          }
           break;
-        case 500:
-          showToast.error('服务器错误，请稍后再试');
-          toastShown = true;
+        }
+        case 500: {
+          // 优先显示后端 message，否则兜底
+          const msg = data?.message || '服务器错误，请稍后再试';
+          if (msg.trim() !== '') {
+            showToast.error(msg);
+            toastShown = true;
+          }
           break;
+        }
         case 400: {
           // 客户端请求错误，显示后端返回的具体错误信息
           const badRequestMessage = data?.message || '请求参数有误';

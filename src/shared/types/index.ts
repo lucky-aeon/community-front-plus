@@ -265,7 +265,7 @@ export interface FrontPostDetailDTO {
   authorDescription?: string;  // 作者描述
   categoryId?: string;     // 分类ID（公开详情未必返回，置为可选）
   categoryName: string;    // 分类名称
-  categoryType?: 'ARTICLE' | 'QA'; // 分类类型（如后端提供则使用）
+  categoryType?: 'ARTICLE' | 'QA' | 'INTERVIEW' | string; // 分类类型（如后端提供则使用）
   tags?: string[];         // 标签
   likeCount: number;
   viewCount: number;
@@ -362,7 +362,7 @@ export interface UploadCredentialsDTO {
 export interface PublicPostQueryRequest {
   pageNum?: number;                    // 页码，从1开始，默认为1
   pageSize?: number;                   // 每页大小，默认为10，最大为100
-  categoryType?: 'ARTICLE' | 'QA';     // 分类类型过滤（可选）
+  categoryType?: 'ARTICLE' | 'QA' | 'INTERVIEW' | string;     // 分类类型过滤（可选）
   categoryId?: string;                 // 分类ID过滤（可选）：同分类文章
   title?: string;                      // 标题关键词搜索（可选）
   isTop?: boolean;                     // 是否置顶过滤（可选）
@@ -374,7 +374,7 @@ export interface Category {
   name: string;
   description?: string;
   parentId?: string;        // 父分类ID
-  type: 'ARTICLE' | 'QA';   // 分类类型
+  type: 'ARTICLE' | 'QA' | 'INTERVIEW' | string;   // 分类类型
   level: number;            // 分类层级
   sortOrder: number;        // 排序值
   icon?: string;            // 图标
@@ -473,7 +473,7 @@ export interface UserSubscriptionDTO {
 // ================ 评论相关接口定义 ================
 
 // 业务类型枚举
-export type BusinessType = 'POST' | 'COURSE' | 'CHAPTER';
+export type BusinessType = 'POST' | 'COURSE' | 'CHAPTER' | 'INTERVIEW_QUESTION';
 
 // 评论DTO（API返回的评论数据）
 export interface CommentDTO {
@@ -538,14 +538,14 @@ export interface CommentTreeNode extends CommentDTO {
 // 创建分类请求参数
 export interface CreateCategoryRequest {
   name: string;                  // 分类名称，必填，2-50字符
-  type: 'ARTICLE' | 'QA';        // 分类类型，必填
+  type: 'ARTICLE' | 'QA' | 'INTERVIEW' | string;        // 分类类型，必填
   sortOrder?: number;            // 排序值，可选
 }
 
 // 更新分类请求参数
 export interface UpdateCategoryRequest {
   name: string;                  // 分类名称，必填，2-50字符
-  type: 'ARTICLE' | 'QA';        // 分类类型，必填
+  type: 'ARTICLE' | 'QA' | 'INTERVIEW' | string;        // 分类类型，必填
   sortOrder?: number;            // 排序值，可选
 }
 
@@ -553,7 +553,7 @@ export interface UpdateCategoryRequest {
 export interface CategoryQueryRequest {
   pageNum?: number;              // 页码，从1开始，默认为1
   pageSize?: number;             // 每页大小，默认为10
-  type?: 'ARTICLE' | 'QA';       // 分类类型过滤，可选
+  type?: 'ARTICLE' | 'QA' | 'INTERVIEW' | string;       // 分类类型过滤，可选
   parentId?: string;             // 父分类ID过滤，可选
 }
 
@@ -563,7 +563,7 @@ export interface CategoryDTO {
   name: string;                  // 分类名称
   description?: string;          // 分类描述
   parentId?: string;             // 父分类ID
-  type: 'ARTICLE' | 'QA';        // 分类类型
+  type: 'ARTICLE' | 'QA' | 'INTERVIEW' | string;        // 分类类型
   level: number;                 // 分类层级
   sortOrder: number;             // 排序值
   icon?: string;                 // 图标
@@ -571,6 +571,64 @@ export interface CategoryDTO {
   createTime: string;            // 创建时间
   updateTime: string;            // 更新时间
   children?: CategoryDTO[];      // 子分类（树形结构用）
+}
+
+// ================ 面试题（题库）相关接口定义 ================
+
+// 面试题状态（与后端 ProblemStatus 对齐）
+export type InterviewProblemStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
+// 面试题DTO
+export interface InterviewQuestionDTO {
+  id: string;
+  title: string;
+  description: string;
+  answer: string;
+  rating: number;              // 难度 1-5
+  categoryId: string;
+  authorId: string;
+  status: InterviewProblemStatus;
+  publishTime?: string;
+  tags?: string[];
+  createTime: string;
+  updateTime: string;
+  // 新增回显字段（公开列表/详情返回）
+  categoryName?: string;
+  authorName?: string;
+  likeCount?: number;
+  viewCount?: number;
+  commentCount?: number;
+}
+
+// 创建/更新面试题请求
+export interface CreateInterviewQuestionRequest {
+  title: string;
+  description: string;
+  answer: string;
+  rating: number;              // 1-5
+  categoryId: string;
+  tags?: string[];
+}
+
+export interface UpdateInterviewQuestionRequest extends CreateInterviewQuestionRequest {}
+
+// 面试题查询请求（公开和我的均可使用）
+export interface InterviewQuestionQueryRequest {
+  pageNum?: number;
+  pageSize?: number;
+  status?: InterviewProblemStatus; // 我的列表可筛选状态；公开列表通常为已发布
+  categoryId?: string;
+  keyword?: string;                 // 标题关键词（兼容旧字段）
+  title?: string;                   // 标题搜索（新字段）
+  tag?: string;                     // 单个标签
+  minRating?: number;
+  maxRating?: number;
+}
+
+// 批量创建面试题请求：多个标题 + 单一分类ID
+export interface BatchCreateInterviewQuestionsRequest {
+  categoryId: string;
+  titles: string[]; // 每个标题非空字符串
 }
 
 // ================ 管理员课程管理相关接口定义 ================

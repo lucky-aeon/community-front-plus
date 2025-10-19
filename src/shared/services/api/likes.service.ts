@@ -1,6 +1,6 @@
 import { apiClient, type ApiResponse } from './config';
 
-export type LikeTargetType = 'POST' | 'COMMENT' | 'COURSE' | 'CHAPTER';
+export type LikeTargetType = 'POST' | 'COMMENT' | 'COURSE' | 'CHAPTER' | 'INTERVIEW_QUESTION';
 
 export interface ToggleLikeRequestBody {
   targetType: LikeTargetType;

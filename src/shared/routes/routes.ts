@@ -13,6 +13,8 @@ export const ROUTES = {
   DASHBOARD_CHANGELOG: '/dashboard/changelog',
   DASHBOARD_AI_NEWS: '/dashboard/ai-news',
   DASHBOARD_AI_NEWS_DETAIL: '/dashboard/ai-news/:id',
+  DASHBOARD_INTERVIEWS: '/dashboard/interviews',
+  DASHBOARD_INTERVIEWS_DETAIL: '/dashboard/interviews/:id',
   
   // 用户后台路由
   USER_BACKEND: '/dashboard/user-backend',
@@ -22,6 +24,7 @@ export const ROUTES = {
   USER_BACKEND_MESSAGES: '/dashboard/user-backend/messages',
   USER_BACKEND_PROFILE: '/dashboard/user-backend/profile',
   USER_BACKEND_FAVORITES: '/dashboard/user-backend/favorites',
+  USER_BACKEND_INTERVIEWS: '/dashboard/user-backend/interviews',
 
   // 管理员后台
   ADMIN_DASHBOARD: '/dashboard/admin',
@@ -37,6 +40,8 @@ export const routeUtils = {
   
   // 获取课程详情路由
   getCourseDetailRoute: (courseId: string) => `/dashboard/courses/${courseId}`,
+  // 获取题库详情路由
+  getInterviewDetailRoute: (id: string) => `/dashboard/interviews/${id}`,
   
   // 获取编辑文章路由
   getArticleEditRoute: (articleId: string) => `/dashboard/user-backend/articles/edit/${articleId}`,
@@ -69,6 +74,12 @@ export const navigationConfig = [
     name: '课程', 
     path: '/dashboard/courses',
     icon: 'BookOpen'
+  },
+  { 
+    id: 'interviews', 
+    name: '题库', 
+    path: '/dashboard/interviews',
+    icon: 'ListChecks'
   },
   { 
     id: 'ai-news', 
