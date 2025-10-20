@@ -37,7 +37,7 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className 
       try {
         const response = await PostsService.getPublicPosts({
           pageNum: 1,
-          pageSize: 5,
+          pageSize: 10,
           isTop: false // 明确过滤掉置顶文章，避免与首页置顶横幅重复
         });
         setRecentPosts(response.records);
