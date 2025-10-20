@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BookOpen, Clock, ExternalLink, Tags, Star, Lock, MessageSquare } from 'lucide-react';
-import { CoursesService, SubscribeService } from '@shared/services/api';
+import { CoursesService, SubscribeService, AppUnreadService } from '@shared/services/api';
 import { FrontCourseDetailDTO, FrontChapterDTO } from '@shared/types';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -24,6 +24,7 @@ export const CourseDetailPage: React.FC = () => {
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [followLoading, setFollowLoading] = useState<boolean>(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState<boolean>(false);
+  const clearedRef = React.useRef<boolean>(false);
 
   useEffect(() => {
     const fetchCourseDetail = async () => {
@@ -34,6 +35,15 @@ export const CourseDetailPage: React.FC = () => {
         setError(null);
         const courseData = await CoursesService.getFrontCourseDetail(courseId);
         setCourse(courseData);
+        // 列表加载成功后清零课程章节频道未读（幂等，首次进入触发）
+        try {
+          if (!clearedRef.current) {
+            clearedRef.current = true;
+            await AppUnreadService.visit('CHAPTERS');
+          }
+        } catch (e) {
+          console.error('清零课程章节未读失败:', e);
+        }
 
         // 获取订阅状态
         try {

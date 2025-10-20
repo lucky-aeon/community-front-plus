@@ -3,7 +3,7 @@ import { ListChecks, Tag, Eye, MessageSquare, Heart, Star, Loader2 } from 'lucid
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { InterviewQuestionsService } from '@shared/services/api';
+import { InterviewQuestionsService, AppUnreadService } from '@shared/services/api';
 import type { InterviewQuestionDTO, InterviewQuestionQueryRequest } from '@shared/types';
 import { SearchBar } from '@shared/components/ui/SearchBar';
 import { useNavigate } from 'react-router-dom';
@@ -23,6 +23,7 @@ export const InterviewQuestionsPage: React.FC = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const visitedRef = useRef<boolean>(false);
   const [keyword, setKeyword] = useState('');
   const [categoryId, setCategoryId] = useState<string>('');
   const [minRating, setMinRating] = useState<number | 'all'>('all');
@@ -56,6 +57,16 @@ export const InterviewQuestionsPage: React.FC = () => {
 
       setHasMore(page < result.pages);
       setCurrentPage(page);
+
+      // 列表加载成功后清零题目频道未读（仅首次调用一次，幂等）
+      try {
+        if (!visitedRef.current) {
+          visitedRef.current = true;
+          await AppUnreadService.visit('QUESTIONS');
+        }
+      } catch (e) {
+        console.error('清零题目未读失败:', e);
+      }
     } catch (e) {
       console.error('加载题库失败:', e);
     } finally {

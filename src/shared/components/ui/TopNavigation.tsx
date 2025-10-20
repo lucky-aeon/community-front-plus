@@ -38,7 +38,8 @@ import type { UserDTO } from '@shared/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useUserMenuCodes } from '@/hooks/useUserMenuCodes';
 import { MENU_CODE } from '@shared/constants/menu-codes';
-import { NotificationsService } from '@shared/services/api';
+import { NotificationsService, AppUnreadService } from '@shared/services/api';
+import type { UnreadSummaryDTO } from '@shared/types';
 
 interface TopNavigationProps {
   className?: string;
@@ -51,6 +52,9 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [postsUnread, setPostsUnread] = useState<number>(0);
+  const [questionsUnread, setQuestionsUnread] = useState<number>(0);
+  const [chaptersUnread, setChaptersUnread] = useState<number>(0);
 
   // 用户菜单码
   const { isAllowed } = useUserMenuCodes();
@@ -143,6 +147,45 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
     };
   }, [user?.id]);
 
+  // 路由切换时，主动刷新一次未读汇总（避免等待下一轮轮询）
+  useEffect(() => {
+    if (!user) return;
+    void AppUnreadService.refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
+
+  // 文章/题目未读红点：加载与轮询（前后台切换暂停）
+  useEffect(() => {
+    if (!user) {
+      setPostsUnread(0);
+      setQuestionsUnread(0);
+      return;
+    }
+    let cancelled = false;
+    const onSummary = (e: Event) => {
+      const detail = (e as CustomEvent<UnreadSummaryDTO>).detail;
+      if (!cancelled && detail) {
+        setPostsUnread(Math.max(0, detail.postsUnread || 0));
+        setQuestionsUnread(Math.max(0, detail.questionsUnread || 0));
+        setChaptersUnread(Math.max(0, detail.chaptersUnread || 0));
+      }
+    };
+    // 启动轮询，并订阅更新事件
+    AppUnreadService.start({ intervalMs: 60_000, pauseWhenHidden: true });
+    // 同步一次缓存快照（若已存在）
+    const snap = AppUnreadService.getSnapshot();
+    setPostsUnread(Math.max(0, snap.postsUnread || 0));
+    setQuestionsUnread(Math.max(0, snap.questionsUnread || 0));
+    setChaptersUnread(Math.max(0, snap.chaptersUnread || 0));
+    window.addEventListener('unread:summary', onSummary as EventListener);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('unread:summary', onSummary as EventListener);
+      // 清理轮询，避免在未挂载时继续请求
+      AppUnreadService.stop();
+    };
+  }, [user?.id]);
+
   const isActiveRoute = (path: string) => {
     if (path === '/dashboard/home') {
       return location.pathname === '/dashboard/home' || location.pathname === '/dashboard';
@@ -220,6 +263,13 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                   </div>
                 );
               }
+              const renderBadge = (count: number) => (
+                count > 0 ? (
+                  <span className="ml-1 inline-flex items-center justify-center bg-red-500 text-white rounded-full h-4 min-w-[1rem] px-1 text-[10px] leading-4 shadow">
+                    {count > 99 ? '99+' : count}
+                  </span>
+                ) : null
+              );
               return (
                 <NavLink
                   key={item.id}
@@ -238,7 +288,12 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                       "h-4 w-4 transition-colors",
                       isActive ? "text-honey-600" : "text-warm-gray-500 group-hover:text-honey-500"
                     )} />
-                    <span>{item.name}</span>
+                    <span className="inline-flex items-center">
+                      {item.name}
+                      {item.id === 'courses' && renderBadge(chaptersUnread)}
+                      {item.id === 'discussions' && renderBadge(postsUnread)}
+                      {item.id === 'interviews' && renderBadge(questionsUnread)}
+                    </span>
                   </div>
                 </NavLink>
               );
@@ -437,6 +492,13 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                         </div>
                       );
                     }
+                    const renderBadge = (count: number) => (
+                      count > 0 ? (
+                        <span className="ml-1 inline-flex items-center justify-center bg-red-500 text-white rounded-full h-4 min-w-[1rem] px-1 text-[10px] leading-4 shadow">
+                          {count > 99 ? '99+' : count}
+                        </span>
+                      ) : null
+                    );
                     return (
                       <NavLink
                         key={item.id}
@@ -451,7 +513,12 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                       >
                         <item.icon className="h-5 w-5" />
                         <div>
-                          <div className="text-sm font-medium">{item.name}</div>
+                          <div className="text-sm font-medium inline-flex items-center">
+                            {item.name}
+                            {item.id === 'courses' && renderBadge(chaptersUnread)}
+                            {item.id === 'discussions' && renderBadge(postsUnread)}
+                            {item.id === 'interviews' && renderBadge(questionsUnread)}
+                          </div>
                           <div className="text-xs text-warm-gray-500">{item.description}</div>
                         </div>
                       </NavLink>

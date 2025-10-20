@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { BookOpen, Clock, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
-import { CoursesService, ChaptersService } from '@shared/services/api';
+import { CoursesService, ChaptersService, AppUnreadService } from '@shared/services/api';
 import { useTextChapterProgress } from '@shared/hooks/useTextChapterProgress';
 import { useVideoChapterProgress } from '@shared/hooks/useVideoChapterProgress';
 import { FrontCourseDetailDTO, FrontChapterDetailDTO, FrontChapterDTO } from '@shared/types';
@@ -32,6 +32,7 @@ export const ChapterDetailPage: React.FC = () => {
 
   // 视频播放器引用
   const videoPlayerRef = useRef<VideoPlayerRef>(null);
+  const clearedRef = useRef<boolean>(false);
 
   // 判断章节类型（默认为 TEXT）
   const isVideoChapter = chapterDetail?.contentType === 'VIDEO';
@@ -69,6 +70,15 @@ export const ChapterDetailPage: React.FC = () => {
         setCourseError(null);
         const data = await CoursesService.getFrontCourseDetail(courseId);
         setCourse(data);
+        // 进入章节详情页同样视作已知晓章节列表（右侧目录可见），清零 CHAPTERS 未读（幂等）
+        try {
+          if (!clearedRef.current) {
+            clearedRef.current = true;
+            await AppUnreadService.visit('CHAPTERS');
+          }
+        } catch (e) {
+          console.error('清零课程章节未读失败:', e);
+        }
       } catch (err) {
         console.error('获取课程详情失败:', err);
         setCourseError('课程加载失败');

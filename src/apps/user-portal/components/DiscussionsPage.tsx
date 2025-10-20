@@ -7,6 +7,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RecentContent } from '@shared/components/business/RecentContent';
 import { PostsService } from '@shared/services/api/posts.service';
+import { AppUnreadService } from '@shared/services/api';
+import type { UnreadChannel } from '@shared/types';
 import { FrontPostDTO, PageResponse } from '@shared/types';
 
 export const DiscussionsPage: React.FC = () => {
@@ -18,6 +20,7 @@ export const DiscussionsPage: React.FC = () => {
   const [pageData, setPageData] = useState<PageResponse<FrontPostDTO> | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
+  const visitedRef = React.useRef<{ POSTS?: boolean; QUESTIONS?: boolean }>({});
 
   // 获取文章列表
   const fetchPosts = async (page: number = 1, categoryType?: 'ARTICLE' | 'QA', title?: string) => {
@@ -31,6 +34,17 @@ export const DiscussionsPage: React.FC = () => {
       });
       setPosts(response.records);
       setPageData(response);
+
+      // 列表加载成功后，清零“文章POSTS”频道未读（幂等）
+      try {
+        if (!visitedRef.current.POSTS) {
+          visitedRef.current.POSTS = true;
+          await AppUnreadService.visit('POSTS' as UnreadChannel);
+        }
+      } catch (e) {
+        // 静默失败，不弹toast，后续轮询/下次进入会覆盖
+        console.error('清零未读失败：', e);
+      }
     } catch (error) {
       console.error('获取文章列表失败:', error);
     } finally {

@@ -1395,6 +1395,15 @@ export interface UnreadCountResponse {
   unreadCount: number;
 }
 
+// ================ 列表级未读（文章/题目） ================
+export type UnreadChannel = 'POSTS' | 'QUESTIONS' | 'CHAPTERS';
+
+export interface UnreadSummaryDTO {
+  postsUnread: number;
+  questionsUnread: number;
+  chaptersUnread: number;
+}
+
 // 创建套餐请求参数
 export interface CreateSubscriptionPlanRequest {
   name: string;                        // 套餐名称，必填，2-100字符

@@ -36,6 +36,8 @@ export { AppAiNewsService } from './app-ai-news.service';
 export { UserLearningService } from './user-learning.service';
 export { InterviewQuestionsService } from './interview-questions.service';
 export { AdminInterviewQuestionsService } from './admin-interview-questions.service';
+export { UnreadService } from './unread.service';
+export { AppUnreadService } from './app-unread.service';
 
 // 导出类型定义
 export type {
@@ -138,4 +140,6 @@ export type {
   CreateInterviewQuestionRequest,
   UpdateInterviewQuestionRequest,
   InterviewProblemStatus,
+  UnreadSummaryDTO,
+  UnreadChannel,
 } from '@shared/types';
