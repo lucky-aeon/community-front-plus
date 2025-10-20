@@ -51,6 +51,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
+  const [isMobileCreateOpen, setIsMobileCreateOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [postsUnread, setPostsUnread] = useState<number>(0);
   const [questionsUnread, setQuestionsUnread] = useState<number>(0);
@@ -193,9 +195,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
     return location.pathname.startsWith(path);
   };
 
-  const handleCreateContent = () => {
-    navigate(ROUTES.USER_BACKEND_ARTICLES_CREATE);
-  };
+  const goCreateArticle = () => navigate(ROUTES.USER_BACKEND_ARTICLES_CREATE);
+  const goCreateQuestion = () => navigate(ROUTES.USER_BACKEND_INTERVIEWS);
 
   const handleLogoClick = () => {
     navigate('/dashboard/home');
@@ -303,18 +304,30 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
           {/* Right section: Actions + User */}
           <div className="flex items-center space-x-3">
             {/* Create Content Button */}
-            <Button
-              onClick={handleCreateContent}
-              className={cn(
-                "hidden sm:flex items-center space-x-2 h-9 px-4",
-                "bg-gradient-to-r from-honey-100 to-honey-200 hover:from-honey-200 hover:to-honey-300",
-                "text-honey-800 shadow-md hover:shadow-lg transition-all duration-200",
-                "border border-honey-200 focus:ring-2 focus:ring-honey-300/20"
-              )}
-            >
-              <Plus className="h-4 w-4" />
-              <span className="font-medium">发布</span>
-            </Button>
+            {/* Create Content Dropdown (Desktop) */}
+            <DropdownMenu open={isCreateMenuOpen} onOpenChange={setIsCreateMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className={cn(
+                    "hidden sm:flex items-center space-x-2 h-9 px-4",
+                    "bg-gradient-to-r from-honey-100 to-honey-200 hover:from-honey-200 hover:to-honey-300",
+                    "text-honey-800 shadow-md hover:shadow-lg transition-all duration-200",
+                    "border border-honey-200 focus:ring-2 focus:ring-honey-300/20"
+                  )}
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="font-medium">发布</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44 rounded-xl shadow-xl border border-honey-border p-1">
+                <DropdownMenuItem className="cursor-pointer" onClick={goCreateArticle}>
+                  发布文章
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={goCreateQuestion}>
+                  发布题目
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             {/* Notification Bell */}
             {user && (
@@ -601,12 +614,9 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
               </div>
 
               {/* Mobile Create Button */}
-              <div className="p-4 border-t border-honey-border">
+              <div className="p-4 border-t border-honey-border space-y-2">
                 <Button
-                  onClick={() => {
-                    handleCreateContent();
-                    setIsMobileMenuOpen(false);
-                  }}
+                  onClick={() => setIsMobileCreateOpen((v) => !v)}
                   className={cn(
                     "w-full flex items-center justify-center space-x-2 h-11",
                     "bg-gradient-to-r from-honey-500 to-honey-600 hover:from-honey-600 hover:to-honey-700",
@@ -614,8 +624,26 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                   )}
                 >
                   <Plus className="h-5 w-5" />
-                  <span>发布内容</span>
+                  <span>发布</span>
                 </Button>
+                {isMobileCreateOpen && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="honeySoft"
+                      onClick={() => { goCreateArticle(); setIsMobileMenuOpen(false); setIsMobileCreateOpen(false); }}
+                      className="w-full"
+                    >
+                      发布文章
+                    </Button>
+                    <Button
+                      variant="honeySoft"
+                      onClick={() => { goCreateQuestion(); setIsMobileMenuOpen(false); setIsMobileCreateOpen(false); }}
+                      className="w-full"
+                    >
+                      发布题目
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           </DialogContent>
