@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Trash2, Search, FileText, GraduationCap, Reply, Send, X, BookOpen, ChevronRight } from 'lucide-react';
+import { MessageSquare, Trash2, Search, FileText, GraduationCap, Reply, Send, X, BookOpen, ChevronRight, ListChecks } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -180,6 +180,13 @@ export const MyCommentsPage: React.FC = () => {
             <span>章节</span>
           </Badge>
         );
+      case 'INTERVIEW_QUESTION':
+        return (
+          <Badge variant="secondary" className="flex items-center space-x-1">
+            <ListChecks className="h-3 w-3" />
+            <span>题目</span>
+          </Badge>
+        );
       default:
         return <Badge variant="secondary">未知</Badge>;
     }
@@ -193,6 +200,8 @@ export const MyCommentsPage: React.FC = () => {
         return <GraduationCap className="h-3 w-3" />;
       case 'CHAPTER':
         return <BookOpen className="h-3 w-3" />;
+      case 'INTERVIEW_QUESTION':
+        return <ListChecks className="h-3 w-3" />;
       default:
         return null;
     }
@@ -211,6 +220,11 @@ export const MyCommentsPage: React.FC = () => {
       if (c.businessType === 'CHAPTER') {
         const detail = await ChaptersService.getFrontChapterDetail(c.businessId);
         navigate(`/dashboard/courses/${detail.courseId}/chapters/${c.businessId}`);
+        return;
+      }
+      if (c.businessType === 'INTERVIEW_QUESTION') {
+        navigate(routeUtils.getInterviewDetailRoute(c.businessId));
+        return;
       }
     } catch (e) {
       console.error('跳转目标打开失败：', e);
