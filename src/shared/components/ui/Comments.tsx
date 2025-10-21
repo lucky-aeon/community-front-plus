@@ -15,6 +15,7 @@ import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/Mark
 import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { ReactionBar } from '@shared/components/ui/ReactionBar';
 import { LikeButton } from '@shared/components/ui/LikeButton';
+import { FavoriteButton } from '@shared/components/business/FavoriteButton';
 import { useNavigate } from 'react-router-dom';
 import { routeUtils } from '@shared/routes/routes';
 
@@ -69,12 +70,14 @@ export const Comments: React.FC<CommentsProps> = ({
   const [replying, setReplying] = useState<Record<string, boolean>>({});
   const [openReply, setOpenReply] = useState<Record<string, boolean>>({});
   const [accepting, setAccepting] = useState<Record<string, boolean>>({});
+  const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
 
   // 资源库弹窗与编辑器引用
   const [showResourcePicker, setShowResourcePicker] = useState(false);
   const [pickerTarget, setPickerTarget] = useState<string | null>(null); // 'new' 或 commentId
   const newEditorRef = useRef<MarkdownEditorHandle>(null);
   const replyEditorRefs = useRef<Record<string, MarkdownEditorHandle | null>>({});
+  const scrollAttempted = useRef(false);
 
   const hasMore = flatComments.length < total;
 
@@ -135,6 +138,36 @@ export const Comments: React.FC<CommentsProps> = ({
       run();
     }
   }, [mode]);
+
+  // 监听 URL hash，自动滚动并高亮指定评论
+  useEffect(() => {
+    if (mode !== 'thread' || loading || scrollAttempted.current) return;
+
+    const hash = window.location.hash;
+    if (!hash.startsWith('#comment-')) return;
+
+    const targetCommentId = hash.replace('#comment-', '');
+    const targetComment = flatComments.find(c => c.id === targetCommentId);
+
+    if (targetComment) {
+      // 找到目标评论，滚动并高亮
+      scrollAttempted.current = true;
+      setTimeout(() => {
+        const element = document.getElementById(`comment-${targetCommentId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setHighlightedCommentId(targetCommentId);
+          // 3秒后移除高亮
+          setTimeout(() => setHighlightedCommentId(null), 3000);
+          // 清除 hash（可选）
+          window.history.replaceState(null, '', window.location.pathname);
+        }
+      }, 300);
+    } else if (hasMore && !loading) {
+      // 目标评论不在当前页，加载更多
+      void loadComments(false);
+    }
+  }, [flatComments, loading, hasMore, mode, loadComments]);
 
   const formatTime = CommentsService.formatCommentTime;
 
@@ -264,8 +297,16 @@ export const Comments: React.FC<CommentsProps> = ({
 
   const renderItem = (c: CommentDTO) => {
     const isAuthor = authorId && c.commentUserId === authorId;
+    const isHighlighted = highlightedCommentId === c.id;
     return (
-      <div key={c.id} id={`comment-${c.id}`} className={cn('py-4')}> 
+      <div
+        key={c.id}
+        id={`comment-${c.id}`}
+        className={cn(
+          'py-4 transition-all duration-500',
+          isHighlighted && 'bg-yellow-50 border-l-4 border-yellow-400 pl-4 -ml-4'
+        )}
+      > 
         <div className="flex items-start gap-3">
           <Avatar className="h-8 w-8">
             <AvatarImage src={c.commentUserAvatar || ''} alt={c.commentUserName} />
@@ -310,6 +351,13 @@ export const Comments: React.FC<CommentsProps> = ({
                 initialLiked={c.isLiked}
                 initialCount={c.likeCount}
                 onChange={(s) => setFlatComments(prev => prev.map(item => item.id === c.id ? { ...item, likeCount: s.likeCount, isLiked: s.liked } : item))}
+              />
+              <FavoriteButton
+                targetId={c.id}
+                targetType="COMMENT"
+                variant="ghost"
+                size="sm"
+                showCount={false}
               />
               <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => setOpenReply(prev => ({ ...prev, [c.id]: !prev[c.id] }))}>
                 <CornerDownRight className="h-4 w-4 mr-1" /> 回复

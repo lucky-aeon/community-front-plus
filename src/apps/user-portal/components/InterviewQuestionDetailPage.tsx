@@ -10,6 +10,7 @@ import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { LikeButton } from '@shared/components/ui/LikeButton';
 import { useAuth } from '@/context/AuthContext';
 import { Comments } from '@shared/components/ui/Comments';
+import { FavoriteButton } from '@shared/components/business/FavoriteButton';
 
 export const InterviewQuestionDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -57,6 +58,13 @@ export const InterviewQuestionDetailPage: React.FC = () => {
             businessId={data.id}
             initialCount={data.likeCount}
             onChange={(s) => setData(prev => prev ? { ...prev, likeCount: s.likeCount } : prev)}
+          />
+          <FavoriteButton
+            targetId={data.id}
+            targetType="INTERVIEW_QUESTION"
+            variant="ghost"
+            size="sm"
+            showCount={true}
           />
           <span className="inline-flex items-center gap-1"><MessageSquare className="h-4 w-4" />{data.commentCount ?? 0}</span>
           <span className="inline-flex items-center gap-1"><Eye className="h-4 w-4" />{data.viewCount ?? 0}</span>

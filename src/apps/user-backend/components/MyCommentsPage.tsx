@@ -209,22 +209,23 @@ export const MyCommentsPage: React.FC = () => {
 
   const openBusinessTarget = async (c: CommentDTO) => {
     try {
+      // 构建目标URL（带 hash 定位到具体评论）
+      let targetUrl = '';
+
       if (c.businessType === 'POST') {
-        navigate(routeUtils.getPostDetailRoute(c.businessId));
-        return;
-      }
-      if (c.businessType === 'COURSE') {
-        navigate(routeUtils.getCourseDetailRoute(c.businessId));
-        return;
-      }
-      if (c.businessType === 'CHAPTER') {
+        targetUrl = routeUtils.getPostDetailRoute(c.businessId);
+      } else if (c.businessType === 'COURSE') {
+        targetUrl = routeUtils.getCourseDetailRoute(c.businessId);
+      } else if (c.businessType === 'CHAPTER') {
         const detail = await ChaptersService.getFrontChapterDetail(c.businessId);
-        navigate(`/dashboard/courses/${detail.courseId}/chapters/${c.businessId}`);
-        return;
+        targetUrl = `/dashboard/courses/${detail.courseId}/chapters/${c.businessId}`;
+      } else if (c.businessType === 'INTERVIEW_QUESTION') {
+        targetUrl = routeUtils.getInterviewDetailRoute(c.businessId);
       }
-      if (c.businessType === 'INTERVIEW_QUESTION') {
-        navigate(routeUtils.getInterviewDetailRoute(c.businessId));
-        return;
+
+      // 添加 hash 定位到具体评论
+      if (targetUrl) {
+        navigate(targetUrl + `#comment-${c.id}`);
       }
     } catch (e) {
       console.error('跳转目标打开失败：', e);

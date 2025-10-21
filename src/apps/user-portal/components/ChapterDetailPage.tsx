@@ -16,6 +16,7 @@ import { ReactionBar } from '@shared/components/ui/ReactionBar';
 import { Comments } from '@shared/components/ui/Comments';
 import { LikeButton } from '@shared/components/ui/LikeButton';
 import { extractVideoUrl, removeVideoTags } from '@shared/utils/videoUtils';
+import { FavoriteButton } from '@shared/components/business/FavoriteButton';
 
 export const ChapterDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -214,12 +215,19 @@ export const ChapterDetailPage: React.FC = () => {
               <span>发布于 {formatDate(chapterDetail.createTime)}</span>
             </div>
             <div className="flex-1" />
-            {/* 顶部操作：点赞 */}
+            {/* 顶部操作：点赞、收藏 */}
             <LikeButton
               businessType="CHAPTER"
               businessId={chapterDetail.id}
               initialCount={chapterDetail.likeCount}
               onChange={(s) => setChapterDetail(prev => prev ? { ...prev, likeCount: s.likeCount } as FrontChapterDetailDTO : prev)}
+            />
+            <FavoriteButton
+              targetId={chapterDetail.id}
+              targetType="CHAPTER"
+              variant="ghost"
+              size="sm"
+              showCount={true}
             />
           </div>
           {/* 上/下一章按钮 */}

@@ -1927,3 +1927,51 @@ export interface CourseLearningMetricDTO {
   courseTitle: string;
   learners: number; // 学习人数
 }
+
+// ================ 收藏相关接口定义 ================
+
+// 收藏目标类型
+export type FavoriteTargetType = 'POST' | 'CHAPTER' | 'COMMENT' | 'INTERVIEW_QUESTION';
+
+// 收藏列表项DTO
+export interface FavoriteListItemDTO {
+  id: string;                    // 收藏ID
+  targetId: string;              // 目标ID
+  targetType: FavoriteTargetType;// 目标类型
+  title: string;                 // 目标标题
+  snippet?: string;              // 目标摘要/内容片段
+  authorId?: string;             // 作者ID
+  authorName?: string;           // 作者名称
+  createTime: string;            // 收藏时间
+  businessId?: string;           // 业务对象ID（仅 COMMENT 类型有值）
+  businessType?: BusinessType;   // 业务对象类型（仅 COMMENT 类型有值）
+}
+
+// 收藏状态DTO
+export interface FavoriteStatusDTO {
+  targetId: string;              // 目标ID
+  targetType: FavoriteTargetType;// 目标类型
+  isFavorited: boolean;          // 是否已收藏
+  favoritesCount: number;        // 收藏数量
+}
+
+// 切换收藏请求
+export interface ToggleFavoriteRequest {
+  targetId: string;              // 目标ID，必填
+  targetType: FavoriteTargetType;// 目标类型，必填
+}
+
+// 我的收藏查询请求
+export interface MyFavoritesQueryRequest {
+  pageNum?: number;              // 页码，从1开始，默认为1
+  pageSize?: number;             // 每页大小，默认为10
+  targetType?: FavoriteTargetType; // 目标类型（可选），用于筛选
+}
+
+// 批量收藏查询请求
+export interface BatchFavoriteRequest {
+  targets: {
+    targetId: string;
+    targetType: FavoriteTargetType;
+  }[];
+}

@@ -38,6 +38,7 @@ export { InterviewQuestionsService } from './interview-questions.service';
 export { AdminInterviewQuestionsService } from './admin-interview-questions.service';
 export { UnreadService } from './unread.service';
 export { AppUnreadService } from './app-unread.service';
+export { FavoritesService } from './favorites.service';
 
 // 导出类型定义
 export type {

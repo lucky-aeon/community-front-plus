@@ -12,6 +12,7 @@ import { ReactionBar } from '@shared/components/ui/ReactionBar';
 import { Comments } from '@shared/components/ui/Comments';
 import { SubscribeButton } from '@/components/ui/subscribe-button';
 import { LikeButton } from '@shared/components/ui/LikeButton';
+import { FavoriteButton } from '@shared/components/business/FavoriteButton';
 // 评论组件
 import { routeUtils } from '@shared/routes/routes';
 import { PostsService } from '@shared/services/api/posts.service';
@@ -278,13 +279,20 @@ export const PostDetailPage: React.FC = () => {
               <div className="text-sm text-gray-500 mb-4">发布于 {post.publishTime}</div>
             )}
 
-            {/* Top Actions: 点赞 / 评论数 / 浏览数 */}
+            {/* Top Actions: 点赞 / 收藏 / 评论数 / 浏览数 */}
             <div className="flex items-center gap-4 mb-6">
               <LikeButton
                 businessType="POST"
                 businessId={post.id}
                 initialCount={post.likeCount}
                 onChange={(s) => setPost(prev => prev ? { ...prev, likeCount: s.likeCount } : prev)}
+              />
+              <FavoriteButton
+                targetId={post.id}
+                targetType="POST"
+                variant="ghost"
+                size="sm"
+                showCount={true}
               />
               <Button
                 variant="ghost"
