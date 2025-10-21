@@ -153,9 +153,6 @@ export const AuthorizedAppsPage: React.FC = () => {
                       )}
                       <div>
                         <CardTitle className="text-lg">{auth.clientName}</CardTitle>
-                        <CardDescription className="text-xs mt-1">
-                          客户端 ID: <span className="font-mono">{auth.clientId}</span>
-                        </CardDescription>
                       </div>
                     </div>
                     <Button
@@ -197,20 +194,6 @@ export const AuthorizedAppsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* 权限范围 */}
-                  <div className="flex items-start gap-2">
-                    <AlertCircle className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div className="flex-1">
-                      <span className="text-sm text-muted-foreground">授权权限：</span>
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        {auth.scopes.split(' ').map((scope, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
-                            {scope}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
                 </CardContent>
               </Card>
             ))}
