@@ -195,12 +195,15 @@ export const Comments: React.FC<CommentsProps> = ({
       } else if (item.businessType === 'CHAPTER') {
         const detail = await ChaptersService.getFrontChapterDetail(item.businessId);
         navigate(`/dashboard/courses/${detail.courseId}/chapters/${item.businessId}#comment-${item.id}`);
+      } else if (item.businessType === 'INTERVIEW_QUESTION') {
+        navigate(routeUtils.getInterviewDetailRoute(item.businessId) + `#comment-${item.id}`);
       }
     } catch {
       // fallback：至少跳到业务详情
       if (item.businessType === 'POST') navigate(routeUtils.getPostDetailRoute(item.businessId));
       if (item.businessType === 'COURSE') navigate(routeUtils.getCourseDetailRoute(item.businessId));
       if (item.businessType === 'CHAPTER') navigate(`/dashboard/chapters/${item.businessId}`);
+      if (item.businessType === 'INTERVIEW_QUESTION') navigate(routeUtils.getInterviewDetailRoute(item.businessId));
     }
   };
 
