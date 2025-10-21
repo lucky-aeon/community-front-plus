@@ -17,6 +17,7 @@ import { Comments } from '@shared/components/ui/Comments';
 import { LikeButton } from '@shared/components/ui/LikeButton';
 import { extractVideoUrl, removeVideoTags } from '@shared/utils/videoUtils';
 import { FavoriteButton } from '@shared/components/business/FavoriteButton';
+import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 export const ChapterDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -43,6 +44,17 @@ export const ChapterDetailPage: React.FC = () => {
     if (!isVideoChapter || !chapterDetail?.content) return null;
     return extractVideoUrl(chapterDetail.content);
   }, [isVideoChapter, chapterDetail?.content]);
+
+  // 页面标题：章节标题 - 课程标题（尽量展示更多信息）
+  const pageTitle = useMemo(() => {
+    const chapterTitle = chapterDetail?.title?.trim();
+    const courseTitle = course?.title?.trim();
+    if (chapterTitle && courseTitle) return `${chapterTitle} - ${courseTitle}`;
+    if (chapterTitle) return chapterTitle;
+    if (courseTitle) return `${courseTitle} - 课程章节`;
+    return '课程章节';
+  }, [chapterDetail?.title, course?.title]);
+  useDocumentTitle(pageTitle);
 
   // 图文章节进度追踪
   useTextChapterProgress({

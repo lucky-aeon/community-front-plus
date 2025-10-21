@@ -10,11 +10,15 @@ import { ROUTES } from '@shared/routes/routes';
 import { useNavigate } from 'react-router-dom';
 import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
 import { RecentLearningBanner } from '@shared/components/business/RecentLearningBanner';
+import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 export const HomePage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isRedeemOpen, setIsRedeemOpen] = useState(false);
+
+  // 页面标题
+  useDocumentTitle('社区首页');
 
   if (!user) {
     return (

@@ -6,12 +6,16 @@ import { AppAiNewsService } from '@shared/services/api';
 import { sanitizeHtml } from '@shared/utils/sanitize-html';
 import type { FrontDailyItemDTO } from '@shared/types';
 import { ArrowLeft, ExternalLink, Newspaper } from 'lucide-react';
+import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 export const AiNewsDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [item, setItem] = useState<FrontDailyItemDTO | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // 页面标题：内容标题优先
+  useDocumentTitle(item?.title || 'AI 日报详情');
 
   useEffect(() => {
     let cancelled = false;

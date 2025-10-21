@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ExternalLink, Copy, CheckCircle2, MessageSquare, PlayCircle } from 'lucide-react';
 import { PaymentModal } from '@shared/components/business/PaymentModal';
 import { TermsModal, PrivacyModal } from '@shared/components/common/LegalModals';
+import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 export const MarketingPage: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -19,6 +20,9 @@ export const MarketingPage: React.FC = () => {
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const year = new Date().getFullYear();
+
+  // 页面标题
+  useDocumentTitle('首页');
 
   const handleAuthRequired = () => {
     setIsAuthModalOpen(true);

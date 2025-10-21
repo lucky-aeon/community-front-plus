@@ -11,6 +11,7 @@ import { Toaster } from '@/components/ui/toaster';
 import GithubOAuthCallbackPage from '@shared/components/business/GithubOAuthCallbackPage';
 import { OAuth2AuthorizePage } from '@shared/components/business/OAuth2AuthorizePage';
 import { MenuGuard } from '@shared/routes/MenuGuard';
+import { TitleSetter } from '@shared/routes/TitleSetter';
 
 const AppContent: React.FC = () => {
   return (
@@ -75,6 +76,8 @@ function App() {
     <Router>
       <AuthProvider>
         <ThemeProvider>
+          {/* 根据路由设置默认页面标题，详情页可在页面内覆盖 */}
+          <TitleSetter />
           <AppContent />
           <Toaster />
         </ThemeProvider>

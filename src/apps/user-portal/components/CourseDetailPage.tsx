@@ -14,6 +14,7 @@ import { ReactionBar } from '@shared/components/ui/ReactionBar';
 import { Comments } from '@shared/components/ui/Comments';
 import { PaymentModal } from '@shared/components/business/PaymentModal';
 import { LikeButton } from '@shared/components/ui/LikeButton';
+import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 export const CourseDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -25,6 +26,9 @@ export const CourseDetailPage: React.FC = () => {
   const [followLoading, setFollowLoading] = useState<boolean>(false);
   const [isPaymentOpen, setIsPaymentOpen] = useState<boolean>(false);
   const clearedRef = React.useRef<boolean>(false);
+
+  // 页面标题：课程标题优先
+  useDocumentTitle(course?.title || '课程详情');
 
   useEffect(() => {
     const fetchCourseDetail = async () => {

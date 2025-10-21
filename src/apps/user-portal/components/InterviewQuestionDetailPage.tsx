@@ -11,6 +11,7 @@ import { LikeButton } from '@shared/components/ui/LikeButton';
 import { useAuth } from '@/context/AuthContext';
 import { Comments } from '@shared/components/ui/Comments';
 import { FavoriteButton } from '@shared/components/business/FavoriteButton';
+import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 export const InterviewQuestionDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +19,9 @@ export const InterviewQuestionDetailPage: React.FC = () => {
   const [data, setData] = useState<InterviewQuestionDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  // 页面标题：题目标题优先
+  useDocumentTitle(data?.title || '题目详情');
 
   useEffect(() => {
     let cancelled = false;

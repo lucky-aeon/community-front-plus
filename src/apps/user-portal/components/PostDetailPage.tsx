@@ -18,6 +18,7 @@ import { routeUtils } from '@shared/routes/routes';
 import { PostsService } from '@shared/services/api/posts.service';
 import { FrontPostDetailDTO, FrontPostDTO, UserPublicProfileDTO } from '@shared/types';
 import { UserService } from '@shared/services/api/user.service';
+import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 export const PostDetailPage: React.FC = () => {
   const { postId } = useParams<{ postId: string }>();
@@ -32,6 +33,9 @@ export const PostDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   // AI 总结：折叠
   const [aiCollapsed, setAiCollapsed] = useState(true);
+
+  // 页面标题：文章标题优先
+  useDocumentTitle(post?.title || '帖子详情');
 
   const scrollToComments = () => {
     const el = document.getElementById('comments');

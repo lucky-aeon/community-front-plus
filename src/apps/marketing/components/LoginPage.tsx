@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { AuthModal } from '@shared/components/business/AuthModal';
 import { ROUTES } from '@shared/routes/routes';
+import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 /**
  * 登录页面组件
@@ -17,6 +18,9 @@ export const LoginPage: React.FC = () => {
   const { user, isInitializing } = useAuth();
   const navigate = useNavigate();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // 页面标题
+  useDocumentTitle('登录');
 
   useEffect(() => {
     // 等待认证初始化完成
