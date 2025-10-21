@@ -95,7 +95,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       title: '系统管理',
       items: [
         { id: 'settings', name: '系统配置', icon: Settings, path: '/dashboard/admin/settings' },
-        { id: 'logs', name: '操作日志', icon: FileCheck, path: '/dashboard/admin/logs' }
+        { id: 'logs', name: '操作日志', icon: FileCheck, path: '/dashboard/admin/logs' },
+        { id: 'oauth2-clients', name: 'OAuth2 客户端', icon: Key, path: '/dashboard/admin/oauth2-clients' }
       ]
     }
   ];

@@ -2,7 +2,9 @@
 export const ROUTES = {
   // 公开路由
   HOME: '/',
-  
+  LOGIN: '/login',
+  OAUTH2_AUTHORIZE: '/oauth2/authorize',
+
   // 用户门户路由
   DASHBOARD: '/dashboard',
   DASHBOARD_HOME: '/dashboard/home',

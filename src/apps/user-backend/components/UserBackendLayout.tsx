@@ -132,7 +132,8 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
       title: '账户设置',
       items: [
         { id: 'profile', name: '个人信息', icon: User, path: '/dashboard/user-backend/profile' },
-        { id: 'devices', name: '设备管理', icon: Smartphone, path: '/dashboard/user-backend/devices' }
+        { id: 'devices', name: '设备管理', icon: Smartphone, path: '/dashboard/user-backend/devices' },
+        { id: 'authorizations', name: '授权管理', icon: Shield, path: '/dashboard/user-backend/authorizations' }
       ]
     }
   ];

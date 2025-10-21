@@ -1975,3 +1975,6 @@ export interface BatchFavoriteRequest {
     targetType: FavoriteTargetType;
   }[];
 }
+
+// ================ OAuth2 客户端管理相关接口定义 ================
+export * from './oauth2.types';

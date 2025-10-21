@@ -39,6 +39,7 @@ export { AdminInterviewQuestionsService } from './admin-interview-questions.serv
 export { UnreadService } from './unread.service';
 export { AppUnreadService } from './app-unread.service';
 export { FavoritesService } from './favorites.service';
+export { UserOAuth2Service } from './user-oauth2.service';
 
 // 导出类型定义
 export type {

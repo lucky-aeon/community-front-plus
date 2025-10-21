@@ -14,6 +14,7 @@ import { EditInterviewQuestionPage } from './EditInterviewQuestionPage';
 import { DeviceManagementPage } from './DeviceManagementPage';
 import { FollowsPage } from './FollowsPage';
 import { MyFavoritesPage } from './MyFavoritesPage';
+import { AuthorizedAppsPage } from './AuthorizedAppsPage';
 import { CreatePostPage } from '../../user-portal/components/CreatePostPage';
 import { PostsService } from '@shared/services/api/posts.service';
 import { PostDTO } from '@shared/types';
@@ -99,7 +100,8 @@ export const UserBackend: React.FC = () => {
         <Route path="/follows" element={<FollowsPage />} />
         <Route path="/devices" element={<DeviceManagementPage />} />
         <Route path="/favorites" element={<MyFavoritesPage />} />
-        
+        <Route path="/authorizations" element={<AuthorizedAppsPage />} />
+
         {/* 404 处理 */}
         <Route path="*" element={<Navigate to="/dashboard/user-backend/profile" replace />} />
       </Routes>
