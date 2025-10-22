@@ -1,6 +1,10 @@
 /**
- * 资源图片全局兜底：当 /api/public/resource/{id}/access 图片加载失败（如 403 无权限）时，
+ * 资源图片全局兜底：当受保护资源图片加载失败（如 403 无权限）时，
  * 将其替换为带有「无权限，请升级套餐」的占位图，避免免费用户窥视资源内容。
+ *
+ * 支持两种 URL 格式：
+ * 1. 后端资源访问 URL: /api/public/resource/{id}/access
+ * 2. OSS 签名 URL: 包含 resourceId 和 token 参数（302 重定向后的 URL）
  */
 
 /** 生成占位图（dataURL） */
@@ -56,40 +60,75 @@ export function installResourceImageFallback(): void {
   if (win.__resourceImageFallbackInstalled) return;
   win.__resourceImageFallbackInstalled = true;
 
-  const isResourceAccessUrl = (url: string): boolean => /\/api\/public\/resource\/.+\/access/.test(url);
+  const isResourceAccessUrl = (url: string): boolean => {
+    // 1) 后端资源访问 URL: /api/public/resource/{id}/access
+    if (/\/api\/public\/resource\/.+\/access/.test(url)) return true;
+    // 2) OSS 签名 URL（重定向后的最终地址），通常包含以下任一参数
+    //    - Aliyun OSS: OSSAccessKeyId / Expires / Signature
+    //    - 其他云厂商也会包含签名类参数，这里以常见字段为准
+    return isOssSignedUrl(url);
+  };
+
+  const isOssSignedUrl = (url: string): boolean => {
+    try {
+      const urlObj = new URL(url, window.location.href);
+      const sp = urlObj.searchParams;
+      const hasOss = sp.has('OSSAccessKeyId') || sp.has('Signature') || sp.has('Expires');
+      return hasOss;
+    } catch {
+      return false;
+    }
+  };
 
   const onError = async (ev: Event) => {
     const imgEl = ev.target as unknown;
     if (!(imgEl instanceof HTMLImageElement)) return;
-    const src = imgEl.currentSrc || imgEl.src || '';
-    if (!isResourceAccessUrl(src)) return;
+    // effectiveSrc 可能是 302 后的 OSS 最终地址；rawSrc 是最初设置到 <img> 上的值
+    const effectiveSrc = (imgEl.currentSrc || imgEl.src || '').toString();
+    const rawSrc = (imgEl.getAttribute('src') || '').toString();
+    // 只处理来源于受保护资源的图片（原始 src 或最终地址判断其一即可）
+    if (!(isResourceAccessUrl(rawSrc) || isResourceAccessUrl(effectiveSrc))) return;
 
     // 避免无限循环
     if ((imgEl as any).__resourceFallbackProcessing) return;
     (imgEl as any).__resourceFallbackProcessing = true;
 
     try {
-      // 精准判断：仅在 403 且为资源访问 URL 时替换占位
-      const resp = await fetch(src, { method: 'GET', redirect: 'manual', credentials: 'include' });
-      const isRedirect = resp.type === 'opaqueredirect';
-      const status = resp.status || 0;
-
-      if (status === 403) {
-        const targetW = Math.max(200, imgEl.naturalWidth || imgEl.width || 640);
-        const targetH = Math.max(120, imgEl.naturalHeight || imgEl.height || 360);
+      // OSS 签名 URL：图片加载失败直接认为无权限（跨域无法获取最终状态码）
+      if (isOssSignedUrl(effectiveSrc) || isOssSignedUrl(rawSrc)) {
+        const rect = imgEl.getBoundingClientRect?.();
+        const targetW = Math.max(200, Math.round(rect?.width || imgEl.width || 640));
+        const targetH = Math.max(120, Math.round(rect?.height || imgEl.height || 360));
         const placeholder = buildNoPermissionPlaceholder(targetW, targetH);
         try { imgEl.src = placeholder; } catch { /* ignore */ }
         (imgEl as any).__resourceFallbackApplied = true;
         return;
       }
 
-      // 有权限/可访问：尝试重新加载一次，绕过缓存
-      if (isRedirect || status === 200 || status === 302) {
-        if (!(imgEl as any).__resourceFallbackRetried) {
-          (imgEl as any).__resourceFallbackRetried = true;
-          const cacheBuster = (src.includes('?') ? '&' : '?') + 'r=' + Date.now();
-          try { imgEl.src = src + cacheBuster; } catch { /* ignore */ }
-        }
+      // 后端资源访问 URL：精准判断，仅在 403 时替换占位
+      const probeUrl = rawSrc || effectiveSrc;
+      const resp = await fetch(probeUrl, { method: 'GET', redirect: 'manual', credentials: 'include' });
+      const isRedirect = resp.type === 'opaqueredirect';
+      const status = resp.status || 0;
+
+      if (status === 403) {
+        const rect = imgEl.getBoundingClientRect?.();
+        const targetW = Math.max(200, Math.round(rect?.width || imgEl.width || 640));
+        const targetH = Math.max(120, Math.round(rect?.height || imgEl.height || 360));
+        const placeholder = buildNoPermissionPlaceholder(targetW, targetH);
+        try { imgEl.src = placeholder; } catch { /* ignore */ }
+        (imgEl as any).__resourceFallbackApplied = true;
+        return;
+      }
+
+      // 若发生跨域重定向，且 <img> 已报错，视为无法访问（多半是 403 或签名失效），直接占位
+      if (isRedirect) {
+        const rect = imgEl.getBoundingClientRect?.();
+        const targetW = Math.max(200, Math.round(rect?.width || imgEl.width || 640));
+        const targetH = Math.max(120, Math.round(rect?.height || imgEl.height || 360));
+        const placeholder = buildNoPermissionPlaceholder(targetW, targetH);
+        try { imgEl.src = placeholder; } catch { /* ignore */ }
+        (imgEl as any).__resourceFallbackApplied = true;
         return;
       }
       // 其他状态：不处理，避免误判
