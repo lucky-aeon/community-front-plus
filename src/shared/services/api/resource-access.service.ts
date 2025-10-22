@@ -59,26 +59,9 @@ export class ResourceAccessService {
    * - 跨域部署时需 withCredentials 以接收 Set-Cookie
    */
   static async ensureSession(): Promise<void> {
-    // 游客模式下不建立资源访问会话，避免在公开页触发 401
-    try {
-      const token = localStorage.getItem('auth_token');
-      if (!token) return;
-      await apiClient.post('/user/resource/access-session', {}, {
-        withCredentials: true,
-        // 避免因权限/过期导致全局登出
-        headers: { 'X-Skip-Auth-Logout': 'true' },
-      } as any);
-    } catch {
-      // 回退方案：调用用户心跳以续签 RAUTH Cookie（后端已实现）
-      try {
-        const token = localStorage.getItem('auth_token');
-        if (!token) return;
-        await apiClient.get('/user/heartbeat', {
-          withCredentials: true,
-          headers: { 'X-Skip-Auth-Logout': 'true' },
-        } as any);
-      } catch { /* ignore */ }
-    }
+    // 已改为登录时下发 Cookie 的模式，不再需要单独建立资源访问会话
+    // 这里保持函数存在以兼容既有调用，但不做任何网络请求
+    return Promise.resolve();
   }
 
   /**
