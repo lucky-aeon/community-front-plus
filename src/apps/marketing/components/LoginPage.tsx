@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { AuthModal } from '@shared/components/business/AuthModal';
 import { ROUTES } from '@shared/routes/routes';
@@ -17,23 +17,51 @@ import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 export const LoginPage: React.FC = () => {
   const { user, isInitializing } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // 页面标题
   useDocumentTitle('登录');
+
+  // 解析并校验 redirect 参数（仅允许同源路径）
+  const redirectTarget = useMemo(() => {
+    const raw = searchParams.get('redirect');
+    if (!raw) return null;
+    let decoded = raw;
+    try {
+      decoded = decodeURIComponent(raw);
+    } catch (_) {
+      // ignore decode error, fallback to raw
+    }
+    try {
+      const url = new URL(decoded, window.location.origin);
+      // 仅允许同源
+      if (url.origin === window.location.origin) {
+        return url.pathname + url.search + url.hash;
+      }
+    } catch (_) {
+      // 无效 URL
+    }
+    return null;
+  }, [searchParams]);
 
   useEffect(() => {
     // 等待认证初始化完成
     if (isInitializing) return;
 
     if (user) {
-      // 已登录，重定向到 dashboard
-      navigate(ROUTES.DASHBOARD_HOME, { replace: true });
+      // 已登录：若包含 redirect 参数，优先跳转回原始目标（如 /oauth2/authorize）
+      if (redirectTarget) {
+        window.location.replace(redirectTarget);
+      } else {
+        // 否则跳转到 dashboard
+        navigate(ROUTES.DASHBOARD_HOME, { replace: true });
+      }
     } else {
       // 未登录，打开登录弹窗
       setIsAuthModalOpen(true);
     }
-  }, [user, isInitializing, navigate]);
+  }, [user, isInitializing, navigate, redirectTarget]);
 
   const handleCloseModal = () => {
     setIsAuthModalOpen(false);

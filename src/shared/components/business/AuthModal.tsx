@@ -91,6 +91,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         await login(email, formData.password);
         // 仅当确认已登录成功（token 与 user 已写入）时才导航
         if (!AuthService.isLoggedIn()) return;
+        // 若 URL 中包含 redirect（例如 OAuth 授权流程），优先安全跳转该地址
+        try {
+          const params = new URLSearchParams(window.location.search);
+          const raw = params.get('redirect');
+          if (raw) {
+            let decoded = raw;
+            try { decoded = decodeURIComponent(raw); } catch (_) {}
+            const url = new URL(decoded, window.location.origin);
+            if (url.origin === window.location.origin) {
+              window.location.assign(url.pathname + url.search + url.hash);
+              return; // 结束后续导航逻辑
+            }
+          }
+        } catch (_) {
+          // 忽略解析错误，继续按默认导航
+        }
         const stored = AuthService.getStoredUser();
         const level = (stored as any)?.currentSubscriptionLevel;
         if (Number(level) === 1) {
