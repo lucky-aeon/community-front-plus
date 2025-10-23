@@ -15,6 +15,8 @@ interface FavoriteButtonProps {
   showCount?: boolean;
   className?: string;
   onToggle?: (isFavorited: boolean) => void;
+  /** 跳过初始查询（当外部已提供准确的初始状态时） */
+  skipInitialFetch?: boolean;
 }
 
 /**
@@ -31,6 +33,7 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   showCount = true,
   className = '',
   onToggle,
+  skipInitialFetch = false,
 }) => {
   const { user } = useAuth();
   const [isFavorited, setIsFavorited] = useState(initialIsFavorited);
@@ -39,6 +42,13 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
 
   // 获取收藏状态
   useEffect(() => {
+    // 如果跳过初始查询，直接使用传入的初始状态
+    if (skipInitialFetch) {
+      setIsFavorited(initialIsFavorited);
+      setFavoritesCount(initialCount);
+      return;
+    }
+
     const fetchStatus = async () => {
       if (!user || !targetId) return;
 
@@ -52,7 +62,7 @@ export const FavoriteButton: React.FC<FavoriteButtonProps> = ({
     };
 
     fetchStatus();
-  }, [targetId, targetType, user]);
+  }, [targetId, targetType, user, skipInitialFetch, initialIsFavorited, initialCount]);
 
   // 切换收藏状态
   const handleToggle = async (e: React.MouseEvent) => {

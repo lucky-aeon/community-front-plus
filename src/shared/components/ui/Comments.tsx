@@ -7,13 +7,14 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@shared/utils/cn';
 import { useAuth } from '@/context/AuthContext';
-import { CommentsService, ChaptersService } from '@shared/services/api';
+import { CommentsService, ChaptersService, FavoritesService, LikesService, ReactionsService } from '@shared/services/api';
 import { PostsService } from '@shared/services/api/posts.service';
 import type { BusinessType, CommentDTO, PageResponse, LatestCommentDTO } from '@shared/types';
 import { AuthModal } from '@shared/components/business/AuthModal';
 import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
 import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { ReactionBar } from '@shared/components/ui/ReactionBar';
+import type { ReactionSummaryDTO } from '@shared/services/api';
 import { LikeButton } from '@shared/components/ui/LikeButton';
 import { FavoriteButton } from '@shared/components/business/FavoriteButton';
 import { useNavigate } from 'react-router-dom';
@@ -63,6 +64,11 @@ export const Comments: React.FC<CommentsProps> = ({
   const [latestComments, setLatestComments] = useState<LatestCommentDTO[]>([]);
   const [loadingLatest, setLoadingLatest] = useState(false);
 
+  // 存储评论的收藏状态 Map: commentId -> { isFavorited, favoritesCount }
+  const [commentFavoriteStatus, setCommentFavoriteStatus] = useState<Record<string, { isFavorited: boolean; favoritesCount: number }>>({});
+  // 存储评论的点赞状态 Map: commentId -> { liked, likeCount }
+  const [commentLikeStatus, setCommentLikeStatus] = useState<Record<string, { liked: boolean; likeCount: number }>>({});
+
   const [newContent, setNewContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -71,6 +77,8 @@ export const Comments: React.FC<CommentsProps> = ({
   const [openReply, setOpenReply] = useState<Record<string, boolean>>({});
   const [accepting, setAccepting] = useState<Record<string, boolean>>({});
   const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
+  // 存储评论的表情统计 Map: commentId -> ReactionSummaryDTO[]
+  const [commentReactions, setCommentReactions] = useState<Record<string, ReactionSummaryDTO[]>>({});
 
   // 资源库弹窗与编辑器引用
   const [showResourcePicker, setShowResourcePicker] = useState(false);
@@ -92,9 +100,11 @@ export const Comments: React.FC<CommentsProps> = ({
         pageSize,
       });
       setTotal(resp.total);
+
+      const newComments = resp.records;
       setFlatComments(prev => {
         const base = reset ? [] : prev;
-        const merged = [...base, ...resp.records];
+        const merged = [...base, ...newComments];
         // 去重（按 id）
         const map = new Map(merged.map(c => [c.id, c] as const));
         return Array.from(map.values());
@@ -105,12 +115,41 @@ export const Comments: React.FC<CommentsProps> = ({
         setPageNum(2);
       }
       onCountChange?.(resp.total);
+
+      // 批量查询新加载评论的收藏/点赞/表情状态
+      if (newComments.length > 0) {
+        const targets = newComments.map(c => ({ targetId: c.id, targetType: 'COMMENT' as const }));
+        try {
+          if (user) {
+            const statusList = await FavoritesService.batchGetFavoriteStatus(targets);
+            const statusMap = statusList.reduce((acc, status) => {
+              acc[status.targetId] = { isFavorited: status.isFavorited, favoritesCount: status.favoritesCount };
+              return acc;
+            }, {} as Record<string, { isFavorited: boolean; favoritesCount: number }>);
+            setCommentFavoriteStatus(prev => ({ ...prev, ...statusMap }));
+
+            const likeStatusList = await LikesService.batchGetStatus(targets);
+            const likeStatusMap = likeStatusList.reduce((acc, s) => {
+              acc[s.targetId] = { liked: s.isLiked, likeCount: s.likeCount };
+              return acc;
+            }, {} as Record<string, { liked: boolean; likeCount: number }>);
+            setCommentLikeStatus(prev => ({ ...prev, ...likeStatusMap }));
+          }
+
+          // 表情统计批量查询（无需登录）
+          const ids = newComments.map(c => c.id);
+          const reactionMap = await ReactionsService.getSummaryBatch('COMMENT', ids).catch(() => ({} as Record<string, ReactionSummaryDTO[]>));
+          setCommentReactions(prev => ({ ...prev, ...reactionMap }));
+        } catch (e) {
+          console.error('批量获取收藏/点赞/表情状态失败', e);
+        }
+      }
     } catch (e: unknown) {
       console.error('加载评论失败', e);
     } finally {
       setLoading(false);
     }
-  }, [businessId, businessType, pageNum, pageSize, onCountChange]);
+  }, [businessId, businessType, pageNum, pageSize, onCountChange, user]);
 
   useEffect(() => {
     if (mode === 'thread') {
@@ -346,13 +385,24 @@ export const Comments: React.FC<CommentsProps> = ({
               />
             </div>
             {/* 表情回复 */}
-            <ReactionBar businessType={'COMMENT'} businessId={c.id} />
+            <ReactionBar
+              businessType={'COMMENT'}
+              businessId={c.id}
+              initialSummaries={commentReactions[c.id]}
+              skipInitialFetch={true}
+            />
             <div className="mt-2 flex items-center gap-2">
               <LikeButton
                 businessType="COMMENT"
                 businessId={c.id}
-                initialLiked={c.isLiked}
-                initialCount={c.likeCount}
+                // 始终跳过初始查询，避免组件内部对单条评论发起 /likes/status 请求
+                // 由本组件通过批量接口 /likes/status/batch 统一获取并注入初始状态
+                // 若批量查询尚未返回，临时使用服务端返回的计数回显
+                initialLiked={commentLikeStatus[c.id]?.liked ?? c.isLiked}
+                initialCount={commentLikeStatus[c.id]?.likeCount ?? c.likeCount}
+                // LikeButton 会在初始值缺失时尝试单独请求；我们在评论列表里统一批量管理
+                // 通过 skipInitialFetch 避免多余请求
+                skipInitialFetch={true}
                 onChange={(s) => setFlatComments(prev => prev.map(item => item.id === c.id ? { ...item, likeCount: s.likeCount, isLiked: s.liked } : item))}
               />
               <FavoriteButton
@@ -361,6 +411,11 @@ export const Comments: React.FC<CommentsProps> = ({
                 variant="ghost"
                 size="sm"
                 showCount={false}
+                // 始终跳过初始查询，避免组件内部对单条评论发起 /favorites/status/COMMENT/{id}
+                // 由本组件通过批量接口 /favorites/status/batch 统一获取并注入初始状态
+                skipInitialFetch={true}
+                initialIsFavorited={commentFavoriteStatus[c.id]?.isFavorited ?? false}
+                initialCount={commentFavoriteStatus[c.id]?.favoritesCount ?? 0}
               />
               <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => setOpenReply(prev => ({ ...prev, [c.id]: !prev[c.id] }))}>
                 <CornerDownRight className="h-4 w-4 mr-1" /> 回复

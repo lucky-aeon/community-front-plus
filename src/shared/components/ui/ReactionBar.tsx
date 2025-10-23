@@ -10,9 +10,13 @@ interface ReactionBarProps {
   businessType: ReactionBusinessType;
   businessId: string;
   className?: string;
+  /** 父组件预注入的统计，常用于批量场景（如评论列表） */
+  initialSummaries?: ReactionSummaryDTO[];
+  /** 跳过组件内部的初始获取，交由父组件批量注入 */
+  skipInitialFetch?: boolean;
 }
 
-export const ReactionBar: React.FC<ReactionBarProps> = ({ businessType, businessId, className }) => {
+export const ReactionBar: React.FC<ReactionBarProps> = ({ businessType, businessId, className, initialSummaries, skipInitialFetch = false }) => {
   const [expressions, setExpressions] = useState<ExpressionTypeDTO[]>([]);
   const [summaries, setSummaries] = useState<ReactionSummaryDTO[]>([]);
   const [loading, setLoading] = useState(false);
@@ -29,12 +33,14 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({ businessType, business
     try {
       setLoading(true);
       // 表情列表全局缓存，重复调用也只会请求一次
-      const [list, sum] = await Promise.all([
-        ExpressionsService.getAll().catch(() => []),
-        ReactionsService.getSummary(businessType, businessId).catch(() => []),
-      ]);
+      const list = await ExpressionsService.getAll().catch(() => [] as ExpressionTypeDTO[]);
       setExpressions(list);
-      setSummaries(sum);
+      if (!skipInitialFetch) {
+        const sum = await ReactionsService.getSummary(businessType, businessId).catch(() => [] as ReactionSummaryDTO[]);
+        setSummaries(sum);
+      } else if (initialSummaries) {
+        setSummaries(initialSummaries);
+      }
     } catch (e) {
       console.error('加载表情或统计失败', e);
     } finally {
@@ -46,7 +52,14 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({ businessType, business
     setSummaries([]);
     void fetchAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [businessId, businessType]);
+  }, [businessId, businessType, skipInitialFetch]);
+
+  // 父组件批量注入的统计变化时，同步刷新
+  useEffect(() => {
+    if (skipInitialFetch && initialSummaries) {
+      setSummaries(initialSummaries);
+    }
+  }, [initialSummaries, skipInitialFetch]);
 
   const sortedSummaries = useMemo(() => {
     return [...summaries].sort((a, b) => (b.count || 0) - (a.count || 0));
@@ -147,4 +160,3 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({ businessType, business
 };
 
 export default ReactionBar;
-

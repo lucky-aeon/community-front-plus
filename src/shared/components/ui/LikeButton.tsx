@@ -13,6 +13,8 @@ interface LikeButtonProps {
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
   onChange?: (state: LikeStatusDTO) => void;
+  /** 跳过组件内部的初始状态拉取，交由父组件批量注入 */
+  skipInitialFetch?: boolean;
 }
 
 export const LikeButton: React.FC<LikeButtonProps> = ({
@@ -24,6 +26,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
   size = 'sm',
   disabled,
   onChange,
+  skipInitialFetch = false,
 }) => {
   const [liked, setLiked] = useState<boolean>(!!initialLiked);
   const [count, setCount] = useState<number>(initialCount ?? 0);
@@ -32,6 +35,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
 
   // 仅在未提供初始 liked 时去拉取状态（避免重复请求）
   useEffect(() => {
+    if (skipInitialFetch) return; // 父组件负责批量注入
     let mounted = true;
     const fetchStatus = async () => {
       try {
@@ -67,7 +71,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
     fetchStatus();
     return () => { mounted = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [businessType, businessId]);
+  }, [businessType, businessId, skipInitialFetch]);
 
   // 外部初始值变更时同步一次（例如父组件数据刷新）
   useEffect(() => {

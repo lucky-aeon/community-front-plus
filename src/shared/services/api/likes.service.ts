@@ -28,6 +28,17 @@ export interface LikeStatusDTO {
 }
 
 export class LikesService {
+  // 批量状态 DTO（包含计数）
+  // 与后端 LikeController 批量接口对齐：targetId/targetType/isLiked/likeCount
+  // 注意：这是服务内局部类型，不导出到全局 types
+  private static mapBatchItem(item: any): { targetId: string; isLiked: boolean; likeCount: number } {
+    return {
+      targetId: String(item?.targetId ?? ''),
+      isLiked: !!item?.isLiked,
+      likeCount: Number(item?.likeCount ?? 0),
+    };
+  }
+
   /** 切换点赞状态（需要登录），仅返回 isLiked，计数需另查 */
   static async toggle(body: ToggleLikeRequestBody): Promise<{ isLiked: boolean }> {
     const res = await apiClient.post<ApiResponse<{ isLiked: boolean }>>('/likes/toggle', body);
@@ -56,5 +67,14 @@ export class LikesService {
       this.getCount(targetType, targetId).catch(() => 0),
     ]);
     return { liked: !!st.isLiked, likeCount: Number(cnt || 0) };
+  }
+
+  /** 批量获取点赞状态与计数 */
+  static async batchGetStatus(
+    targets: { targetType: LikeTargetType; targetId: string }[],
+  ): Promise<Array<{ targetId: string; isLiked: boolean; likeCount: number }>> {
+    const res = await apiClient.post<ApiResponse<any[]>>('/likes/status/batch', { targets });
+    const list = (res.data?.data || []) as any[];
+    return list.map(this.mapBatchItem);
   }
 }
