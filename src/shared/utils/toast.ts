@@ -17,6 +17,14 @@ export const showToast = {
     });
   },
 
+  warning: (message: string) => {
+    toast({
+      description: message,
+      variant: "warning",
+      duration: 2600,
+    });
+  },
+
   loading: (message: string) => {
     return toast({
       description: message,
