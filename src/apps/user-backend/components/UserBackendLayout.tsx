@@ -17,7 +17,8 @@ import {
   LogOut,
   Star,
   BookOpen,
-  Bookmark
+  Bookmark,
+  LayoutDashboard
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { MembershipBadge, type MembershipTier } from '@shared/components/ui/MembershipBadge';
@@ -109,6 +110,12 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
   }, [user?.id]);
 
   const navigationSections = [
+    {
+      title: '总览',
+      items: [
+        { id: 'overview', name: '看板', icon: LayoutDashboard, path: '/dashboard/user-backend/overview' },
+      ]
+    },
     {
       title: '内容管理',
       items: [

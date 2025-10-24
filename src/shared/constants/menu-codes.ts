@@ -43,6 +43,7 @@ export const NAV_ID_TO_CODE: Record<string, MenuCode | undefined> = {
   follows: MENU_CODE.USER_FOLLOWS,
   profile: MENU_CODE.USER_PROFILE,
   devices: MENU_CODE.USER_DEVICES,
+  overview: MENU_CODE.USER_BACKEND,
 };
 
 // 路由前缀映射（按优先级从长到短匹配）

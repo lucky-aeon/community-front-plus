@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
 import { UserBackendLayout } from './UserBackendLayout';
 import { MyArticlesPage } from './MyArticlesPage';
+import { DashboardPage } from './DashboardPage';
 import { MyCommentsPage } from './MyCommentsPage';
 import { MyTestimonialPage } from './MyTestimonialPage';
 import { MessageCenterPage } from './MessageCenterPage';
@@ -79,8 +80,9 @@ export const UserBackend: React.FC = () => {
   return (
     <UserBackendLayout>
       <Routes>
-        {/* 默认重定向到个人信息 */}
-        <Route path="/" element={<Navigate to="/dashboard/user-backend/profile" replace />} />
+        {/* 默认重定向到看板 */}
+        <Route path="/" element={<Navigate to="/dashboard/user-backend/overview" replace />} />
+        <Route path="/overview" element={<DashboardPage />} />
         
         {/* 用户后台页面路由 */}
         <Route path="/articles" element={<MyArticlesPage />} />
