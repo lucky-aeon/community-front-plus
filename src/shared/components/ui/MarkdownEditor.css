@@ -171,6 +171,32 @@
   margin: 0 !important;
 }
 
+/* 聊天室消息内容中的图片缩略：限制尺寸，避免铺满 */
+/* 将聊天内容本身限制一个较窄宽度，避免视觉过宽 */
+.chat-md .markdown-editor-wrapper .cherry-previewer {
+  max-width: 420px;
+}
+
+.chat-md .markdown-editor-wrapper .cherry-previewer img {
+  display: block;
+  width: auto;
+  max-width: 220px;
+  max-height: 160px;
+  height: auto;
+  border-radius: 8px;
+  margin: 6px 0;
+}
+
+@media (min-width: 768px) {
+  .chat-md .markdown-editor-wrapper .cherry-previewer {
+    max-width: 480px;
+  }
+  .chat-md .markdown-editor-wrapper .cherry-previewer img {
+    max-width: 260px;
+    max-height: 180px;
+  }
+}
+
 /* TOC 目录样式 */
 #cherry-toc {
   font-size: 0.875rem;

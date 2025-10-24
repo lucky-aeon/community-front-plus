@@ -14,6 +14,8 @@ import { showToast } from '@shared/utils/toast';
 export interface MarkdownEditorHandle {
   insertMarkdown: (snippet: string) => void;
   focus: () => void;
+  // 根据纯文本下标范围替换（用于 @ 提及等场景），会尽量保持光标
+  replaceRangeByIndex: (start: number, end: number, replacement: string) => void;
 }
 
 interface MarkdownEditorProps {
@@ -28,6 +30,8 @@ interface MarkdownEditorProps {
   enableToc?: boolean;  // 是否启用目录功能
   // 新增：打开资源库回调（用于在工具栏添加按钮入口）
   onOpenResourcePicker?: () => void;
+  // 透传键盘事件（用于聊天室发送/提及等场景）
+  onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
 }
 
 function MarkdownEditorImpl(
@@ -42,6 +46,7 @@ function MarkdownEditorImpl(
     enableFullscreen = true,
     enableToc = false,
     onOpenResourcePicker,
+    onKeyDown,
   }: MarkdownEditorProps,
   ref: React.Ref<MarkdownEditorHandle>
 ) {
@@ -774,6 +779,61 @@ function MarkdownEditorImpl(
         onChange(`${current}${needsLF ? '\n' : ''}${snippet}`);
       }
     },
+    replaceRangeByIndex: (start: number, end: number, replacement: string) => {
+      try {
+        const inst = cherryInstanceRef.current as unknown as {
+          editor?: { editor?: any }
+        } | null;
+        const cm = inst?.editor?.editor;
+        if (cm && typeof cm.replaceRange === 'function') {
+          const from = typeof cm.posFromIndex === 'function' ? cm.posFromIndex(start) : (() => {
+            // 退化：手动计算行列
+            const cur = (typeof cm.getValue === 'function' ? cm.getValue() : lastValueRef.current) || '';
+            let line = 0; let ch = 0;
+            for (let i = 0; i < Math.min(start, cur.length); i++) {
+              if (cur[i] === '\n') { line++; ch = 0; } else { ch++; }
+            }
+            return { line, ch };
+          })();
+          const to = typeof cm.posFromIndex === 'function' ? cm.posFromIndex(end) : (() => {
+            const cur = (typeof cm.getValue === 'function' ? cm.getValue() : lastValueRef.current) || '';
+            let line = 0; let ch = 0;
+            for (let i = 0; i < Math.min(end, cur.length); i++) {
+              if (cur[i] === '\n') { line++; ch = 0; } else { ch++; }
+            }
+            return { line, ch };
+          })();
+          if (typeof cm.operation === 'function') {
+            cm.operation(() => {
+              cm.replaceRange(replacement, from, to, '+insert');
+              if (typeof cm.posFromIndex === 'function') {
+                const pos = cm.posFromIndex(start + replacement.length);
+                cm.setCursor?.(pos);
+              }
+            });
+          } else {
+            cm.replaceRange(replacement, from, to, '+insert');
+          }
+          cm.focus?.();
+          return;
+        }
+      } catch { /* ignore */ }
+      // 无法直接操作编辑器，回退为字符串替换
+      try {
+        const inst = cherryInstanceRef.current as unknown as { getValue?: () => string; setValue?: (v: string, keepCursor?: boolean) => void } | null;
+        const cur = inst?.getValue ? inst.getValue() : lastValueRef.current || '';
+        const next = `${cur.slice(0, start)}${replacement}${cur.slice(end)}`;
+        if (inst?.setValue) {
+          inst.setValue(next, false);
+        } else {
+          onChange(next);
+        }
+      } catch {
+        const cur = lastValueRef.current || '';
+        const next = `${cur.slice(0, start)}${replacement}${cur.slice(end)}`;
+        onChange(next);
+      }
+    },
     focus: () => {
       try {
         const inst = cherryInstanceRef.current as unknown as { editor?: { editor?: { focus?: () => void } } } | null;
@@ -802,6 +862,7 @@ function MarkdownEditorImpl(
           borderRadius: isFullscreen ? '0' : (previewOnly ? '0' : undefined),
           border: isFullscreen ? 'none' : (previewOnly ? 'none' : undefined)
         }}
+        onKeyDown={onKeyDown}
       />
       {/* 上传任务小面板 */}
       {uploadTasks.length > 0 && (
