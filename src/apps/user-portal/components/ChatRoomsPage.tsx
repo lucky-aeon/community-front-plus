@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -37,6 +38,10 @@ export const ChatRoomsPage: React.FC = () => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
   const [text, setText] = useState('');
+  // 引用回复：右键消息 -> 设置待引用消息
+  const [quotedForSend, setQuotedForSend] = useState<ChatMessageDTO | null>(null);
+  // 右键上下文菜单
+  const [ctxMenu, setCtxMenu] = useState<{ open: boolean; x: number; y: number; message: ChatMessageDTO | null }>({ open: false, x: 0, y: 0, message: null });
   const { user } = useAuth();
   const [members, setMembers] = useState<ChatRoomMemberDTO[]>([]);
   const bottomRef = useRef<HTMLDivElement | null>(null);
@@ -50,6 +55,14 @@ export const ChatRoomsPage: React.FC = () => {
   const [leaving, setLeaving] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  // 输入与 @ 提及
+  const inputRefMobile = useRef<HTMLInputElement | null>(null);
+  const inputRefDesktop = useRef<HTMLInputElement | null>(null);
+  const [mentionOpen, setMentionOpen] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionStartIdx, setMentionStartIdx] = useState<number | null>(null);
+  const [mentionActiveIndex, setMentionActiveIndex] = useState(0);
+  const [mentionedUserIds, setMentionedUserIds] = useState<Set<string>>(new Set());
 
   const loadRooms = async () => {
     try {
@@ -227,6 +240,22 @@ export const ChatRoomsPage: React.FC = () => {
           }
         });
         wsOffRef.current.push(offPresence);
+
+        // 监听被 @ 提及提醒（仅当前房间内提示）
+        const offMention = ChatRealtimeService.on('message', (frame) => {
+          if (!frame || String(frame.type).toLowerCase() !== 'mention') return;
+          const p = frame.payload || {};
+          if (!p || p.roomId !== room.id) return; // 仅在当前订阅房间提示
+          try {
+            const selfId = user?.id ? String(user.id) : '';
+            if (p.mentionedUserId && selfId && String(p.mentionedUserId) !== selfId) return;
+          } catch { /* ignore */ }
+          const sender = (p.senderName || '有人') as string;
+          const preview: string = String(p.content || '提到了你');
+          const text = `@${sender} 提到了你：${preview}`.slice(0, 120);
+          showToast.mention(text);
+        });
+        wsOffRef.current.push(offMention);
         // 房间关闭推送（与该订阅相关），直接在订阅上下文监听，避免时序与全局监听问题
         const offClosed = ChatRealtimeService.on('room_closed', async (frame) => {
           const raw = frame?.payload ?? {};
@@ -295,13 +324,57 @@ export const ChatRoomsPage: React.FC = () => {
       await ChatMessagesService.sendMessage(activeRoom.id, {
         content: text.trim(),
         clientMessageId: String(Date.now()),
+        quotedMessageId: quotedForSend?.id,
+        mentionedUserIds: Array.from(mentionedUserIds),
       });
       setText('');
+      setQuotedForSend(null);
+      setMentionOpen(false);
+      setMentionQuery('');
+      setMentionStartIdx(null);
+      setMentionActiveIndex(0);
+      setMentionedUserIds(new Set());
     } catch (e) {
       console.error('发送消息失败', e);
     } finally {
       setSending(false);
     }
+  };
+
+  // 过滤 @ 提及候选（在线用户优先，模糊匹配昵称）
+  const filteredMentionCandidates = (): ChatRoomMemberDTO[] => {
+    const q = (mentionQuery || '').toLowerCase();
+    const selfId = user?.id ? String(user.id) : '';
+    const list = members.filter(m => String(m.userId) !== selfId).slice(0);
+    list.sort((a, b) => Number(!!b.online) - Number(!!a.online));
+    if (!q) return list.slice(0, 20);
+    return list.filter(m => (m.name || '').toLowerCase().includes(q)).slice(0, 20);
+  };
+
+  // 在输入框光标处插入 @昵称，并记录 mentionedUserIds
+  const insertMention = (mem: ChatRoomMemberDTO, which: 'mobile' | 'desktop') => {
+    const ref = which === 'mobile' ? inputRefMobile : inputRefDesktop;
+    const el = ref.current;
+    const val = text;
+    const caret = (el && typeof el.selectionStart === 'number') ? el.selectionStart : val.length;
+    const start = mentionStartIdx ?? (val.lastIndexOf('@', Math.max(0, caret - 1)));
+    const before = val.slice(0, Math.max(0, start));
+    const after = val.slice(caret);
+    const insert = `@${mem.name} `;
+    const next = `${before}${insert}${after}`;
+    setText(next);
+    // 更新光标位置
+    requestAnimationFrame(() => {
+      try {
+        const pos = before.length + insert.length;
+        if (el) { el.focus(); el.setSelectionRange(pos, pos); }
+      } catch { /* ignore */ }
+    });
+    setMentionOpen(false);
+    setMentionQuery('');
+    setMentionStartIdx(null);
+    setMentionActiveIndex(0);
+    setMentionedUserIds((prev) => new Set(prev).add(mem.userId));
   };
 
   // 关闭/退出前，将已看到的最新消息作为锚点推进 lastSeen，避免退房后仍显示未读
@@ -316,7 +389,7 @@ export const ChatRoomsPage: React.FC = () => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6" onClick={() => setCtxMenu(s => ({ ...s, open: false }))}>
       {/* Page Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
@@ -525,13 +598,14 @@ export const ChatRoomsPage: React.FC = () => {
                       <div className="text-sm text-warm-gray-500">还没有消息，来说点什么吧～</div>
                     ) : (
                       <>
-                      <div className="space-y-4">
+                      <div className="space-y-4" onClick={() => setCtxMenu((s) => ({ ...s, open: false }))}>
                         {messages.map((m) => {
                           const name = m.senderName || '匿名用户';
                           const initial = name.slice(0, 1).toUpperCase();
                           const ts = m.createTime ? new Date(m.createTime).toLocaleString('zh-CN') : '';
                           // 不在消息内展示 tags，保持简洁；仅右侧成员列表展示
                           const isSelf = user?.id && m.senderId === user.id;
+                          const isHighlighted = !!(ctxMenu.open && ctxMenu.message && ctxMenu.message.id === m.id);
                           return (
                             <div
                               key={m.id}
@@ -551,10 +625,34 @@ export const ChatRoomsPage: React.FC = () => {
                                 </div>
                                 <div
                                   className={cn(
-                                    'mt-1 inline-block px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words max-w-[85%]',
-                                    isSelf ? 'bg-honey-500 text-white self-end' : 'bg-gray-50 text-gray-900 self-start'
+                                    'mt-1 inline-block px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words max-w-[85%] transition-all',
+                                    isSelf ? 'bg-honey-500 text-white self-end' : 'bg-gray-50 text-gray-900 self-start',
+                                    isHighlighted && 'ring-2 ring-emerald-300 shadow-sm'
                                   )}
+                                  onContextMenu={(e) => { e.preventDefault(); setCtxMenu({ open: true, x: e.clientX, y: e.clientY, message: m }); }}
+                                  onMouseEnter={(e) => { (e.currentTarget.classList as any).add('ring-1','ring-emerald-200'); }}
+                                  onMouseLeave={(e) => { (e.currentTarget.classList as any).remove('ring-1','ring-emerald-200'); }}
                                 >
+                                  {!!m.quotedMessageId && (
+                                    (() => {
+                                      const refMsg = messages.find(mm => mm.id === m.quotedMessageId);
+                                      const refName = refMsg?.senderName || '引用';
+                                      const refText = (refMsg?.content || '查看引用消息');
+                                      return (
+                                        <div
+                                          className={cn('mb-1 px-2 py-1 rounded-md text-xs border', isSelf ? 'bg-white/20 border-white/40' : 'bg-white/60 border-gray-200')}
+                                          onClick={(ev) => {
+                                            ev.stopPropagation();
+                                            const el = msgRefs.current.get(m.quotedMessageId!);
+                                            if (el) try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch { /* ignore */ }
+                                          }}
+                                        >
+                                          <span className="opacity-70 mr-1">{refName}:</span>
+                                          <span className="opacity-90 line-clamp-2 align-middle">{refText}</span>
+                                        </div>
+                                      );
+                                    })()
+                                  )}
                                   {m.content}
                                 </div>
                               </div>
@@ -566,12 +664,65 @@ export const ChatRoomsPage: React.FC = () => {
                       </>
                     )}
                   </ScrollArea>
-                  <div className="flex items-center gap-2">
+                  {/* 引用提示条 */}
+                  {quotedForSend && (
+                    <div className="mt-2 mb-1 px-3 py-2 rounded-md border-l-4 border-emerald-400 bg-emerald-50 text-emerald-900 text-xs flex items-center justify-between gap-2">
+                      <div className="truncate">
+                        <span className="opacity-80 mr-1">回复</span>
+                        <span className="font-medium">{quotedForSend.senderName || '匿名'}</span>
+                        <span className="opacity-60 mx-1">·</span>
+                        <span className="truncate inline-block max-w-[50vw] align-middle">{(quotedForSend.content || '').slice(0, 80)}{(quotedForSend.content || '').length > 80 ? '…' : ''}</span>
+                      </div>
+                      <button className="shrink-0 text-emerald-700 hover:underline" onClick={() => setQuotedForSend(null)}>取消</button>
+                    </div>
+                  )}
+                  <div className="relative flex items-center gap-2">
                     <Input
                       placeholder="输入消息..."
                       value={text}
-                      onChange={(e) => setText(e.target.value)}
+                      ref={inputRefMobile}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setText(val);
+                        const el = inputRefMobile.current;
+                        const caret = (el && typeof el.selectionStart === 'number') ? el.selectionStart : val.length;
+                        // 最近的 @
+                        const at = val.lastIndexOf('@', Math.max(0, caret - 1));
+                        if (at >= 0) {
+                          const prev = at === 0 ? ' ' : val[at - 1];
+                          const until = val.slice(at + 1, caret);
+                          const stop = /[\s@]/.test(until);
+                          if (!stop && /\s/.test(prev)) {
+                            setMentionOpen(true);
+                            setMentionQuery(until);
+                            setMentionStartIdx(at);
+                            setMentionActiveIndex(0);
+                          } else if (until.length === 0 && /\s/.test(prev)) {
+                            setMentionOpen(true);
+                            setMentionQuery('');
+                            setMentionStartIdx(at);
+                            setMentionActiveIndex(0);
+                          } else {
+                            setMentionOpen(false);
+                          }
+                        } else {
+                          setMentionOpen(false);
+                        }
+                      }}
                       onKeyDown={(e) => {
+                        if (mentionOpen) {
+                          if (e.key === 'ArrowDown') { e.preventDefault(); setMentionActiveIndex((i) => i + 1); return; }
+                          if (e.key === 'ArrowUp') { e.preventDefault(); setMentionActiveIndex((i) => Math.max(0, i - 1)); return; }
+                          if (e.key === 'Escape') { setMentionOpen(false); return; }
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const list = filteredMentionCandidates();
+                            const idx = Math.max(0, Math.min(mentionActiveIndex, list.length - 1));
+                            const pick = list[idx];
+                            if (pick) insertMention(pick, 'mobile');
+                            return;
+                          }
+                        }
                         if (e.key === 'Enter' && !e.shiftKey) {
                           e.preventDefault();
                           void sendMessage();
@@ -579,6 +730,28 @@ export const ChatRoomsPage: React.FC = () => {
                       }}
                     />
                     <Button onClick={sendMessage} disabled={sending || !activeRoom}>发送</Button>
+                    {/* @ 提及建议列表 */}
+                    {mentionOpen && (
+                      <div className="absolute bottom-11 left-0 z-20 w-64 max-h-56 overflow-y-auto rounded-md border bg-white shadow">
+                        {filteredMentionCandidates().map((mem, idx) => (
+                          <div
+                            key={mem.userId}
+                            className={cn('px-3 py-2 text-sm cursor-pointer flex items-center gap-2', idx === (mentionActiveIndex % Math.max(1, filteredMentionCandidates().length)) && 'bg-emerald-50')}
+                            onMouseDown={(ev) => { ev.preventDefault(); insertMention(mem, 'mobile'); }}
+                          >
+                            <Avatar size="sm">
+                              <AvatarImage src={mem.avatar || undefined} alt={mem.name} />
+                              <AvatarFallback>{(mem.name || '用').slice(0,1)}</AvatarFallback>
+                            </Avatar>
+                            <span className="truncate">{mem.name}</span>
+                            {mem.role === 'OWNER' && <Badge size="sm" variant="secondary" className="ml-auto">房主</Badge>}
+                          </div>
+                        ))}
+                        {filteredMentionCandidates().length === 0 && (
+                          <div className="px-3 py-2 text-sm text-warm-gray-500">无匹配成员</div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </TabsContent>
@@ -658,13 +831,14 @@ export const ChatRoomsPage: React.FC = () => {
                       <div className="text-sm text-warm-gray-500">还没有消息，来说点什么吧～</div>
                     ) : (
                       <>
-                      <div className="space-y-4">
+                      <div className="space-y-4" onClick={() => setCtxMenu((s) => ({ ...s, open: false }))}>
                     {messages.map((m) => {
                       const name = m.senderName || '匿名用户';
                       const initial = name.slice(0, 1).toUpperCase();
                       const ts = m.createTime ? new Date(m.createTime).toLocaleString('zh-CN') : '';
                       // 不在消息内展示 tags，保持简洁；仅右侧成员列表展示
                       const isSelf = user?.id && m.senderId === user.id;
+                      const isHighlighted = !!(ctxMenu.open && ctxMenu.message && ctxMenu.message.id === m.id);
                       return (
                         <div
                           key={m.id}
@@ -684,10 +858,34 @@ export const ChatRoomsPage: React.FC = () => {
                             </div>
                             <div
                               className={cn(
-                                'mt-1 inline-block px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words max-w-[75%]',
-                                isSelf ? 'bg-honey-500 text-white self-end' : 'bg-gray-50 text-gray-900 self-start'
+                                'mt-1 inline-block px-3 py-2 rounded-2xl text-sm whitespace-pre-wrap break-words max-w-[75%] transition-all',
+                                isSelf ? 'bg-honey-500 text-white self-end' : 'bg-gray-50 text-gray-900 self-start',
+                                isHighlighted && 'ring-2 ring-emerald-300 shadow-sm'
                               )}
+                              onContextMenu={(e) => { e.preventDefault(); setCtxMenu({ open: true, x: e.clientX, y: e.clientY, message: m }); }}
+                              onMouseEnter={(e) => { (e.currentTarget.classList as any).add('ring-1','ring-emerald-200'); }}
+                              onMouseLeave={(e) => { (e.currentTarget.classList as any).remove('ring-1','ring-emerald-200'); }}
                             >
+                              {!!m.quotedMessageId && (
+                                (() => {
+                                  const refMsg = messages.find(mm => mm.id === m.quotedMessageId);
+                                  const refName = refMsg?.senderName || '引用';
+                                  const refText = (refMsg?.content || '查看引用消息');
+                                  return (
+                                    <div
+                                      className={cn('mb-1 px-2 py-1 rounded-md text-xs border', isSelf ? 'bg-white/20 border-white/40' : 'bg-white/60 border-gray-200')}
+                                      onClick={(ev) => {
+                                        ev.stopPropagation();
+                                        const el = msgRefs.current.get(m.quotedMessageId!);
+                                        if (el) try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch { /* ignore */ }
+                                      }}
+                                    >
+                                      <span className="opacity-70 mr-1">{refName}:</span>
+                                      <span className="opacity-90 line-clamp-2 align-middle">{refText}</span>
+                                    </div>
+                                  );
+                                })()
+                              )}
                               {m.content}
                             </div>
                           </div>
@@ -700,12 +898,64 @@ export const ChatRoomsPage: React.FC = () => {
                     )}
               </ScrollArea>
 
-              <div className="flex items-center gap-2">
+              {/* 引用提示条 */}
+              {quotedForSend && (
+                <div className="mt-2 mb-1 px-3 py-2 rounded-md border-l-4 border-emerald-400 bg-emerald-50 text-emerald-900 text-xs flex items-center justify-between gap-2">
+                  <div className="truncate">
+                    <span className="opacity-80 mr-1">回复</span>
+                    <span className="font-medium">{quotedForSend.senderName || '匿名'}</span>
+                    <span className="opacity-60 mx-1">·</span>
+                    <span className="truncate inline-block max-w-[50vw] align-middle">{(quotedForSend.content || '').slice(0, 80)}{(quotedForSend.content || '').length > 80 ? '…' : ''}</span>
+                  </div>
+                  <button className="shrink-0 text-emerald-700 hover:underline" onClick={() => setQuotedForSend(null)}>取消</button>
+                </div>
+              )}
+              <div className="relative flex items-center gap-2">
                 <Input
                   placeholder="输入消息..."
                   value={text}
-                  onChange={(e) => setText(e.target.value)}
+                  ref={inputRefDesktop}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setText(val);
+                    const el = inputRefDesktop.current;
+                    const caret = (el && typeof el.selectionStart === 'number') ? el.selectionStart : val.length;
+                    const at = val.lastIndexOf('@', Math.max(0, caret - 1));
+                    if (at >= 0) {
+                      const prev = at === 0 ? ' ' : val[at - 1];
+                      const until = val.slice(at + 1, caret);
+                      const stop = /[\s@]/.test(until);
+                      if (!stop && /\s/.test(prev)) {
+                        setMentionOpen(true);
+                        setMentionQuery(until);
+                        setMentionStartIdx(at);
+                        setMentionActiveIndex(0);
+                      } else if (until.length === 0 && /\s/.test(prev)) {
+                        setMentionOpen(true);
+                        setMentionQuery('');
+                        setMentionStartIdx(at);
+                        setMentionActiveIndex(0);
+                      } else {
+                        setMentionOpen(false);
+                      }
+                    } else {
+                      setMentionOpen(false);
+                    }
+                  }}
                   onKeyDown={(e) => {
+                    if (mentionOpen) {
+                      if (e.key === 'ArrowDown') { e.preventDefault(); setMentionActiveIndex((i) => i + 1); return; }
+                      if (e.key === 'ArrowUp') { e.preventDefault(); setMentionActiveIndex((i) => Math.max(0, i - 1)); return; }
+                      if (e.key === 'Escape') { setMentionOpen(false); return; }
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const list = filteredMentionCandidates();
+                        const idx = Math.max(0, Math.min(mentionActiveIndex, list.length - 1));
+                        const pick = list[idx];
+                        if (pick) insertMention(pick, 'desktop');
+                        return;
+                      }
+                    }
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
                       void sendMessage();
@@ -713,6 +963,28 @@ export const ChatRoomsPage: React.FC = () => {
                   }}
                 />
                 <Button onClick={sendMessage} disabled={sending || !activeRoom}>发送</Button>
+                {/* @ 提及建议列表 */}
+                {mentionOpen && (
+                  <div className="absolute bottom-11 left-0 z-20 w-72 max-h-56 overflow-y-auto rounded-md border bg-white shadow">
+                    {filteredMentionCandidates().map((mem, idx) => (
+                      <div
+                        key={mem.userId}
+                        className={cn('px-3 py-2 text-sm cursor-pointer flex items-center gap-2', idx === (mentionActiveIndex % Math.max(1, filteredMentionCandidates().length)) && 'bg-emerald-50')}
+                        onMouseDown={(ev) => { ev.preventDefault(); insertMention(mem, 'desktop'); }}
+                      >
+                        <Avatar size="sm">
+                          <AvatarImage src={mem.avatar || undefined} alt={mem.name} />
+                          <AvatarFallback>{(mem.name || '用').slice(0,1)}</AvatarFallback>
+                        </Avatar>
+                        <span className="truncate">{mem.name}</span>
+                        {mem.role === 'OWNER' && <Badge size="sm" variant="secondary" className="ml-auto">房主</Badge>}
+                      </div>
+                    ))}
+                    {filteredMentionCandidates().length === 0 && (
+                      <div className="px-3 py-2 text-sm text-warm-gray-500">无匹配成员</div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -826,6 +1098,46 @@ export const ChatRoomsPage: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 右键上下文菜单（仅：引用回复） - 使用 Portal 置顶 */}
+      {ctxMenu.open && ctxMenu.message && createPortal(
+        <div
+          className="fixed z-[1000] min-w-[140px] rounded-xl border bg-white shadow-lg overflow-hidden"
+          style={{ top: Math.max(8, Math.min(window.innerHeight - 120, ctxMenu.y + 4)), left: Math.max(8, Math.min(window.innerWidth - 160, ctxMenu.x + 4)) }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            className="block w-full px-4 py-2 text-left text-sm cursor-pointer transition-colors hover:bg-emerald-50 active:bg-emerald-100 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-300"
+            onClick={() => {
+              // 设置引用对象
+              if (ctxMenu.message) setQuotedForSend(ctxMenu.message);
+              // 先关闭菜单
+              setCtxMenu({ open: false, x: 0, y: 0, message: null });
+              // 聚焦可见的输入框，并将光标放到末尾
+              try {
+                // 与 tailwind md 断点保持一致（min-width: 768px）
+                const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
+                const el = (isDesktop ? inputRefDesktop.current : inputRefMobile.current) as HTMLInputElement | null;
+                // 等一帧，等菜单关闭后的布局稳定再聚焦
+                requestAnimationFrame(() => {
+                  if (el) {
+                    el.focus();
+                    try {
+                      const end = el.value?.length ?? 0;
+                      // 将光标移动到行尾，便于继续输入
+                      el.setSelectionRange(end, end);
+                    } catch { /* ignore */ }
+                  }
+                });
+              } catch { /* ignore */ }
+            }}
+          >
+            引用回复
+          </button>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
