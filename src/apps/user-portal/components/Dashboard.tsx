@@ -14,6 +14,7 @@ import { AiNewsPage } from './AiNewsPage';
 import { InterviewQuestionsPage } from './InterviewQuestionsPage';
 import { InterviewQuestionDetailPage } from './InterviewQuestionDetailPage';
 import { AiNewsDetailPage } from './AiNewsDetailPage';
+import { ChatRoomsPage } from './ChatRoomsPage';
 
 export const Dashboard: React.FC = () => {
   return (
@@ -44,6 +45,7 @@ export const Dashboard: React.FC = () => {
               <Route path="/ai-news/:id" element={<AiNewsDetailPage />} />
               <Route path="/interviews" element={<InterviewQuestionsPage />} />
               <Route path="/interviews/:id" element={<InterviewQuestionDetailPage />} />
+              <Route path="/chat" element={<ChatRoomsPage />} />
 
               {/* 404 处理 */}
               <Route path="*" element={<Navigate to="/dashboard/home" replace />} />

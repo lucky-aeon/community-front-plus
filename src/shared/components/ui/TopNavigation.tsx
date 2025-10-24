@@ -4,6 +4,7 @@ import {
   Home,
   BookOpen,
   MessageSquare,
+  MessageCircle,
   Plus,
   Menu,
   X,
@@ -86,6 +87,14 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
       icon: MessageSquare,
       description: '技术讨论和问答',
       code: MENU_CODE.DASHBOARD_DISCUSSIONS
+    },
+    {
+      id: 'chat',
+      name: '聊天室',
+      path: '/dashboard/chat',
+      icon: MessageCircle,
+      description: '实时聊天室',
+      code: MENU_CODE.DASHBOARD_CHAT
     },
     {
       id: 'ai-news',

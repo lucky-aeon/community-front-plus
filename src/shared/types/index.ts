@@ -1404,6 +1404,75 @@ export interface UnreadSummaryDTO {
   chaptersUnread: number;
 }
 
+// ================ 聊天室相关接口定义 ================
+
+// 聊天室 DTO（最小展示字段，按后端对齐可扩展）
+export interface ChatRoomDTO {
+  id: string;
+  name: string;
+  description?: string;
+  subscriptionPlanId?: string; // 后端使用单个套餐ID控制可见性（可选）
+  creatorId?: string;
+  createTime?: string;
+  updateTime?: string;
+  joined?: boolean;            // 当前用户是否已加入
+  memberCount?: number;        // 房间成员数量
+  unreadCount?: number;        // 当前用户在该房间的未读消息数量
+}
+
+// 创建聊天室请求（与后端 CreateChatRoomRequest 对齐）
+export type ChatRoomAudience = 'PAID_ONLY' | 'FREE_ONLY' | 'ALL_USERS' | string;
+
+export interface CreateChatRoomRequest {
+  name: string;
+  description?: string;
+  // 可选：仅管理员生效，指定房间受众
+  audience?: ChatRoomAudience;
+}
+
+// 聊天消息 DTO
+export interface ChatMessageDTO {
+  id: string;
+  roomId: string;
+  senderId: string;
+  content: string;
+  quotedMessageId?: string;
+  mentionedUserIds?: string[];
+  createTime?: string;
+  updateTime?: string;
+  // 扩展展示字段
+  senderName?: string;
+  senderAvatar?: string;
+  senderTags?: string[];
+}
+
+// 发送消息请求
+export interface SendMessageRequest {
+  content: string;
+  quotedMessageId?: string;
+  mentionedUserIds?: string[];
+  clientMessageId?: string;
+}
+
+// 聊天室未读信息（数量 + 锚点）
+export interface ChatUnreadInfoDTO {
+  count: number;
+  firstUnreadId?: string | null;
+  firstUnreadOccurredAt?: string | null;
+}
+
+// 聊天室成员
+export type ChatRoomRole = 'OWNER' | 'MEMBER' | string;
+export interface ChatRoomMemberDTO {
+  userId: string;
+  name: string;
+  avatar?: string;
+  role?: ChatRoomRole;
+  online?: boolean;
+  joinedAt?: string;
+  tags?: string[];
+}
+
 // 创建套餐请求参数
 export interface CreateSubscriptionPlanRequest {
   name: string;                        // 套餐名称，必填，2-100字符

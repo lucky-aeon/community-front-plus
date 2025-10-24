@@ -14,7 +14,14 @@ export default defineConfig({
         target: 'http://127.0.0.1:8520',
         changeOrigin: true,
         secure: false,
-      }
+      },
+      // WebSocket 代理到后端（聊天室）
+      '/ws': {
+        target: 'http://127.0.0.1:8520',
+        changeOrigin: true,
+        ws: true,
+        secure: false,
+      },
     }
   },
   // 预览模式同样允许上述域名（如使用 `npm run preview`）

@@ -17,6 +17,7 @@ export const ROUTES = {
   DASHBOARD_AI_NEWS_DETAIL: '/dashboard/ai-news/:id',
   DASHBOARD_INTERVIEWS: '/dashboard/interviews',
   DASHBOARD_INTERVIEWS_DETAIL: '/dashboard/interviews/:id',
+  DASHBOARD_CHAT: '/dashboard/chat',
   
   // 用户后台路由
   USER_BACKEND: '/dashboard/user-backend',
@@ -70,6 +71,12 @@ export const navigationConfig = [
     name: '讨论', 
     path: '/dashboard/discussions',
     icon: 'MessageSquare'
+  },
+  { 
+    id: 'chat', 
+    name: '聊天室', 
+    path: '/dashboard/chat',
+    icon: 'MessageCircle'
   },
   { 
     id: 'courses', 

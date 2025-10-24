@@ -40,6 +40,8 @@ export { UnreadService } from './unread.service';
 export { AppUnreadService } from './app-unread.service';
 export { FavoritesService } from './favorites.service';
 export { UserOAuth2Service } from './user-oauth2.service';
+export { ChatRoomsService } from './chat-rooms.service';
+export { ChatMessagesService } from './chat-messages.service';
 
 // 导出类型定义
 export type {
@@ -144,4 +146,11 @@ export type {
   InterviewProblemStatus,
   UnreadSummaryDTO,
   UnreadChannel,
+  // 聊天室
+  ChatRoomDTO,
+  CreateChatRoomRequest,
+  ChatMessageDTO,
+  SendMessageRequest,
+  ChatRoomMemberDTO,
+  ChatRoomRole,
 } from '@shared/types';

@@ -15,6 +15,7 @@ const routeTitleMap: Array<{ pattern: RegExp; title: string }> = [
   { pattern: /^\/dashboard\/ai-news\/[^/]+$/, title: 'AI 日报详情' },
   { pattern: /^\/dashboard\/interviews$/, title: '面试题库' },
   { pattern: /^\/dashboard\/interviews\/[^/]+$/, title: '题目详情' },
+  { pattern: /^\/dashboard\/chat$/, title: '聊天室' },
   { pattern: /^\/dashboard\/courses\/[^/]+$/, title: '课程详情' },
   { pattern: /^\/dashboard\/courses\/[^/]+\/chapters\/[^/]+$/, title: '课程章节' },
   { pattern: /^\/dashboard\/admin\//, title: '管理后台' },
@@ -33,4 +34,3 @@ export function TitleSetter() {
 }
 
 export default TitleSetter;
-

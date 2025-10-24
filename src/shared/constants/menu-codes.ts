@@ -3,6 +3,7 @@
 export const MENU_CODE = {
   DASHBOARD_HOME: 'MENU_DASHBOARD_HOME',
   DASHBOARD_DISCUSSIONS: 'MENU_DASHBOARD_DISCUSSIONS',
+  DASHBOARD_CHAT: 'MENU_DASHBOARD_CHAT',
   DASHBOARD_COURSES: 'MENU_DASHBOARD_COURSES',
   DASHBOARD_INTERVIEWS: 'MENU_DASHBOARD_INTERVIEWS',
   DASHBOARD_CHANGELOG: 'MENU_DASHBOARD_CHANGELOG',
@@ -27,6 +28,7 @@ export type MenuCode = typeof MENU_CODE[keyof typeof MENU_CODE];
 export const NAV_ID_TO_CODE: Record<string, MenuCode | undefined> = {
   home: MENU_CODE.DASHBOARD_HOME,
   discussions: MENU_CODE.DASHBOARD_DISCUSSIONS,
+  chat: MENU_CODE.DASHBOARD_CHAT,
   courses: MENU_CODE.DASHBOARD_COURSES,
   interviews: MENU_CODE.DASHBOARD_INTERVIEWS,
   changelog: MENU_CODE.DASHBOARD_CHANGELOG,
@@ -59,6 +61,7 @@ const PATH_PREFIX_TO_CODE_ORDERED: Array<{ prefix: string; code: MenuCode }> = [
   { prefix: '/dashboard/membership', code: MENU_CODE.MEMBERSHIP },
   { prefix: '/dashboard/ai-news', code: MENU_CODE.DASHBOARD_AI_NEWS },
   { prefix: '/dashboard/interviews', code: MENU_CODE.DASHBOARD_INTERVIEWS },
+  { prefix: '/dashboard/chat', code: MENU_CODE.DASHBOARD_CHAT },
   { prefix: '/dashboard/discussions', code: MENU_CODE.DASHBOARD_DISCUSSIONS },
   { prefix: '/dashboard/courses', code: MENU_CODE.DASHBOARD_COURSES },
   { prefix: '/dashboard/changelog', code: MENU_CODE.DASHBOARD_CHANGELOG },
