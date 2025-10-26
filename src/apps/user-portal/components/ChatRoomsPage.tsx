@@ -80,6 +80,10 @@ export const ChatRoomsPage: React.FC = () => {
   const [mentionActiveIndex, setMentionActiveIndex] = useState(0);
   // 解析时使用，发送时再从文本提取，不单独维护选择集合
   const lastTextRef = useRef('');
+  // 发送幂等控制：并发锁 + 短时间重复内容拦截
+  const sendingRef = useRef(false);
+  const lastSendFingerprintRef = useRef('');
+  const lastSendAtRef = useRef(0);
 
   // 允许作为用户名的字符（中英文、数字、下划线、连字符）
   const mentionCharRe = /[A-Za-z0-9_\-\u4e00-\u9fa5]/;
@@ -189,14 +193,33 @@ export const ChatRoomsPage: React.FC = () => {
       return;
     }
     try {
+      // 防并发：键盘/按钮双触发
+      if (sendingRef.current) return;
+      sendingRef.current = true;
       setSending(true);
+      // 生成重复判定指纹（内容 + 引用 + 提及，提及排序保证一致）
       const mentionedUserIds = extractMentionedUserIds(text);
+      const trimmed = text.trim();
+      const fp = JSON.stringify({
+        c: trimmed,
+        q: quotedForSend?.id || '',
+        m: [...mentionedUserIds].sort(),
+      });
+      const now = Date.now();
+      if (fp === lastSendFingerprintRef.current && now - lastSendAtRef.current < 3000) {
+        // 本地交互类提示，符合规范
+        showToast.info('请勿短时间内重复发送相同内容');
+        return;
+      }
       await ChatMessagesService.sendMessage(activeRoom.id, {
-        content: text.trim(),
-        clientMessageId: String(Date.now()),
+        content: trimmed,
+        clientMessageId: `${now}-${Math.random().toString(36).slice(2,8)}`,
         quotedMessageId: quotedForSend?.id,
         mentionedUserIds: mentionedUserIds.length > 0 ? mentionedUserIds : undefined,
       });
+      // 记录最近一次成功发送的指纹，短时间内阻止重复
+      lastSendFingerprintRef.current = fp;
+      lastSendAtRef.current = now;
       setText('');
       setQuotedForSend(null);
       setMentionOpen(false);
@@ -207,6 +230,7 @@ export const ChatRoomsPage: React.FC = () => {
       console.error('发送消息失败', e);
     } finally {
       setSending(false);
+      sendingRef.current = false;
     }
   };
 

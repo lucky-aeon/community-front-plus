@@ -261,10 +261,27 @@ function MarkdownEditorImpl(
       const isImage = file.type.startsWith('image/');
       const isVideo = file.type.startsWith('video/');
 
-      if (!isImage && !isVideo) {
-        showToast.error('仅支持上传图片或视频文件');
-        return;
-      }
+      // 工具方法：在光标位置插入 Markdown 片段（用于非图片/视频等通用文件）
+      const insertAtCursor = (snippet: string) => {
+        try {
+          const inst = cherryInstanceRef.current as unknown as { editor?: { editor?: { replaceSelection?: (text: string) => void; focus?: () => void } } } | null;
+          const cm = inst?.editor?.editor;
+          if (cm && typeof cm.replaceSelection === 'function') {
+            cm.replaceSelection(snippet);
+            cm.focus?.();
+            return true;
+          }
+        } catch { /* ignore */ }
+        try {
+          const inst = cherryInstanceRef.current as unknown as { getValue?: () => string; setValue?: (v: string, keepCursor?: boolean) => void } | null;
+          const cur = inst?.getValue ? inst.getValue() : lastValueRef.current || '';
+          const needsLF = !!cur && !cur.endsWith('\n');
+          const next = `${cur}${needsLF ? '\n' : ''}${snippet}`;
+          if (inst?.setValue) { inst.setValue(next, false); } else { onChange(next); }
+          return true;
+        } catch { /* ignore */ }
+        return false;
+      };
 
       // 新建上传任务
       const taskId = `${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
@@ -285,56 +302,68 @@ function MarkdownEditorImpl(
         setUploadTasks((prev) => prev.map(t => t.id === taskId ? { ...t, progress: p } : t));
       };
 
-      let posterUrl: string | undefined;
-      // 如果是视频，先并行准备 poster（首帧截图再上传）。不阻塞视频上传开始。
-      const posterPromise = (async () => {
-        if (!isVideo) return undefined;
-        try {
-          const blob = await captureVideoPoster(file, 800);
-          const posterFile = new File([blob], `${file.name.replace(/\.[^.]+$/, '')}-poster.jpg`, { type: 'image/jpeg' });
-          const posterResp = await UploadService.uploadImage(posterFile, { onCreateXhr });
-          return posterResp.url;
-        } catch (e) {
-          console.warn('生成视频封面失败，继续无poster:', e);
-          return undefined;
+      if (isImage || isVideo) {
+        let posterUrl: string | undefined;
+        // 如果是视频，先并行准备 poster（首帧截图再上传）。不阻塞视频上传开始。
+        const posterPromise = (async () => {
+          if (!isVideo) return undefined;
+          try {
+            const blob = await captureVideoPoster(file, 800);
+            const posterFile = new File([blob], `${file.name.replace(/\.[^.]+$/, '')}-poster.jpg`, { type: 'image/jpeg' });
+            const posterResp = await UploadService.uploadImage(posterFile, { onCreateXhr });
+            return posterResp.url;
+          } catch (e) {
+            console.warn('生成视频封面失败，继续无poster:', e);
+            return undefined;
+          }
+        })();
+
+        const resp = isImage
+          ? await UploadService.uploadImage(file, { onProgress, onCreateXhr })
+          : await UploadService.uploadVideo(file, { onProgress, onCreateXhr });
+
+        if (!resp.url) {
+          throw new Error('上传失败：未返回访问URL');
         }
-      })();
 
-      const resp = isImage
-        ? await UploadService.uploadImage(file, { onProgress, onCreateXhr })
-        : await UploadService.uploadVideo(file, { onProgress, onCreateXhr });
+        try { await ResourceAccessService.ensureSession(); } catch { void 0; }
 
-      if (!resp.url) {
-        throw new Error('上传失败：未返回访问URL');
-      }
+        // 等待 poster（仅视频）
+        if (isVideo) {
+          posterUrl = await posterPromise;
+        }
 
-      try { await ResourceAccessService.ensureSession(); } catch { void 0; }
-
-      // 等待 poster（仅视频）
-      if (isVideo) {
-        posterUrl = await posterPromise;
-      }
-
-      // 图片/视频分别携带适合的渲染参数
-      if (isImage) {
-        callback(resp.url, {
-          name: file.name.replace(/\.[^.]+$/, ''),
-          isShadow: true,
-          isRadius: true,
-          width: '100%',
-          height: 'auto'
-        });
+        // 图片/视频分别携带适合的渲染参数
+        if (isImage) {
+          callback(resp.url, {
+            name: file.name.replace(/\.[^.]+$/, ''),
+            isShadow: true,
+            isRadius: true,
+            width: '100%',
+            height: 'auto'
+          });
+        } else {
+          // 对视频，传入 poster 与常用控制属性
+          const params: Record<string, unknown> = {
+            controls: true,
+            autoplay: false,
+            loop: false,
+            width: '100%',
+            height: 'auto'
+          };
+          if (posterUrl) params.poster = posterUrl;
+          callback(resp.url, params);
+        }
       } else {
-        // 对视频，传入 poster 与常用控制属性
-        const params: Record<string, unknown> = {
-          controls: true,
-          autoplay: false,
-          loop: false,
-          width: '100%',
-          height: 'auto'
-        };
-        if (posterUrl) params.poster = posterUrl;
-        callback(resp.url, params);
+        // 其他类型：不做类型限制，直接作为通用文件上传并插入 Markdown 链接
+        const resp = await UploadService.uploadFile(file, { onProgress, onCreateXhr });
+        if (!resp.url) throw new Error('上传失败：未返回访问URL');
+        try { await ResourceAccessService.ensureSession(); } catch { /* ignore */ }
+        const safeName = file.name || 'file';
+        const snippet = `[${safeName}](${resp.url})`;
+        // 直接插入到光标位置；为避免 Cherry 内部的占位处理与我们重复插入，这里仍调用 callback 但不传参，让其快速结束
+        try { callback(''); } catch { /* ignore */ }
+        insertAtCursor(snippet);
       }
 
       setUploadTasks((prev) => prev.map(t => t.id === taskId ? { ...t, status: 'success', progress: 100 } : t));
