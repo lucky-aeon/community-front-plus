@@ -653,24 +653,21 @@ export const ChatRoomsPage: React.FC = () => {
         }
       }}>
         <DialogContent
-          className="w-screen h-screen max-w-none max-h-none overflow-hidden p-2 sm:p-4"
+          className="w-screen h-screen max-w-none max-h-none p-2 sm:p-4 flex flex-col"
           // 禁止按 ESC 关闭
           onEscapeKeyDown={(e) => { e.preventDefault(); }}
           // 禁止点击背景关闭
           onInteractOutside={(e) => { e.preventDefault(); }}
         >
-          {/* 顶部区域留空，房间名在聊天窗口内的粘顶横条显示 */}
-
           {/* Mobile: tabs layout */}
-          <div className="md:hidden">
-            <Tabs defaultValue="chat">
-              <TabsList className="w-full">
+          <div className="md:hidden flex-1 flex flex-col overflow-hidden">
+            <Tabs defaultValue="chat" className="h-full flex flex-col">
+              <TabsList className="w-full flex-shrink-0">
                 <TabsTrigger value="chat" className="flex-1">聊天</TabsTrigger>
                 <TabsTrigger value="members" className="flex-1">成员</TabsTrigger>
               </TabsList>
-              <TabsContent value="chat">
-                <div className="flex flex-col gap-3 h-[calc(100vh-200px)] min-h-[360px]">
-              <ScrollArea className="flex-1 rounded-md border bg-white/50 px-3 pb-3 pt-0">
+              <TabsContent value="chat" className="flex-1 flex flex-col gap-3 overflow-hidden mt-0 data-[state=active]:flex min-h-0">
+              <ScrollArea className="flex-1 rounded-md border bg-white/50 px-3 pb-3 pt-0 min-h-0">
                 {/* Room name header inside chat window */}
                 <div className="sticky top-0 z-10 -mx-3 px-3 py-2 bg-white/80 backdrop-blur-sm border-b border-gray-200 flex items-center justify-between">
                   <div className="text-sm font-medium truncate">{activeRoom?.name || '聊天室'}</div>
@@ -784,20 +781,22 @@ export const ChatRoomsPage: React.FC = () => {
                       <div ref={bottomRef} />
                       </>
                     )}
-                  </ScrollArea>
-                  {/* 引用提示条 */}
-                  {quotedForSend && (
-                    <div className="mt-2 mb-1 px-3 py-2 rounded-md border-l-4 border-emerald-400 bg-emerald-50 text-emerald-900 text-xs flex items-center justify-between gap-2">
-                      <div className="truncate">
-                        <span className="opacity-80 mr-1">回复</span>
-                        <span className="font-medium">{quotedForSend.senderName || '匿名'}</span>
-                        <span className="opacity-60 mx-1">·</span>
-                        <span className="truncate inline-block max-w-[50vw] align-middle">{(quotedForSend.content || '').slice(0, 80)}{(quotedForSend.content || '').length > 80 ? '…' : ''}</span>
-                      </div>
-                      <button className="shrink-0 text-emerald-700 hover:underline" onClick={() => setQuotedForSend(null)}>取消</button>
-                    </div>
-                  )}
-                  <div className="relative flex flex-col gap-2">
+              </ScrollArea>
+
+              {/* 引用提示条 */}
+              {quotedForSend && (
+                <div className="px-3 py-2 rounded-md border-l-4 border-emerald-400 bg-emerald-50 text-emerald-900 text-xs flex items-center justify-between gap-2 flex-shrink-0">
+                  <div className="truncate">
+                    <span className="opacity-80 mr-1">回复</span>
+                    <span className="font-medium">{quotedForSend.senderName || '匿名'}</span>
+                    <span className="opacity-60 mx-1">·</span>
+                    <span className="truncate inline-block max-w-[50vw] align-middle">{(quotedForSend.content || '').slice(0, 80)}{(quotedForSend.content || '').length > 80 ? '…' : ''}</span>
+                  </div>
+                  <button className="shrink-0 text-emerald-700 hover:underline" onClick={() => setQuotedForSend(null)}>取消</button>
+                </div>
+              )}
+
+              <div className="relative flex flex-col gap-2 flex-shrink-0">
                 <MarkdownEditor
                   ref={inputRefMobile}
                   value={text}
@@ -833,16 +832,15 @@ export const ChatRoomsPage: React.FC = () => {
                 </div>
                 {renderMentionOverlay()}
               </div>
-                </div>
               </TabsContent>
-              <TabsContent value="members">
-                <div className="h-[calc(100vh-200px)] min-h-[360px] rounded-md border bg-white/50 p-3 flex flex-col">
-                  <div className="flex items-center justify-between mb-2">
+              <TabsContent value="members" className="flex-1 flex flex-col overflow-hidden mt-0 data-[state=active]:flex min-h-0">
+                <div className="min-h-0 rounded-md border bg-white/50 p-3 flex flex-col flex-1">
+                  <div className="flex items-center justify-between mb-2 flex-shrink-0">
                     <div className="text-sm font-medium">成员</div>
                     <div className="text-xs text-warm-gray-500">在线 {members.filter(m => m.online).length} / 总 {members.length}</div>
                   </div>
-                  <Separator className="mb-2" />
-                  <ScrollArea className="flex-1">
+                  <Separator className="mb-2 flex-shrink-0" />
+                  <ScrollArea className="flex-1 min-h-0">
                     <div className="space-y-2 pr-2">
                       {members.map((mem) => {
                         const name = mem.name || '匿名用户';
@@ -874,10 +872,10 @@ export const ChatRoomsPage: React.FC = () => {
           </div>
 
           {/* Desktop: side-by-side layout */}
-          <div className="hidden md:grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_300px] gap-4">
+          <div className="hidden md:grid md:grid-cols-[1fr_300px] gap-4 flex-1 overflow-hidden">
             {/* Messages column */}
-            <div className="flex flex-col gap-3 h-[calc(100vh-200px)] min-h-[360px]">
-              <ScrollArea className="flex-1 rounded-md border bg-white/50 px-3 pb-3 pt-0">
+            <div className="flex flex-col gap-3 min-h-0">
+              <ScrollArea className="flex-1 rounded-md border bg-white/50 px-3 pb-3 pt-0 min-h-0">
                 {/* Room name header inside chat window */}
                 <div className="sticky top-0 z-10 -mx-3 px-3 py-2 bg-white/80 backdrop-blur-sm border-b border-gray-200 flex items-center justify-between">
                   <div className="text-sm font-medium truncate">{activeRoom?.name || '聊天室'}</div>
@@ -1044,13 +1042,13 @@ export const ChatRoomsPage: React.FC = () => {
             </div>
 
             {/* Members column */}
-            <div className="h-[calc(100vh-200px)] min-h-[360px] rounded-md border bg-white/50 p-3 flex flex-col">
-              <div className="flex items-center justify-between mb-2">
+            <div className="min-h-0 rounded-md border bg-white/50 p-3 flex flex-col">
+              <div className="flex items-center justify-between mb-2 flex-shrink-0">
                 <div className="text-sm font-medium">成员</div>
                 <div className="text-xs text-warm-gray-500">在线 {members.filter(m => m.online).length} / 总 {members.length}</div>
               </div>
-              <Separator className="mb-2" />
-              <ScrollArea className="flex-1">
+              <Separator className="mb-2 flex-shrink-0" />
+              <ScrollArea className="flex-1 min-h-0">
                 <div className="space-y-2 pr-2">
                   {members.map((mem) => {
                     const name = mem.name || '匿名用户';
