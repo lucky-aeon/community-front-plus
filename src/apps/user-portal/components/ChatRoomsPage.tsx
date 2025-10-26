@@ -21,6 +21,7 @@ import { ChatRealtimeService } from '@shared/services/realtime/chat-realtime.ser
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { showToast } from '@shared/utils/toast';
 import { MarkdownEditor, type MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
+import { SharedMarkdownRenderer } from '@shared/components/ui/SharedMarkdownRenderer';
 
 export const ChatRoomsPage: React.FC = () => {
   const [rooms, setRooms] = useState<ChatRoomDTO[]>([]);
@@ -898,18 +899,10 @@ export const ChatRoomsPage: React.FC = () => {
                                       );
                                     })()
                                   )}
-                                  <div className={cn('prose-content chat-md', isSelf ? 'text-white' : 'text-gray-900')}>
-                                    <MarkdownEditor
-                                      value={m.content || ''}
-                                      onChange={() => {}}
-                                      previewOnly
-                                      height="auto"
-                                      toolbar={false}
-                                      enableFullscreen={false}
-                                      enableToc={false}
-                                      className="!border-none !shadow-none !bg-transparent p-0"
-                                    />
-                                  </div>
+                                  <SharedMarkdownRenderer
+                                    content={m.content || ''}
+                                    className={cn('prose-content chat-md', isSelf ? 'text-white' : 'text-gray-900')}
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -945,7 +938,7 @@ export const ChatRoomsPage: React.FC = () => {
                   enableFullscreen={false}
                   enableToc={false}
                   onKeyDown={handleInputKeyDown}
-                  className="!rounded-md"
+                  className="!rounded-md chat-toolbar-hidden"
                 />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -1158,7 +1151,7 @@ export const ChatRoomsPage: React.FC = () => {
                   enableFullscreen={false}
                   enableToc={false}
                   onKeyDown={handleInputKeyDown}
-                  className="!rounded-md"
+                  className="!rounded-md chat-toolbar-hidden"
                 />
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">

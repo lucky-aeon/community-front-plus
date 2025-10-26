@@ -197,6 +197,35 @@
   }
 }
 
+/* 聊天室：针对两种渲染路径的首尾外边距裁边与尾部换行清理 */
+/* 1) Cherry 预览容器 */
+.chat-md .markdown-editor-wrapper .cherry,
+.chat-md .markdown-editor-wrapper .cherry-previewer {
+  min-height: 0 !important;
+  height: auto !important;
+}
+.chat-md .markdown-editor-wrapper .cherry-previewer > :first-child {
+  margin-top: 0 !important;
+}
+.chat-md .markdown-editor-wrapper .cherry-previewer > :last-child {
+  margin-bottom: 0 !important;
+}
+.chat-md .markdown-editor-wrapper .cherry-previewer p:last-child > br:only-child {
+  display: none !important;
+}
+/* 2) 精简渲染（不经过 Cherry，只渲染到 .prose-content.chat-md） */
+.prose-content.chat-md > :first-child { margin-top: 0 !important; }
+.prose-content.chat-md > :last-child { margin-bottom: 0 !important; }
+.prose-content.chat-md > p:last-child > br:only-child { display: none !important; }
+
+/* 聊天输入场景兜底：强制隐藏 Cherry 工具栏，防止偶发出现 */
+.chat-toolbar-hidden .cherry-toolbar {
+  display: none !important;
+  height: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
 /* TOC 目录样式 */
 #cherry-toc {
   font-size: 0.875rem;
