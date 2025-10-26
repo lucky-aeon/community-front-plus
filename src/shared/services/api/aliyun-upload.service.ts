@@ -295,16 +295,18 @@ export class AliyunUploadService {
    * @param config 上传配置
    */
   static validateFile(file: File, config: UploadConfig): FileValidationResult {
-    // 检查文件大小
-    if (file.size > config.maxSize) {
+    // 检查文件大小（maxSize 为 Infinity/<=0 时视为无限制）
+    if (Number.isFinite(config.maxSize) && config.maxSize > 0 && file.size > config.maxSize) {
       return {
         valid: false,
         error: `文件大小不能超过 ${config.maxSizeText}`
       };
     }
 
-    // 检查文件类型
-    if (!config.supportedTypes.includes(file.type)) {
+    // 检查文件类型（包含 '*/*' 或 '*' 时视为无限制）
+    const types = Array.isArray(config.supportedTypes) ? config.supportedTypes : [];
+    const noTypeLimit = types.includes('*/*') || types.includes('*');
+    if (!noTypeLimit && !types.includes(file.type)) {
       return {
         valid: false,
         error: `不支持的文件类型，请选择 ${config.supportedExtensions.join(', ')} 格式的文件`

@@ -198,10 +198,11 @@ export class UploadService {
    */
   static async uploadFile(
     file: File,
-    options?: UploadOptions
+    options?: UploadOptions,
+    config?: UploadConfig
   ): Promise<UploadResponse> {
     try {
-      const aliyunResponse = await AliyunUploadService.uploadFile(file, options);
+      const aliyunResponse = await AliyunUploadService.uploadFile(file, options, config as UploadConfig | undefined);
       return this.convertAliyunResponse(aliyunResponse);
     } catch (error) {
       console.error('文件上传失败:', error);

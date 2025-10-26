@@ -5,6 +5,7 @@ import Viewer from 'viewerjs';
 import 'viewerjs/dist/viewer.css';
 import './MarkdownEditor.css';
 import { UploadService } from '@shared/services/api/upload.service';
+import { NO_LIMIT_UPLOAD_CONFIG } from '@shared/types/upload.types';
 import { ResourceAccessService } from '@shared/services/api/resource-access.service';
 import { ExpressionsService, type ExpressionTypeDTO } from '@shared/services/api/expressions.service';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -318,9 +319,12 @@ function MarkdownEditorImpl(
           }
         })();
 
-        const resp = isImage
-          ? await UploadService.uploadImage(file, { onProgress, onCreateXhr })
-          : await UploadService.uploadVideo(file, { onProgress, onCreateXhr });
+        // 统一使用通用上传并传入“无限制配置”，同时保留图片压缩能力
+        const resp = await UploadService.uploadFile(
+          file,
+          { onProgress, onCreateXhr, compress: isImage },
+          NO_LIMIT_UPLOAD_CONFIG
+        );
 
         if (!resp.url) {
           throw new Error('上传失败：未返回访问URL');
@@ -356,7 +360,7 @@ function MarkdownEditorImpl(
         }
       } else {
         // 其他类型：不做类型限制，直接作为通用文件上传并插入 Markdown 链接
-        const resp = await UploadService.uploadFile(file, { onProgress, onCreateXhr });
+        const resp = await UploadService.uploadFile(file, { onProgress, onCreateXhr }, NO_LIMIT_UPLOAD_CONFIG);
         if (!resp.url) throw new Error('上传失败：未返回访问URL');
         try { await ResourceAccessService.ensureSession(); } catch { /* ignore */ }
         const safeName = file.name || 'file';

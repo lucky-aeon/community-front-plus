@@ -203,3 +203,12 @@ export const DOCUMENT_UPLOAD_CONFIG: UploadConfig = {
   supportedTypes: [...SUPPORTED_DOCUMENT_TYPES],
   supportedExtensions: ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.txt', '.rtf']
 };
+
+// 无限制上传配置（供需要完全放开的场景使用，如 Markdown 聊天内）
+export const NO_LIMIT_UPLOAD_CONFIG: UploadConfig = {
+  maxSize: Number.POSITIVE_INFINITY as unknown as number, // 视为无限制
+  maxSizeText: '不限',
+  // 使用通配以放过类型校验；实际由服务端/OSS策略做最终限制
+  supportedTypes: ['*/*'] as unknown as string[],
+  supportedExtensions: ['*']
+};
