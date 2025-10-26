@@ -50,6 +50,19 @@ export const ChatRoomsPage: React.FC = () => {
   const msgIdSetRef = useRef<Set<string>>(new Set());
   const refreshingMembersRef = useRef(false);
   const msgRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  // 聊天滚动容器（Radix ScrollArea.Root），用于上滑加载更多
+  const msgScrollMobileRef = useRef<HTMLDivElement | null>(null);
+  const msgScrollDesktopRef = useRef<HTMLDivElement | null>(null);
+  // 顶部观察哨兵：进入可视区即尝试加载更早消息
+  const topSentinelMobileRef = useRef<HTMLDivElement | null>(null);
+  const topSentinelDesktopRef = useRef<HTMLDivElement | null>(null);
+  // 消息分页（后端“最新在前”的分页），进入房间后按“升序”展示
+  const [msgPageNum, setMsgPageNum] = useState(1);
+  const [msgTotalPages, setMsgTotalPages] = useState(1);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const loadingOlderRef = useRef(false);
+  const msgPageNumRef = useRef(1);
+  const msgTotalPagesRef = useRef(1);
   const [unreadInfo, setUnreadInfo] = useState<ChatUnreadInfoDTO | null>(null);
   const [showUnreadPill, setShowUnreadPill] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
@@ -446,8 +459,8 @@ export const ChatRoomsPage: React.FC = () => {
       try {
         const info = await ChatRoomsService.getUnreadInfo(room.id);
         setUnreadInfo(info);
-        // 先取第1页（最新）
-        let cur = await ChatMessagesService.pageMessages(room.id, { pageNum: 1, pageSize: 50 });
+        // 先取第1页（最新）- 使用较大的 pageSize 减少请求次数
+        let cur = await ChatMessagesService.pageMessages(room.id, { pageNum: 1, pageSize: 20 });
         let all: ChatMessageDTO[] = cur.records || [];
         // 若有未读锚点但不在当前页，继续翻页直到找到或到达上限（最多 10 页）
         const anchorId = info.firstUnreadId || undefined;
@@ -456,13 +469,19 @@ export const ChatRoomsPage: React.FC = () => {
         const maxPages = Math.min(10, Number(cur.pages || 1));
         while (anchorId && !all.some(m => m.id === anchorId) && pageNum < maxPages) {
           pageNum += 1;
-          cur = await ChatMessagesService.pageMessages(room.id, { pageNum, pageSize: 50 });
+          cur = await ChatMessagesService.pageMessages(room.id, { pageNum, pageSize: 20 });
           all = all.concat(cur.records || []);
         }
         // 后端按最新在前，这里按时间升序渲染，保持“底部是最新”的体验
         const asc = [...all].sort((a, b) => (new Date(a.createTime || 0).getTime() - new Date(b.createTime || 0).getTime()) || a.id.localeCompare(b.id));
         setMessages(asc);
         msgIdSetRef.current = new Set(asc.map((m) => m.id));
+        // 记录当前已加载到第几页与总页数，用于上滑加载历史消息
+        const totalPages = Number(cur.pages || 1);
+        setMsgPageNum(pageNum);
+        setMsgTotalPages(totalPages);
+        msgPageNumRef.current = pageNum;
+        msgTotalPagesRef.current = totalPages;
       } finally {
         setLoadingMessages(false);
       }
@@ -479,6 +498,119 @@ export const ChatRoomsPage: React.FC = () => {
   };
 
   // 轮询移除：成员与消息由 WebSocket 推送更新
+
+  // 上滑加载更多历史消息：使用 IntersectionObserver 监听顶部哨兵
+  useEffect(() => {
+    // 等待消息加载完成，确保哨兵元素已渲染
+    if (!isChatOpen || !activeRoom || loadingMessages) return;
+
+    const observers: IntersectionObserver[] = [];
+    let lastLoadTime = 0; // 防抖：记录上次加载时间
+    const LOAD_THROTTLE_MS = 500; // 500ms 内不重复触发(增加防抖,避免快速滚动重复请求)
+
+    // 延迟创建 Observer，确保 DOM 完全稳定
+    const timerId = setTimeout(() => {
+      const roots: Array<{ root: HTMLElement | null; sentinel: HTMLElement | null }> = [
+        { root: msgScrollMobileRef.current as HTMLElement | null, sentinel: topSentinelMobileRef.current as HTMLElement | null },
+        { root: msgScrollDesktopRef.current as HTMLElement | null, sentinel: topSentinelDesktopRef.current as HTMLElement | null },
+      ];
+
+      const makeObserver = (rootEl: HTMLElement | null, sentinelEl: HTMLElement | null) => {
+        if (!rootEl || !sentinelEl) return;
+
+        // 获取 Radix ScrollArea 的 viewport
+        let viewport: HTMLElement | null = rootEl.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement | null;
+        if (!viewport) viewport = (rootEl.firstElementChild as HTMLElement | null) || null;
+        if (!viewport) return;
+
+        const io = new IntersectionObserver(async (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+
+            try {
+              // 防抖检查
+              const now = Date.now();
+              if (now - lastLoadTime < LOAD_THROTTLE_MS) return;
+              if (loadingOlderRef.current) return;
+
+              const pn = msgPageNumRef.current;
+              const tp = msgTotalPagesRef.current;
+              if (!tp || pn >= tp) return; // 没有更多页
+
+              lastLoadTime = now;
+              loadingOlderRef.current = true;
+              setLoadingOlder(true);
+
+              // 记录滚动位置（用于恢复）
+              const prevHeight = viewport!.scrollHeight;
+              const prevTop = viewport!.scrollTop;
+
+              const nextPage = pn + 1;
+              const resp = await ChatMessagesService.pageMessages(activeRoom.id, { pageNum: nextPage, pageSize: 20 });
+              const older = (resp.records || []).slice();
+
+              // 按时间升序排列
+              const olderAsc = older.sort((a, b) =>
+                (new Date(a.createTime || 0).getTime() - new Date(b.createTime || 0).getTime()) ||
+                a.id.localeCompare(b.id)
+              );
+
+              // 更新消息列表（去重并前置旧消息）
+              setMessages((prev) => {
+                const existing = new Set(prev.map(m => m.id));
+                const newOlder = olderAsc.filter(m => !existing.has(m.id));
+                // 同步更新去重 Set
+                newOlder.forEach(m => msgIdSetRef.current.add(m.id));
+                return [...newOlder, ...prev];
+              });
+
+              // 更新分页状态
+              msgPageNumRef.current = nextPage;
+              setMsgPageNum(nextPage);
+              const totalPages = Number(resp.pages || msgTotalPagesRef.current || 1);
+              msgTotalPagesRef.current = totalPages;
+              setMsgTotalPages(totalPages);
+
+              // 使用双重 RAF 确保 DOM 完全渲染后恢复滚动位置
+              requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                  try {
+                    if (!viewport) return;
+                    const delta = viewport.scrollHeight - prevHeight;
+                    viewport.scrollTop = prevTop + delta;
+                  } catch { /* ignore */ }
+                });
+              });
+            } catch (error) {
+              console.error('[Chat] 加载历史消息失败', error);
+            } finally {
+              loadingOlderRef.current = false;
+              setLoadingOlder(false);
+            }
+          }
+        }, {
+          root: viewport,
+          // rootMargin 向上扩展 500px，提前触发加载(用户滚动到消息列表约 1/3 位置时预加载)
+          rootMargin: '500px 0px 0px 0px',
+          threshold: 0.01
+        });
+
+        io.observe(sentinelEl);
+        observers.push(io);
+      };
+
+      makeObserver(roots[0].root, roots[0].sentinel);
+      makeObserver(roots[1].root, roots[1].sentinel);
+    }, 150); // 延迟 150ms，确保 DOM 完全稳定
+
+    return () => {
+      clearTimeout(timerId);
+      observers.forEach(o => {
+        try { o.disconnect(); }
+        catch { /* ignore */ }
+      });
+    };
+  }, [isChatOpen, activeRoom?.id, loadingMessages]);
 
   // 提及候选浮层
   const renderMentionOverlay = () => {
@@ -667,7 +799,7 @@ export const ChatRoomsPage: React.FC = () => {
                 <TabsTrigger value="members" className="flex-1">成员</TabsTrigger>
               </TabsList>
               <TabsContent value="chat" className="flex-1 flex flex-col gap-3 overflow-hidden mt-0 data-[state=active]:flex min-h-0">
-              <ScrollArea className="flex-1 rounded-md border bg-white/50 px-3 pb-3 pt-0 min-h-0">
+              <ScrollArea ref={msgScrollMobileRef} className="flex-1 rounded-md border bg-white/50 px-3 pb-3 pt-0 min-h-0">
                 {/* Room name header inside chat window */}
                 <div className="sticky top-0 z-10 -mx-3 px-3 py-2 bg-white/80 backdrop-blur-sm border-b border-gray-200 flex items-center justify-between">
                   <div className="text-sm font-medium truncate">{activeRoom?.name || '聊天室'}</div>
@@ -705,6 +837,12 @@ export const ChatRoomsPage: React.FC = () => {
                       <div className="text-sm text-warm-gray-500">还没有消息，来说点什么吧～</div>
                     ) : (
                       <>
+                      <div ref={topSentinelMobileRef} className="h-12 w-full" />
+                      {loadingOlder && (
+                        <div className="flex items-center justify-center py-2 text-xs text-warm-gray-400">
+                          <span className="animate-pulse">正在加载历史消息...</span>
+                        </div>
+                      )}
                       <div className="space-y-4" onClick={() => setCtxMenu((s) => ({ ...s, open: false }))}>
                         {messages.map((m) => {
                           const name = m.senderName || '匿名用户';
@@ -875,7 +1013,7 @@ export const ChatRoomsPage: React.FC = () => {
           <div className="hidden md:grid md:grid-cols-[1fr_300px] gap-4 flex-1 overflow-hidden">
             {/* Messages column */}
             <div className="flex flex-col gap-3 min-h-0">
-              <ScrollArea className="flex-1 rounded-md border bg-white/50 px-3 pb-3 pt-0 min-h-0">
+              <ScrollArea ref={msgScrollDesktopRef} className="flex-1 rounded-md border bg-white/50 px-3 pb-3 pt-0 min-h-0">
                 {/* Room name header inside chat window */}
                 <div className="sticky top-0 z-10 -mx-3 px-3 py-2 bg-white/80 backdrop-blur-sm border-b border-gray-200 flex items-center justify-between">
                   <div className="text-sm font-medium truncate">{activeRoom?.name || '聊天室'}</div>
@@ -913,8 +1051,14 @@ export const ChatRoomsPage: React.FC = () => {
                       <div className="text-sm text-warm-gray-500">还没有消息，来说点什么吧～</div>
                     ) : (
                       <>
+                      <div ref={topSentinelDesktopRef} className="h-12 w-full" />
+                      {loadingOlder && (
+                        <div className="flex items-center justify-center py-2 text-xs text-warm-gray-400">
+                          <span className="animate-pulse">正在加载历史消息...</span>
+                        </div>
+                      )}
                       <div className="space-y-4" onClick={() => setCtxMenu((s) => ({ ...s, open: false }))}>
-                    {messages.map((m) => {
+                        {messages.map((m) => {
                       const name = m.senderName || '匿名用户';
                       const initial = name.slice(0, 1).toUpperCase();
                       const ts = m.createTime ? new Date(m.createTime).toLocaleString('zh-CN') : '';
