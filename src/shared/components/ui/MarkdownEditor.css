@@ -226,6 +226,18 @@
   border: none !important;
 }
 
+/* 移动端溢出修复：聊天中的 Markdown 代码块限制宽度并允许换行/滚动 */
+.prose-content.chat-md pre {
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  white-space: pre-wrap !important; /* 保留换行，同时允许自动换行 */
+  word-break: break-word !important; /* 超长无空白字符也可断行 */
+  box-sizing: border-box;
+}
+.prose-content.chat-md pre code {
+  white-space: inherit !important; /* 跟随 pre 的换行策略 */
+}
+
 /* TOC 目录样式 */
 #cherry-toc {
   font-size: 0.875rem;

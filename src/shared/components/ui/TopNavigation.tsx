@@ -251,8 +251,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
 
           </div>
 
-          {/* Center section: Desktop Navigation 绝对居中 */}
-          <nav className="hidden lg:flex items-center space-x-1 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          {/* Center section: Desktop Navigation 绝对居中（整体左移 50px） */}
+          <nav className="hidden lg:flex items-center space-x-1 absolute left-[calc(50%-50px)] top-1/2 -translate-x-1/2 -translate-y-1/2">
             {navigationItems.map((item) => {
               const disabled = !isAllowed(item.code);
               const isActive = isActiveRoute(item.path);
