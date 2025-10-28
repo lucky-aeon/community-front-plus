@@ -2,14 +2,15 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Bell, Calendar, CheckCircle, Clock, Crown, LayoutDashboard, MessageCircle, User } from 'lucide-react';
+import { Bell, BellOff, Calendar, CheckCircle, Clock, Crown, LayoutDashboard, MessageCircle, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { ROUTES, routeUtils } from '@shared/routes/routes';
 import { UpdateLogs } from '@shared/components/business/UpdateLogs';
 import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
-import { NotificationsService, UpdateLogService, UserLearningService } from '@shared/services/api';
+import { NotificationsService, UpdateLogService, UserLearningService, UserService } from '@shared/services/api';
 import type { UpdateLogDTO, PageResponse, UserNotificationDTO, LearningRecordItemDTO } from '@shared/types';
+import { Switch } from '@/components/ui/switch';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +24,9 @@ export const DashboardPage: React.FC = () => {
   const [messages, setMessages] = useState<UserNotificationDTO[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [msgLoading, setMsgLoading] = useState(true);
+  // 通知开关（邮箱通知）
+  const [emailNotifEnabled, setEmailNotifEnabled] = useState<boolean | null>(null);
+  const [emailToggleLoading, setEmailToggleLoading] = useState(false);
 
   // 学习记录
   const [learning, setLearning] = useState<PageResponse<LearningRecordItemDTO>>({
@@ -69,6 +73,39 @@ export const DashboardPage: React.FC = () => {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // 拉取通知设置（邮箱通知开关）
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const me = await UserService.getCurrentUser();
+        if (!cancelled) setEmailNotifEnabled(!!me.emailNotificationEnabled);
+      } catch (e) {
+        console.error('加载通知设置失败:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  const handleToggleEmailNotification = async (next: boolean) => {
+    if (emailNotifEnabled === null || emailToggleLoading) return;
+    const prev = emailNotifEnabled;
+    // 乐观更新
+    setEmailNotifEnabled(next);
+    setEmailToggleLoading(true);
+    try {
+      const updated = await UserService.toggleEmailNotification();
+      setEmailNotifEnabled(!!updated.emailNotificationEnabled);
+      // 成功提示由拦截器统一处理
+    } catch (e) {
+      console.error('切换邮箱通知设置失败:', e);
+      // 回滚
+      setEmailNotifEnabled(prev);
+    } finally {
+      setEmailToggleLoading(false);
+    }
+  };
 
   // 拉取学习记录（前5条）
   useEffect(() => {
@@ -190,6 +227,31 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             {/* 列表 */}
+            {/* 通知开关美化块 */}
+            <div className="mb-4">
+              <div className={`flex items-center justify-between p-3 rounded-lg border ${emailNotifEnabled ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-200'}`}>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="shrink-0">
+                    {emailNotifEnabled ? (
+                      <Bell className="h-4 w-4 text-amber-600" />
+                    ) : (
+                      <BellOff className="h-4 w-4 text-gray-400" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-gray-900 truncate">消息通知</div>
+                    <div className="text-xs text-gray-500 truncate">{emailNotifEnabled === null ? '加载设置中…' : (emailNotifEnabled ? '已开启，重要消息将通过邮箱提醒' : '已关闭，仅在站内查看消息，不发送邮件')}</div>
+                  </div>
+                </div>
+                <Switch
+                  id="emailNotifSwitch"
+                  checked={!!emailNotifEnabled}
+                  disabled={emailNotifEnabled === null || emailToggleLoading}
+                  onCheckedChange={handleToggleEmailNotification}
+                />
+              </div>
+            </div>
+
             <div className="space-y-3">
               {msgLoading ? (
                 <div className="text-sm text-gray-500">加载中...</div>
