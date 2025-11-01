@@ -1863,6 +1863,12 @@ export interface BannedUserDTO {
   remainSeconds: number;               // 剩余封禁时间（秒；永久封禁为 -1）
 }
 
+// 手动封禁IP请求参数（与后端 BanIpRequest 对齐）
+export interface BanIpRequest {
+  ip: string;                          // 需要封禁的IP地址（IPv4/IPv6）
+  ttlDays: number;                     // 封禁天数，>=1；后端默认7天
+}
+
 // ================ 表情管理（管理员）相关接口定义 ================
 
 // 管理员视角表情DTO（与后端 ExpressionDTO 对齐）

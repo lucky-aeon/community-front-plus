@@ -4,10 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { RefreshCw, Shield, Trash2, UserX } from 'lucide-react';
 import { AdminIpService } from '@shared/services/api/admin-ip.service';
 import { AdminUserBanService } from '@shared/services/api/admin-user-ban.service';
 import { BannedIpDTO, BannedUserDTO } from '@shared/types';
+import { showToast } from '@shared/utils/toast';
 // Axios 错误提示统一由拦截器处理；组件不额外弹错
 
 // 格式化剩余时间显示
@@ -35,6 +39,7 @@ export const IpBanPage: React.FC = () => {
   const [bannedUsers, setBannedUsers] = useState<BannedUserDTO[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingUsers, setLoadingUsers] = useState(false);
+  const [banDialog, setBanDialog] = useState<{ open: boolean; ip: string; ttlDays: string; submitting: boolean }>({ open: false, ip: '', ttlDays: '7', submitting: false });
 
   // 解封确认对话框状态
   const [unbanDialog, setUnbanDialog] = useState<{
@@ -104,6 +109,29 @@ export const IpBanPage: React.FC = () => {
     }
   };
 
+  // 手动封禁 IP
+  const handleBanIp = async () => {
+    if (!banDialog.ip || banDialog.ip.trim().length < 3) {
+      showToast.error('请输入有效的IP地址');
+      return;
+    }
+    const days = Math.floor(Number(banDialog.ttlDays));
+    if (!days || Number.isNaN(days) || days < 1) {
+      showToast.error('封禁天数必须至少为1天');
+      return;
+    }
+    try {
+      setBanDialog(prev => ({ ...prev, submitting: true }));
+      await AdminIpService.banIp({ ip: banDialog.ip.trim(), ttlDays: days });
+      setBanDialog({ open: false, ip: '', ttlDays: '7', submitting: false });
+      // 刷新列表，确保展示最新封禁
+      fetchBannedIps();
+    } catch (error) {
+      console.error('封禁IP失败:', error);
+      setBanDialog(prev => ({ ...prev, submitting: false }));
+    }
+  };
+
   // 定时更新剩余时间（每秒）
   useEffect(() => {
     const timer = setInterval(() => {
@@ -134,15 +162,23 @@ export const IpBanPage: React.FC = () => {
           <Shield className="h-6 w-6" />
           <h1 className="text-2xl font-semibold">封禁管理</h1>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => { fetchBannedIps(); fetchBannedUsers(); }}
-          disabled={loading || loadingUsers}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${(loading || loadingUsers) ? 'animate-spin' : ''}`} />
-          刷新
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setBanDialog({ open: true, ip: '', ttlDays: '7', submitting: false })}
+            size="sm"
+          >
+            封禁IP
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => { fetchBannedIps(); fetchBannedUsers(); }}
+            disabled={loading || loadingUsers}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${(loading || loadingUsers) ? 'animate-spin' : ''}`} />
+            刷新
+          </Button>
+        </div>
       </div>
 
       {/* IP封禁列表 */}
@@ -329,6 +365,49 @@ export const IpBanPage: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 封禁 IP 对话框 */}
+      <Dialog open={banDialog.open} onOpenChange={(open) => { if (!banDialog.submitting) setBanDialog({ open, ip: '', ttlDays: '7', submitting: false }); }}>
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+          <DialogHeader>
+            <DialogTitle>封禁IP</DialogTitle>
+            <DialogDescription>
+              请输入需要封禁的IP地址。提交后将生效，成功提示由后端返回 message 控制
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="ban-ip">IP地址</Label>
+              <Input
+                id="ban-ip"
+                placeholder="例如：192.168.1.10 或 2408:xxxx::1"
+                value={banDialog.ip}
+                onChange={(e) => setBanDialog(prev => ({ ...prev, ip: e.target.value }))}
+                disabled={banDialog.submitting}
+              />
+              <p className="text-xs text-muted-foreground">支持IPv4/IPv6</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="ban-days">封禁天数</Label>
+              <Input
+                id="ban-days"
+                type="number"
+                min={1}
+                step={1}
+                placeholder="至少1天，默认7天"
+                value={banDialog.ttlDays}
+                onChange={(e) => setBanDialog(prev => ({ ...prev, ttlDays: e.target.value }))}
+                disabled={banDialog.submitting}
+              />
+              <p className="text-xs text-muted-foreground">必须≥1天，默认7天</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setBanDialog({ open: false, ip: '', ttlDays: '7', submitting: false })} disabled={banDialog.submitting}>取消</Button>
+            <Button onClick={handleBanIp} disabled={banDialog.submitting}>{banDialog.submitting ? '提交中...' : '确认封禁'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

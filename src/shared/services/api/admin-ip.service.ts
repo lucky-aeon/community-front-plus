@@ -1,5 +1,5 @@
 import { apiClient, ApiResponse } from './config';
-import { BannedIpDTO } from '@shared/types';
+import { BannedIpDTO, BanIpRequest } from '@shared/types';
 
 /**
  * 管理员IP封禁管理服务类
@@ -29,5 +29,15 @@ export class AdminIpService {
    */
   static async unbanIp(ip: string): Promise<void> {
     await apiClient.delete(`/admin/ip-ban/${encodeURIComponent(ip)}`);
+  }
+
+  /**
+   * 管理员封禁指定IP
+   * POST /api/admin/ip-ban
+   *
+   * @description 手动封禁指定IP地址，时长由后端默认或请求参数决定
+   */
+  static async banIp(request: BanIpRequest): Promise<void> {
+    await apiClient.post<ApiResponse<void>>('/admin/ip-ban', request);
   }
 }
