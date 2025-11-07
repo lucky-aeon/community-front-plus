@@ -22,6 +22,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { showToast } from '@shared/utils/toast';
 import { MarkdownEditor, type MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
 import { SharedMarkdownRenderer } from '@shared/components/ui/SharedMarkdownRenderer';
+import TitleIndicator from '@shared/utils/title-indicator';
 
 export const ChatRoomsPage: React.FC = () => {
   const [rooms, setRooms] = useState<ChatRoomDTO[]>([]);
@@ -84,6 +85,15 @@ export const ChatRoomsPage: React.FC = () => {
   const sendingRef = useRef(false);
   const lastSendFingerprintRef = useRef('');
   const lastSendAtRef = useRef(0);
+  
+  // 发送后将焦点回到可见输入框（修复点击“发送”后焦点停留在按钮的问题）
+  const focusInput = useCallback(() => {
+    try {
+      const isDesktop = typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches;
+      const inst = (isDesktop ? inputRefDesktop.current : inputRefMobile.current);
+      inst?.focus();
+    } catch { /* ignore */ }
+  }, []);
 
   // 允许作为用户名的字符（中英文、数字、下划线、连字符）
   const mentionCharRe = /[A-Za-z0-9_\-\u4e00-\u9fa5]/;
@@ -190,6 +200,8 @@ export const ChatRoomsPage: React.FC = () => {
     if (!text.trim()) {
       // 本地校验：允许弹 toast
       showToast.error('请输入消息内容');
+      // 空内容时仍保持输入框聚焦，便于继续输入
+      focusInput();
       return;
     }
     try {
@@ -209,6 +221,8 @@ export const ChatRoomsPage: React.FC = () => {
       if (fp === lastSendFingerprintRef.current && now - lastSendAtRef.current < 3000) {
         // 本地交互类提示，符合规范
         showToast.info('请勿短时间内重复发送相同内容');
+        // 重复内容拦截也保持输入框聚焦
+        focusInput();
         return;
       }
       await ChatMessagesService.sendMessage(activeRoom.id, {
@@ -226,6 +240,8 @@ export const ChatRoomsPage: React.FC = () => {
       setMentionStartIdx(null);
       setMentionQuery('');
       setMentionActiveIndex(0);
+      // 发送成功后将焦点回到输入框
+      focusInput();
     } catch (e) {
       console.error('发送消息失败', e);
     } finally {
@@ -378,6 +394,17 @@ export const ChatRoomsPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isChatOpen, activeRoom?.id]);
 
+  // 标签页可见时，清除标题新消息指示
+  useEffect(() => {
+    const onVis = () => {
+      if (typeof document !== 'undefined' && !document.hidden) {
+        TitleIndicator.clear();
+      }
+    };
+    try { document.addEventListener('visibilitychange', onVis); } catch { /* ignore */ }
+    return () => { try { document.removeEventListener('visibilitychange', onVis); } catch { /* ignore */ } };
+  }, []);
+
   const openRoomChat = async (room: ChatRoomDTO) => {
     try {
       // 未加入先加入
@@ -389,6 +416,8 @@ export const ChatRoomsPage: React.FC = () => {
       try { console.debug('[Chat] openRoomChat -> roomId=', room.id); } catch { /* ignore */ }
       setActiveRoom(room);
       setIsChatOpen(true);
+      // 打开聊天时清除标题新消息计数
+      try { TitleIndicator.clear(); } catch { /* ignore */ }
       // 建立 WS 并订阅房间：用于在线判定与实时消息
       try {
         await ChatRealtimeService.ensureConnected();
@@ -417,6 +446,14 @@ export const ChatRoomsPage: React.FC = () => {
           if (!incoming.id || msgIdSetRef.current.has(incoming.id)) return;
           msgIdSetRef.current.add(incoming.id);
           setMessages((prev) => [...prev, incoming]);
+
+          // 当标签页不在前台时，累加标题新消息计数（忽略自己消息）
+          try {
+            const selfId = user?.id ? String(user.id) : '';
+            if (typeof document !== 'undefined' && document.hidden && (!selfId || incoming.senderId !== selfId)) {
+              TitleIndicator.bump(1);
+            }
+          } catch { /* ignore */ }
         });
         wsOffRef.current.push(offMsg);
 
@@ -472,6 +509,7 @@ export const ChatRoomsPage: React.FC = () => {
           showToast.warning('房间已被删除');
           try { await ChatRealtimeService.unsubscribe(closedRoomId); } catch { /* ignore */ }
           setIsChatOpen(false);
+          try { TitleIndicator.clear(); } catch { /* ignore */ }
           setRooms((prev) => prev.filter((r) => r.id !== closedRoomId));
         });
         wsOffRef.current.push(offClosed);
@@ -795,15 +833,17 @@ export const ChatRoomsPage: React.FC = () => {
 
       {/* Chat Dialog */}
       <Dialog open={isChatOpen} onOpenChange={async (open) => {
-        setIsChatOpen(open);
-        if (!open) {
-          // 退场时推进 lastSeen 到当前可见最后一条
-          await markReadUpToEnd();
-          if (activeRoom) {
-            try { await ChatRealtimeService.unsubscribe(activeRoom.id); } catch { /* ignore */ }
-          }
-          // 清理 WS 监听
-          wsOffRef.current.forEach((off) => { try { off(); } catch { /* ignore */ } });
+      setIsChatOpen(open);
+      if (!open) {
+        // 退场时推进 lastSeen 到当前可见最后一条
+        await markReadUpToEnd();
+        // 关闭聊天时清除标题新消息计数
+        try { TitleIndicator.clear(); } catch { /* ignore */ }
+        if (activeRoom) {
+          try { await ChatRealtimeService.unsubscribe(activeRoom.id); } catch { /* ignore */ }
+        }
+        // 清理 WS 监听
+        wsOffRef.current.forEach((off) => { try { off(); } catch { /* ignore */ } });
           wsOffRef.current = [];
           setActiveRoom(null);
           setMessages([]);

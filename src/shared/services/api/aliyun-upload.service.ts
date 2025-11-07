@@ -76,107 +76,118 @@ export class AliyunUploadService {
       // 文件必须最后添加
       formData.append('file', file);
 
-      // 创建XMLHttpRequest以支持上传进度/取消
-      const xhr = new XMLHttpRequest();
-      // 暴露给上层用于取消
-      try { options.onCreateXhr?.(xhr); } catch { /* ignore */ }
+      // 计算动态超时：根据文件大小保守估计，避免大文件轻易超时
+      const computeTimeoutMs = (): number => {
+        if (options.timeout && options.timeout > 0) return options.timeout;
+        const BASELINE_BPS = 256 * 1024; // 256 KB/s 保守估计
+        const OVERHEAD_MS = 20_000;      // 连接/握手/回调处理等开销
+        const MIN_MS = 60_000;           // 最小 60s
+        const MAX_MS = 10 * 60_000;      // 最大 10min
+        const estimate = Math.ceil(file.size / BASELINE_BPS) * 1000 + OVERHEAD_MS;
+        return Math.min(MAX_MS, Math.max(MIN_MS, estimate));
+      };
 
-      return new Promise<AliyunUploadResponse>((resolve, reject) => {
-        // 上传进度监听
-        if (options.onProgress) {
-          xhr.upload.addEventListener('progress', (event) => {
-            if (event.lengthComputable) {
-              const progress = Math.round((event.loaded * 100) / event.total);
-              options.onProgress!(progress);
-            }
-          });
-        }
-
-        // 上传完成
-        xhr.addEventListener('load', () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              // OSS回调会返回资源信息
-              const response = JSON.parse(xhr.responseText) as unknown;
-
-              // 兼容多种回调结构，优先提取资源ID
-              const resourceId = ((): string => {
-                // 常见：{ resourceId: '...', ... } 或 { id: '...' }
-                const respObj = response as Record<string, unknown>;
-                if (typeof respObj?.resourceId === 'string') return respObj.resourceId as string;
-                if (typeof respObj?.id === 'string') return respObj.id as string;
-                // 你的后端：{ Status: 'OK', resource: { id: '...' , ... } }
-                if (response && typeof response === 'object') {
-                  const rr = response as Record<string, unknown>;
-                  const r = (rr.resource ?? rr.data) as Record<string, unknown> | undefined;
-                  if (r && typeof r.id === 'string') return r.id as string;
-                  if (r && typeof r.resourceId === 'string') return r.resourceId as string;
-                }
-                return '';
-              })();
-
-              // 构建正确的OSS URL格式：https://{bucket}.{endpoint}/{key}
-              const ossBaseUrl = credentials.endpoint.startsWith('http')
-                ? credentials.endpoint
-                : `https://${credentials.bucket}.${credentials.endpoint}`;
-
-              const respObj = response as Record<string, unknown>;
-              resolve({
-                resourceId,
-                url: (respObj.url as string) || `${ossBaseUrl}/${credentials.key}`,
-                filename: (respObj.filename as string) || file.name,
-                size: (respObj.size as number) || file.size,
-                type: (respObj.type as string) || file.type,
-                key: credentials.key
-              });
-            } catch {
-              // 如果没有回调或解析失败，使用默认响应
-              // 构建正确的OSS URL格式：https://{bucket}.{endpoint}/{key}
-              const ossBaseUrl = credentials.endpoint.startsWith('http')
-                ? credentials.endpoint
-                : `https://${credentials.bucket}.${credentials.endpoint}`;
-
-              resolve({
-                resourceId: '', // 需要后续获取
-                url: `${ossBaseUrl}/${credentials.key}`,
-                filename: file.name,
-                size: file.size,
-                type: file.type,
-                key: credentials.key
-              });
-            }
-          } else {
-            reject(new Error(`上传失败: HTTP ${xhr.status}`));
-          }
-        });
-
-        // 上传取消
-        xhr.addEventListener('abort', () => {
-          reject(new Error('上传已取消'));
-        });
-
-        // 上传错误
-        xhr.addEventListener('error', () => {
-          reject(new Error('网络错误，上传失败'));
-        });
-
-        // 上传超时
-        xhr.addEventListener('timeout', () => {
-          reject(new Error('上传超时，请重试'));
-        });
-
-        // 配置请求
-        // 构建正确的OSS上传URL：https://{bucket}.{endpoint}/
-        const ossUploadUrl = credentials.endpoint.startsWith('http')
+      const buildUploadUrl = (): string => {
+        const base = credentials.endpoint.startsWith('http')
           ? credentials.endpoint
           : `https://${credentials.bucket}.${credentials.endpoint}`;
+        return base.endsWith('/') ? base : `${base}/`;
+      };
 
-        xhr.open('POST', ossUploadUrl);
-        xhr.timeout = options.timeout || 60000; // 默认60秒超时
+      const maxRetries = Math.max(0, options.maxRetries ?? 1);
 
-        // 发送请求
-        xhr.send(formData);
-      });
+      const performUpload = (attempt: number): Promise<AliyunUploadResponse> => {
+        return new Promise<AliyunUploadResponse>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+
+          // 暴露给上层用于取消
+          try { options.onCreateXhr?.(xhr); } catch { /* ignore */ }
+
+          // 上传进度监听
+          if (options.onProgress) {
+            xhr.upload.addEventListener('progress', (event) => {
+              if (event.lengthComputable) {
+                const progress = Math.round((event.loaded * 100) / event.total);
+                options.onProgress!(progress);
+              } else if (attempt > 0) {
+                // 重试开始时，无法计算长度时至少置零让UI感知
+                try { options.onProgress!(0); } catch { /* ignore */ }
+              }
+            });
+          }
+
+          const handleSuccess = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                // OSS回调会返回资源信息
+                const response = JSON.parse(xhr.responseText) as unknown;
+
+                // 兼容多种回调结构，优先提取资源ID
+                const resourceId = ((): string => {
+                  const respObj = response as Record<string, unknown>;
+                  if (typeof respObj?.resourceId === 'string') return respObj.resourceId as string;
+                  if (typeof respObj?.id === 'string') return respObj.id as string;
+                  if (response && typeof response === 'object') {
+                    const rr = response as Record<string, unknown>;
+                    const r = (rr.resource ?? rr.data) as Record<string, unknown> | undefined;
+                    if (r && typeof r.id === 'string') return r.id as string;
+                    if (r && typeof r.resourceId === 'string') return r.resourceId as string;
+                  }
+                  return '';
+                })();
+
+                const ossBaseUrl = buildUploadUrl().replace(/\/$/, '');
+                const respObj = response as Record<string, unknown>;
+                resolve({
+                  resourceId,
+                  url: (respObj.url as string) || `${ossBaseUrl}/${credentials.key}`,
+                  filename: (respObj.filename as string) || file.name,
+                  size: (respObj.size as number) || file.size,
+                  type: (respObj.type as string) || file.type,
+                  key: credentials.key
+                });
+              } catch {
+                // 无回调或解析失败时构造默认响应
+                const ossBaseUrl = buildUploadUrl().replace(/\/$/, '');
+                resolve({
+                  resourceId: '',
+                  url: `${ossBaseUrl}/${credentials.key}`,
+                  filename: file.name,
+                  size: file.size,
+                  type: file.type,
+                  key: credentials.key
+                });
+              }
+            } else {
+              reject(new Error(`上传失败: HTTP ${xhr.status}`));
+            }
+          };
+
+          const retryOrReject = (err: Error) => {
+            if (attempt < maxRetries) {
+              const backoff = Math.min(4000, 500 * Math.pow(1.8, attempt));
+              setTimeout(() => {
+                performUpload(attempt + 1).then(resolve).catch(reject);
+              }, backoff);
+            } else {
+              reject(err);
+            }
+          };
+
+          xhr.addEventListener('load', handleSuccess);
+          xhr.addEventListener('abort', () => retryOrReject(new Error('上传已取消')));
+          xhr.addEventListener('error', () => retryOrReject(new Error('网络错误，上传失败')));
+          xhr.addEventListener('timeout', () => retryOrReject(new Error('上传超时，请重试')));
+
+          xhr.open('POST', buildUploadUrl());
+          xhr.timeout = computeTimeoutMs();
+          xhr.responseType = 'text';
+
+          xhr.send(formData);
+        });
+      };
+
+      return await performUpload(0);
 
     } catch (error) {
       console.error('上传到OSS失败:', error);
