@@ -66,17 +66,19 @@ export class UploadService {
    */
   static async uploadImage(
     file: File,
-    options?: { onProgress?: UploadProgressCallback }
+    options?: UploadOptions
   ): Promise<UploadResponse> {
     try {
       const uploadOptions: UploadOptions = {
-        onProgress: options?.onProgress,
-        compress: true, // 默认开启图片压缩
+        // 默认开启图片压缩，可被 options 覆盖
+        compress: options?.compress ?? true,
         compressOptions: {
           maxWidth: 1200,
           maxHeight: 1200,
-          quality: 0.8
-        }
+          quality: 0.8,
+          ...(options?.compressOptions || {})
+        },
+        ...options,
       };
 
       const aliyunResponse = await AliyunUploadService.uploadFile(file, uploadOptions);
@@ -128,12 +130,12 @@ export class UploadService {
    */
   static async uploadVideo(
     file: File,
-    options?: { onProgress?: UploadProgressCallback }
+    options?: UploadOptions
   ): Promise<UploadResponse> {
     try {
       const uploadOptions: UploadOptions = {
-        onProgress: options?.onProgress,
         compress: false,
+        ...options,
       };
 
       const aliyunResponse = await AliyunUploadService.uploadFile(

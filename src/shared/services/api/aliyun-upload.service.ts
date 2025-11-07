@@ -78,13 +78,11 @@ export class AliyunUploadService {
 
       // 计算动态超时：根据文件大小保守估计，避免大文件轻易超时
       const computeTimeoutMs = (): number => {
-        if (options.timeout && options.timeout > 0) return options.timeout;
-        const BASELINE_BPS = 256 * 1024; // 256 KB/s 保守估计
-        const OVERHEAD_MS = 20_000;      // 连接/握手/回调处理等开销
-        const MIN_MS = 60_000;           // 最小 60s
-        const MAX_MS = 10 * 60_000;      // 最大 10min
-        const estimate = Math.ceil(file.size / BASELINE_BPS) * 1000 + OVERHEAD_MS;
-        return Math.min(MAX_MS, Math.max(MIN_MS, estimate));
+        // 默认无限等待（0 表示不超时），仅当显式传入正数时才启用超时
+        if (typeof options.timeout === 'number') {
+          return options.timeout > 0 ? options.timeout : 0;
+        }
+        return 0;
       };
 
       const buildUploadUrl = (): string => {

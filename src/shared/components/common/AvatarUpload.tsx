@@ -105,7 +105,8 @@ export const AvatarUpload: React.FC<AvatarUploadProps> = ({
       const response = await UploadService.uploadImage(file, {
         onProgress: (progress) => {
           setUploadProgress(progress);
-        }
+        },
+        timeout: 0,
       });
 
       if (response.url) {

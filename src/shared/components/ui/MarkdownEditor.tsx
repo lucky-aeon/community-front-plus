@@ -311,7 +311,7 @@ function MarkdownEditorImpl(
           try {
             const blob = await captureVideoPoster(file, 800);
             const posterFile = new File([blob], `${file.name.replace(/\.[^.]+$/, '')}-poster.jpg`, { type: 'image/jpeg' });
-            const posterResp = await UploadService.uploadImage(posterFile, { onCreateXhr });
+            const posterResp = await UploadService.uploadImage(posterFile, { onCreateXhr, timeout: 0 });
             return posterResp.url;
           } catch (e) {
             console.warn('生成视频封面失败，继续无poster:', e);
@@ -322,7 +322,7 @@ function MarkdownEditorImpl(
         // 统一使用通用上传并传入“无限制配置”，同时保留图片压缩能力
         const resp = await UploadService.uploadFile(
           file,
-          { onProgress, onCreateXhr, compress: isImage },
+          { onProgress, onCreateXhr, compress: isImage, timeout: 0 },
           NO_LIMIT_UPLOAD_CONFIG
         );
 
@@ -360,7 +360,7 @@ function MarkdownEditorImpl(
         }
       } else {
         // 其他类型：不做类型限制，直接作为通用文件上传并插入 Markdown 链接
-        const resp = await UploadService.uploadFile(file, { onProgress, onCreateXhr }, NO_LIMIT_UPLOAD_CONFIG);
+        const resp = await UploadService.uploadFile(file, { onProgress, onCreateXhr, timeout: 0 }, NO_LIMIT_UPLOAD_CONFIG);
         if (!resp.url) throw new Error('上传失败：未返回访问URL');
         try { await ResourceAccessService.ensureSession(); } catch { /* ignore */ }
         const safeName = file.name || 'file';

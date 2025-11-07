@@ -102,7 +102,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       };
 
       // 使用新的上传服务
-      const response = await UploadService.uploadImage(file, { onProgress });
+      const response = await UploadService.uploadImage(file, { onProgress, timeout: 0 });
 
       if (response.url) {
         try { await ResourceAccessService.ensureSession(); } catch { /* 忽略会话检查错误 */ }
