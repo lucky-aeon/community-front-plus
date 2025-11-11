@@ -12,7 +12,18 @@ export class OAuth2AuthorizationService {
   static async generateAuthorizationCode(
     request: OAuth2AuthorizeRequest
   ): Promise<string> {
-    const response = await apiClient.post<ApiResponse<string>>('/public/oauth2/authorize', request);
+    // 按规范将请求字段由驼峰转换为下划线
+    const payload = {
+      client_id: request.clientId,
+      redirect_uri: request.redirectUri,
+      response_type: request.responseType,
+      scope: request.scope,
+      state: request.state,
+      code_challenge: request.codeChallenge,
+      code_challenge_method: request.codeChallengeMethod,
+      approved: request.approved,
+    };
+    const response = await apiClient.post<ApiResponse<string>>('/public/oauth2/authorize', payload);
     return response.data.data;
   }
 
@@ -21,8 +32,19 @@ export class OAuth2AuthorizationService {
    * 用于在授权页面展示客户端详情
    */
   static async getClientInfo(clientId: string): Promise<OAuth2ClientInfo> {
-    const response = await apiClient.get<ApiResponse<OAuth2ClientInfo>>(`/public/oauth2/clients/${clientId}`);
-    return response.data.data;
+    const response = await apiClient.get<ApiResponse<any>>(`/public/oauth2/clients/${clientId}`);
+    const data = response.data.data || {};
+    // 公开接口已切换为下划线命名，做统一映射为前端驼峰 DTO
+    const mapped: OAuth2ClientInfo = {
+      id: data.id ?? '',
+      clientId: data.client_id ?? data.clientId ?? '',
+      clientName: data.client_name ?? data.clientName ?? '',
+      redirectUris: data.redirect_uris ?? data.redirectUris ?? [],
+      scopes: Array.isArray(data.scopes) ? data.scopes : (typeof data.scopes === 'string' ? data.scopes.split(' ') : []),
+      requireAuthorizationConsent: data.require_authorization_consent ?? data.requireAuthorizationConsent ?? false,
+      createTime: data.create_time ?? data.createTime ?? '',
+    };
+    return mapped;
   }
 
   /**
