@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Bell, MessageCircle, Heart, User, CheckCircle, Clock, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
 import { NotificationsService } from '@shared/services/api';
 import type { NotificationQueryRequest, UserNotificationDTO, PageResponse } from '@shared/types';
@@ -112,20 +111,7 @@ export const MessageCenterPage: React.FC = () => {
           >
             全部标记已读
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={async () => {
-              try {
-                await NotificationsService.clearRead();
-                fetchList();
-              } catch (e) {
-                // 错误提示交由 axios 拦截器统一处理
-              }
-            }}
-          >
-            清空已读
-          </Button>
+          {/* 按需求移除“清空已读”入口，避免误操作；保留“全部标记已读” */}
         </div>
       </div>
 

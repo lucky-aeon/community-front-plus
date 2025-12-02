@@ -51,15 +51,7 @@ export class NotificationsService {
     try { window.dispatchEvent(new CustomEvent('notifications:changed')); } catch { void 0; }
   }
 
-  /** 清空所有已读通知（后端两种可能路径，优先 clear-read，失败则尝试 read） */
-  static async clearRead(): Promise<void> {
-    try {
-      await apiClient.delete(`${this.BASE_PATH}/clear-read`);
-    } catch {
-      await apiClient.delete(`${this.BASE_PATH}/read`);
-    }
-    try { window.dispatchEvent(new CustomEvent('notifications:changed')); } catch { void 0; }
-  }
+  // 清空已读：后端未提供对应 API，移除此方法的对外使用
 
   // 将服务端记录结构映射为前端 UserNotificationDTO
   private static normalizeRecord(server: any): UserNotificationDTO {
