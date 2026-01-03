@@ -87,6 +87,26 @@ export class CommentsService {
   }
 
   /**
+   * 按用户查询其发布的评论（公开）
+   * GET /api/app/comments/user/{userId}
+   */
+  static async getUserPublishedComments(
+    userId: string,
+    params: QueryUserCommentsRequest = {}
+  ): Promise<PageResponse<CommentDTO>> {
+    const response = await apiClient.get<ApiResponse<PageResponse<CommentDTO>>>(
+      `/app/comments/user/${encodeURIComponent(userId)}`,
+      { params }
+    );
+    const page = response.data.data;
+    page.records = page.records.map(c => ({
+      ...c,
+      commentUserAvatar: ResourceAccessService.toAccessUrl(c.commentUserAvatar)
+    } as CommentDTO));
+    return page;
+  }
+
+  /**
    * ============= 便捷方法 =============
    */
 

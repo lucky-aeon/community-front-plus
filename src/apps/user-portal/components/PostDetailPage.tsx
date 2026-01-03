@@ -195,12 +195,25 @@ export const PostDetailPage: React.FC = () => {
           {/* Author Info */}
           <Card className="p-4">
             <div className="flex flex-col items-center text-center space-y-3">
-              <Avatar size={96} shape="rounded" framed>
-                <AvatarImage src={post.authorAvatar || undefined} alt={post.authorName} />
-                <AvatarFallback>{(post.authorName || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
-              </Avatar>
+              {/* 点击头像跳转到作者主页 */}
+              <div
+                className="cursor-pointer hover:opacity-90 transition"
+                onClick={() => navigate(routeUtils.getUserProfileRoute(post.authorId))}
+                role="button"
+                aria-label="查看作者主页"
+              >
+                <Avatar size={96} shape="rounded" framed>
+                  <AvatarImage src={post.authorAvatar || undefined} alt={post.authorName} />
+                  <AvatarFallback>{(post.authorName || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
+                </Avatar>
+              </div>
               <div className="space-y-2">
-                <h4 className="font-medium text-gray-900">{post.authorName}</h4>
+                <h4
+                  className="font-medium text-gray-900 cursor-pointer hover:text-blue-600"
+                  onClick={() => navigate(routeUtils.getUserProfileRoute(post.authorId))}
+                >
+                  {post.authorName}
+                </h4>
                 {authorProfile?.tags && authorProfile.tags.length > 0 && (
                   <div className="flex flex-wrap justify-center gap-1">
                     {authorProfile.tags.slice(0, 6).map((t, i) => (
@@ -222,6 +235,14 @@ export const PostDetailPage: React.FC = () => {
               size="sm"
               className="w-full mt-4"
             />
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-2"
+              onClick={() => navigate(routeUtils.getUserProfileRoute(post.authorId))}
+            >
+              查看Ta的主页
+            </Button>
           </Card>
           {/* Related Posts - 作者的其他文章（无数据不展示） */}
           {relatedPosts.length > 0 && (

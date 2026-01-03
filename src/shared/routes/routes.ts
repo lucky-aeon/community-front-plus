@@ -18,6 +18,8 @@ export const ROUTES = {
   DASHBOARD_INTERVIEWS: '/dashboard/interviews',
   DASHBOARD_INTERVIEWS_DETAIL: '/dashboard/interviews/:id',
   DASHBOARD_CHAT: '/dashboard/chat',
+  // 用户公开主页（文章/问答/评论）
+  DASHBOARD_USER_PROFILE: '/dashboard/users/:userId',
   
   // 用户后台路由
   USER_BACKEND: '/dashboard/user-backend',
@@ -48,6 +50,8 @@ export const routeUtils = {
   
   // 获取编辑文章路由
   getArticleEditRoute: (articleId: string) => `/dashboard/user-backend/articles/edit/${articleId}`,
+  // 获取用户公开主页路由
+  getUserProfileRoute: (userId: string) => `/dashboard/users/${userId}`,
   
   // 判断是否为Dashboard路由
   isDashboardRoute: (pathname: string) => pathname.startsWith('/dashboard'),
