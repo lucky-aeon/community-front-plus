@@ -6,11 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MessageSquare, FileText, ListChecks, Clock, ArrowLeft } from 'lucide-react';
+import { MessageSquare, Heart, Clock, ArrowLeft } from 'lucide-react';
 import { routeUtils } from '@shared/routes/routes';
 import { PostsService } from '@shared/services/api/posts.service';
 import { UserService } from '@shared/services/api/user.service';
-import { FrontPostDTO, PageResponse, UserPublicProfileDTO, CommentDTO, BusinessType } from '@shared/types';
+import { FrontPostDTO, PageResponse, UserPublicProfileDTO, CommentDTO } from '@shared/types';
+import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { CommentsService } from '@shared/services/api/comments.service';
 import { ChaptersService } from '@shared/services/api';
 import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
@@ -280,7 +281,7 @@ export const UserPublicProfilePage: React.FC = () => {
                       {p.summary && <p className="text-sm text-gray-600 line-clamp-2">{p.summary}</p>}
                       <div className="flex items-center gap-4 text-sm text-gray-500 mt-3">
                         <div className="flex items-center gap-1"><MessageSquare className="h-4 w-4" /> {p.commentCount}</div>
-                        <div className="flex items-center gap-1"><FileText className="h-4 w-4" /> {p.likeCount}</div>
+                        <div className="flex items-center gap-1"><Heart className="h-4 w-4" /> {p.likeCount}</div>
                         <div className="flex items-center gap-1"><Clock className="h-4 w-4" /> {p.publishTime}</div>
                       </div>
                     </div>
@@ -325,7 +326,18 @@ export const UserPublicProfilePage: React.FC = () => {
                   <div className="flex items-start justify-between">
                     <div className="min-w-0">
                       <div className="text-sm text-gray-600 mb-1">{c.businessName || '相关内容'}</div>
-                      <div className="text-gray-900">{c.content}</div>
+                      <div className="prose-content">
+                        <MarkdownEditor
+                          value={c.content}
+                          onChange={() => {}}
+                          previewOnly
+                          height="auto"
+                          toolbar={false}
+                          className="!border-none !shadow-none !bg-transparent"
+                          enableFullscreen={false}
+                          enableToc={false}
+                        />
+                      </div>
                       <div className="text-xs text-gray-500 mt-2">{formatTime(c.createTime)}</div>
                     </div>
                     <div>
