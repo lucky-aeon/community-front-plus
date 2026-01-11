@@ -3,6 +3,7 @@ import { useAuth } from '@/context/AuthContext';
 import { PageContainer } from '@shared/components/layout/PageContainer';
 import { DashboardOverview } from '@shared/components/business/DashboardOverview';
 import { AiDailyHero } from '@shared/components/business/AiDailyHero';
+import { AiToolUsageCard } from '@shared/components/business/AiToolUsageCard';
 import { PinnedPostsBanner } from '@shared/components/business/PinnedPostsBanner';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +36,9 @@ export const HomePage: React.FC = () => {
     <PageContainer className="space-y-8">
       {/* 顶部：AI 日报横幅摘要 */}
       <AiDailyHero />
+
+      {/* AI 工具使用卡片（共享 Key） */}
+      <AiToolUsageCard />
 
       {/* 最近学习：顶部强调卡片（使用现有学习记录接口） */}
       <RecentLearningBanner />

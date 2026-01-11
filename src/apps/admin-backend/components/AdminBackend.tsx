@@ -22,6 +22,7 @@ import { AiDailyNewsPage } from './AiDailyNewsPage';
 import { TagsPage } from './TagsPage';
 import { AdminInterviewQuestionsPage } from './AdminInterviewQuestionsPage';
 import { OAuth2ClientsPage } from './OAuth2ClientsPage';
+import CodexPage from './CodexPage';
 
 // 临时的占位页面组件
 const ComingSoonPage: React.FC<{ title: string }> = ({ title }) => (
@@ -70,6 +71,7 @@ export const AdminBackend: React.FC = () => {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/logs" element={<LogsPage />} />
         <Route path="/oauth2-clients" element={<OAuth2ClientsPage />} />
+        <Route path="/codex" element={<CodexPage />} />
 
         {/* 404 处理 */}
         <Route path="*" element={<Navigate to="/dashboard/admin/overview" replace />} />

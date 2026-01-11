@@ -1406,6 +1406,29 @@ export interface UnreadSummaryDTO {
   chatsUnread?: number;
 }
 
+// ================ 前台 AI 工具摘要（共享 Key） ================
+export interface AiToolSummaryDTO {
+  apiKey: string;      // 社区共享 API Key（显示打码，允许复制）
+  todayUsed: number;   // 今日已用
+  todayBudget: number; // 日度预算
+  weekUsed: number;    // 本周已用
+  weekBudget: number;  // 本周预算
+  usageDocUrl?: string; // 使用文档地址（可选）
+  usageFetchFailed?: boolean; // 用量抓取失败（后端标记），仅影响展示
+}
+
+// ================ 管理端 Codex 配置 ================
+export interface CodexConfigDTO {
+  baseUrl?: string;
+  apiKey?: string;
+  authorization?: string;
+  cookieToken?: string;
+  enabled?: boolean;
+  expiresAt?: string;      // 过期时间（可选，仅展示）
+  lastUpdatedAt?: string;  // 最后更新时间（可选，仅展示）
+  usageDocUrl?: string;    // 使用文档地址
+}
+
 // ================ 聊天室相关接口定义 ================
 
 // 聊天室 DTO（最小展示字段，按后端对齐可扩展）

@@ -24,7 +24,8 @@ import {
   MessageSquare,
   Receipt,
   Smile,
-  Newspaper
+  Newspaper,
+  Code2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -96,7 +97,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       items: [
         { id: 'settings', name: '系统配置', icon: Settings, path: '/dashboard/admin/settings' },
         { id: 'logs', name: '操作日志', icon: FileCheck, path: '/dashboard/admin/logs' },
-        { id: 'oauth2-clients', name: 'OAuth2 客户端', icon: Key, path: '/dashboard/admin/oauth2-clients' }
+        { id: 'oauth2-clients', name: 'OAuth2 客户端', icon: Key, path: '/dashboard/admin/oauth2-clients' },
+        { id: 'codex', name: 'Codex', icon: Code2, path: '/dashboard/admin/codex' }
       ]
     }
   ];
