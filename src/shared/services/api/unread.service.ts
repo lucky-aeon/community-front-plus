@@ -12,11 +12,13 @@ export class UnreadService {
   /** 获取未读汇总（导航展示） */
   static async getSummary(): Promise<UnreadSummaryDTO> {
     const resp = await apiClient.get<ApiResponse<UnreadSummaryDTO>>(`${this.BASE}/summary`);
-    const data = resp.data?.data || { postsUnread: 0, questionsUnread: 0, chaptersUnread: 0 };
+    const data = resp.data?.data || { postsUnread: 0, questionsUnread: 0, chaptersUnread: 0, chatsUnread: 0 };
     return {
-      postsUnread: Math.max(0, Number(data.postsUnread) || 0),
-      questionsUnread: Math.max(0, Number(data.questionsUnread) || 0),
-      chaptersUnread: Math.max(0, Number(data.chaptersUnread) || 0),
+      postsUnread: Math.max(0, Number((data as any).postsUnread) || 0),
+      questionsUnread: Math.max(0, Number((data as any).questionsUnread) || 0),
+      chaptersUnread: Math.max(0, Number((data as any).chaptersUnread) || 0),
+      // 新增：聚合聊天室未读（后端字段 chatsUnread）
+      chatsUnread: Math.max(0, Number((data as any).chatsUnread) || 0),
     };
   }
 

@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { MessageCircle, Plus, Users as UsersIcon } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChatRoomsService, UserService, ChatMessagesService } from '@shared/services/api';
+import { ChatRoomsService, UserService, ChatMessagesService, AppUnreadService } from '@shared/services/api';
 import type { ChatRoomDTO, PageResponse, ChatMessageDTO, ChatRoomMemberDTO, ChatUnreadInfoDTO, ChatRoomAudience } from '@shared/types';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -712,6 +712,8 @@ export const ChatRoomsPage: React.FC = () => {
       if (!last) return;
       await ChatRoomsService.visitRoom(activeRoom.id, { anchorId: last.id });
       setRooms((prev) => prev.map((r) => (r.id === activeRoom.id ? { ...r, unreadCount: 0 } : r)));
+      // 同步顶部导航未读汇总（聊天室红点）
+      try { void AppUnreadService.refresh(); } catch { /* ignore */ }
     } catch { /* ignore */ }
   };
 
@@ -889,6 +891,8 @@ export const ChatRoomsPage: React.FC = () => {
                               const last = messages[messages.length - 1];
                               await ChatRoomsService.visitRoom(activeRoom!.id, { anchorId: last?.id });
                               setRooms((prev) => prev.map((r) => (r.id === activeRoom!.id ? { ...r, unreadCount: 0 } : r)));
+                              // 同步顶部导航未读汇总（聊天室红点）
+                              try { void AppUnreadService.refresh(); } catch { /* ignore */ }
                             } catch { /* ignore */ }
                           })();
                         }
@@ -1098,6 +1102,8 @@ export const ChatRoomsPage: React.FC = () => {
                               const last = messages[messages.length - 1];
                               await ChatRoomsService.visitRoom(activeRoom!.id, { anchorId: last?.id });
                               setRooms((prev) => prev.map((r) => (r.id === activeRoom!.id ? { ...r, unreadCount: 0 } : r)));
+                              // 同步顶部导航未读汇总（聊天室红点）
+                              try { void AppUnreadService.refresh(); } catch { /* ignore */ }
                             } catch { /* ignore */ }
                           })();
                         }
@@ -1315,6 +1321,8 @@ export const ChatRoomsPage: React.FC = () => {
                   setRooms((prev) => prev.map((r) => (r.id === activeRoom.id ? { ...r, joined: false, unreadCount: 0 } : r)));
                   setShowLeaveConfirm(false);
                   setIsChatOpen(false);
+                  // 同步顶部导航未读汇总（聊天室红点）
+                  try { void AppUnreadService.refresh(); } catch { /* ignore */ }
                 } finally {
                   setLeaving(false);
                 }

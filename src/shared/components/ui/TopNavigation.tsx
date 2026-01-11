@@ -58,6 +58,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
   const [postsUnread, setPostsUnread] = useState<number>(0);
   const [questionsUnread, setQuestionsUnread] = useState<number>(0);
   const [chaptersUnread, setChaptersUnread] = useState<number>(0);
+  const [chatsUnread, setChatsUnread] = useState<number>(0);
 
   // 用户菜单码
   const { isAllowed } = useUserMenuCodes();
@@ -179,6 +180,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
         setPostsUnread(Math.max(0, detail.postsUnread || 0));
         setQuestionsUnread(Math.max(0, detail.questionsUnread || 0));
         setChaptersUnread(Math.max(0, detail.chaptersUnread || 0));
+        setChatsUnread(Math.max(0, (detail as any).chatsUnread || 0));
       }
     };
     // 启动轮询，并订阅更新事件
@@ -188,6 +190,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
     setPostsUnread(Math.max(0, snap.postsUnread || 0));
     setQuestionsUnread(Math.max(0, snap.questionsUnread || 0));
     setChaptersUnread(Math.max(0, snap.chaptersUnread || 0));
+    setChatsUnread(Math.max(0, (snap as any).chatsUnread || 0));
     window.addEventListener('unread:summary', onSummary as EventListener);
     return () => {
       cancelled = true;
@@ -303,6 +306,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                       {item.id === 'courses' && renderBadge(chaptersUnread)}
                       {item.id === 'discussions' && renderBadge(postsUnread)}
                       {item.id === 'interviews' && renderBadge(questionsUnread)}
+                      {item.id === 'chat' && renderBadge(chatsUnread)}
                     </span>
                   </div>
                 </NavLink>
@@ -540,6 +544,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                             {item.id === 'courses' && renderBadge(chaptersUnread)}
                             {item.id === 'discussions' && renderBadge(postsUnread)}
                             {item.id === 'interviews' && renderBadge(questionsUnread)}
+                            {item.id === 'chat' && renderBadge(chatsUnread)}
                           </div>
                           <div className="text-xs text-warm-gray-500">{item.description}</div>
                         </div>

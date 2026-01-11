@@ -1402,6 +1402,8 @@ export interface UnreadSummaryDTO {
   postsUnread: number;
   questionsUnread: number;
   chaptersUnread: number;
+  // 新增：聊天室未读汇总，用于顶部导航“聊天室”红点
+  chatsUnread?: number;
 }
 
 // ================ 聊天室相关接口定义 ================

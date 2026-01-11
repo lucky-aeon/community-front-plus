@@ -10,7 +10,7 @@ class AppUnreadServiceImpl {
   private timer: number | undefined;
   private intervalMs = 60_000;
   private running = false;
-  private latest: UnreadSummaryDTO = { postsUnread: 0, questionsUnread: 0, chaptersUnread: 0 };
+  private latest: UnreadSummaryDTO = { postsUnread: 0, questionsUnread: 0, chaptersUnread: 0, chatsUnread: 0 };
 
   /** 最近一次汇总值（内存缓存） */
   getSnapshot(): UnreadSummaryDTO {
