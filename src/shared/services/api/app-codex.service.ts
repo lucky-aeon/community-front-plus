@@ -14,6 +14,8 @@ export class AppCodexService {
       dailySpentUsd?: string;
       dailyBudgetUsd?: string;
       usageDocUrl?: string;
+      weeklyWindowStart?: string;
+      weeklyWindowEnd?: string;
     }>>('/app/codex/info');
     const body = resp.data as ApiResponse<any> | undefined;
     if (body && Number(body.code) === 9503) {
@@ -34,6 +36,8 @@ export class AppCodexService {
       weekBudget: parse(d.weeklyBudgetUsd),
       usageDocUrl: d.usageDocUrl ? String(d.usageDocUrl) : undefined,
       usageFetchFailed: Boolean(d.usageFetchFailed === true),
+      weeklyWindowStart: d.weeklyWindowStart ? String(d.weeklyWindowStart) : undefined,
+      weeklyWindowEnd: d.weeklyWindowEnd ? String(d.weeklyWindowEnd) : undefined,
     };
   }
 }

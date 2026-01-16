@@ -132,7 +132,14 @@ export const AiToolUsageCard: React.FC<AiToolUsageCardProps> = ({ className, ini
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <div className="text-warm-gray-600">本周用量 / 周预算</div>
+              <div className="text-warm-gray-600">
+                本周用量 / 周预算
+                {data.weeklyWindowStart && data.weeklyWindowEnd && (
+                  <span className="ml-2 text-[11px] text-warm-gray-500">
+                    {data.weeklyWindowStart} ~ {data.weeklyWindowEnd}
+                  </span>
+                )}
+              </div>
               <div className={cn('font-semibold', pctTone(weekPct))}>{fmtUsd(data.weekUsed)} / {fmtUsd(data.weekBudget)}</div>
             </div>
             <Progress value={weekPct} className="h-2 bg-honey-200" />

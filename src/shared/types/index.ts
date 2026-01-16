@@ -1415,6 +1415,8 @@ export interface AiToolSummaryDTO {
   weekBudget: number;  // 本周预算
   usageDocUrl?: string; // 使用文档地址（可选）
   usageFetchFailed?: boolean; // 用量抓取失败（后端标记），仅影响展示
+  weeklyWindowStart?: string; // 本周用量统计窗口开始时间
+  weeklyWindowEnd?: string;   // 本周用量统计窗口结束时间
 }
 
 // ================ 管理端 Codex 配置 ================
