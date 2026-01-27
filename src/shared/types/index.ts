@@ -1431,6 +1431,32 @@ export interface CodexConfigDTO {
   usageDocUrl?: string;    // 使用文档地址
 }
 
+// ================ 持久化多实例 Codex（新） ================
+// 与后端 org.xhy.community.application.codex.dto.CodexInstanceDTO 对齐
+export interface CodexInstanceDTO {
+  id?: string;
+  name?: string;
+  baseUrl?: string;
+  apiKey?: string;
+  authorization?: string;
+  cookieToken?: string;
+  enabled?: boolean;
+  expiresAt?: string;      // 过期时间（可选，仅展示）
+  lastUpdatedAt?: string;  // 最后更新时间（可选，仅展示）
+  usageDocUrl?: string;    // 使用文档地址
+}
+
+// GET /api/admin/codex-p/configs 返回值
+export interface CodexConfigSetDTO {
+  instances?: CodexInstanceDTO[];
+}
+
+// 前台公共信息的多实例列表（供 /api/app/codex-p/infos 使用）
+export interface CodexPublicInstanceDTO extends AiToolSummaryDTO {
+  id: string;
+  name: string;
+}
+
 // ================ 聊天室相关接口定义 ================
 
 // 聊天室 DTO（最小展示字段，按后端对齐可扩展）

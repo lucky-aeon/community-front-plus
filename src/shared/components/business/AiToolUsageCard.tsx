@@ -5,9 +5,10 @@ import { Progress } from '@/components/ui/progress';
 import { Key, Copy, RefreshCw, ExternalLink, AlertTriangle } from 'lucide-react';
 import { showToast } from '@shared/utils/toast';
 import { cn } from '@shared/utils/cn';
-import type { AiToolSummaryDTO } from '@shared/types';
-import { AppCodexService } from '@shared/services/api';
+import type { AiToolSummaryDTO, CodexPublicInstanceDTO } from '@shared/types';
+import { AppCodexPersistentService } from '@shared/services/api';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+// 移除下拉选择，改为全部实例同时展示
 
 interface AiToolUsageCardProps {
   className?: string;
@@ -25,24 +26,16 @@ interface AiToolUsageCardProps {
 export const AiToolUsageCard: React.FC<AiToolUsageCardProps> = ({ className, initialData, docsUrl }) => {
   const [loading, setLoading] = useState(false);
   const [fatal, setFatal] = useState<string | null>(null);
-  const [data, setData] = useState<AiToolSummaryDTO>(() => ({
-    apiKey: initialData?.apiKey || '',
-    todayUsed: Number(initialData?.todayUsed ?? 0),
-    todayBudget: Number(initialData?.todayBudget ?? 0),
-    weekUsed: Number(initialData?.weekUsed ?? 0),
-    weekBudget: Number(initialData?.weekBudget ?? 0),
-    usageDocUrl: initialData?.usageDocUrl,
-    usageFetchFailed: initialData?.usageFetchFailed,
-  }));
+  // 多实例列表
+  const [instances, setInstances] = useState<CodexPublicInstanceDTO[]>([]);
 
   // 计算占比及状态色
-  const todayPct = useMemo(() => Math.min(100, Math.round((data.todayUsed / Math.max(1, data.todayBudget)) * 100)), [data]);
-  const weekPct = useMemo(() => Math.min(100, Math.round((data.weekUsed / Math.max(1, data.weekBudget)) * 100)), [data]);
+  const pct = (used: number, budget: number) => Math.min(100, Math.round((used / Math.max(1, budget)) * 100));
   const pctTone = (pct: number) => pct >= 95 ? 'text-red-600' : pct >= 80 ? 'text-orange-600' : 'text-honey-700';
 
-  const copyKey = async () => {
+  const copyKey = async (text: string) => {
     try {
-      await navigator.clipboard.writeText(data.apiKey);
+      await navigator.clipboard.writeText(text);
       showToast.success('API Key 已复制');
     } catch (e) {
       console.error('复制 API Key 失败', e);
@@ -53,16 +46,19 @@ export const AiToolUsageCard: React.FC<AiToolUsageCardProps> = ({ className, ini
   const refresh = async () => {
     setLoading(true);
     try {
-      const next = await AppCodexService.getInfo();
-      setData(next);
-      setFatal(null);
-    } catch (e: any) {
-      if ((e && e.__codexErrorCode) === 9503) {
-        // 9503：后端调用异常，友好提示
-        setFatal('AI 工具用量数据获取异常，请稍后再试或联系管理员修复');
+      // 拉取多实例列表，空时回退默认实例信息
+      const list = await AppCodexPersistentService.listInfos();
+      if (Array.isArray(list) && list.length > 0) {
+        setInstances(list);
+        setFatal(null);
       } else {
-        // 其他错误：静默失败（toast 由拦截器兜底）
+        const single = await AppCodexPersistentService.getInfo();
+        setInstances([{ id: 'default', name: '默认实例', ...single }]);
+        setFatal(null);
       }
+    } catch (e: any) {
+      // 静默失败（toast 由拦截器兜底），但提供友好说明
+      setFatal('AI 工具用量数据获取异常，请稍后再试或联系管理员修复');
     } finally {
       setLoading(false);
     }
@@ -76,7 +72,6 @@ export const AiToolUsageCard: React.FC<AiToolUsageCardProps> = ({ className, ini
   }, []);
 
   const fmtUsd = (n: number) => `$${(Number(n) || 0).toFixed(2)}`;
-  const showUsage = !data.usageFetchFailed && !fatal;
 
   return (
     <Card className={cn('p-5 border-0 shadow-lg bg-gradient-to-br from-honey-50 to-honey-100/40', className)}>
@@ -91,9 +86,9 @@ export const AiToolUsageCard: React.FC<AiToolUsageCardProps> = ({ className, ini
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {(docsUrl || data.usageDocUrl) && (
+          {docsUrl && (
             <Button size="sm" variant="outline" asChild>
-              <a href={docsUrl || data.usageDocUrl} target="_blank" rel="noreferrer">
+              <a href={docsUrl} target="_blank" rel="noreferrer">
                 <ExternalLink className="h-4 w-4 mr-1" /> 使用文档
               </a>
             </Button>
@@ -104,57 +99,74 @@ export const AiToolUsageCard: React.FC<AiToolUsageCardProps> = ({ className, ini
         </div>
       </div>
 
-      {/* Key 行 */}
-      <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <div className="text-sm">
-          <span className="text-warm-gray-500 mr-2">API Key</span>
-          <span className="font-mono bg-white/70 border border-honey-border px-2 py-0.5 rounded-md shadow-sm">
-            {data.apiKey}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={copyKey}>
-            <Copy className="h-4 w-4 mr-1" /> 复制
-          </Button>
-        </div>
-      </div>
-
-      {/* 用量 */}
-      {showUsage ? (
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <div className="text-warm-gray-600">今日用量 / 日预算</div>
-              <div className={cn('font-semibold', pctTone(todayPct))}>{fmtUsd(data.todayUsed)} / {fmtUsd(data.todayBudget)}</div>
-            </div>
-            <Progress value={todayPct} className="h-2 bg-honey-200" />
-            <div className="text-xs text-warm-gray-500">已用 {todayPct}%</div>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <div className="text-warm-gray-600">
-                本周用量 / 周预算
-                {data.weeklyWindowStart && data.weeklyWindowEnd && (
-                  <span className="ml-2 text-[11px] text-warm-gray-500">
-                    {data.weeklyWindowStart} ~ {data.weeklyWindowEnd}
+      {/* 实例列表：全部展示 */}
+      <div className="mt-4 space-y-4">
+        {instances.map((it) => {
+          const showUsage = !it.usageFetchFailed && !fatal;
+          const todayPct = pct(it.todayUsed, it.todayBudget);
+          const weekPct = pct(it.weekUsed, it.weekBudget);
+          return (
+            <div key={it.id} className="rounded-lg border border-honey-border bg-white/60 p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div className="text-sm">
+                  <span className="text-warm-gray-500 mr-2">{it.name || '实例'}</span>
+                  <span className="font-mono bg-white/70 border border-honey-border px-2 py-0.5 rounded-md shadow-sm">
+                    {it.apiKey}
                   </span>
-                )}
+                </div>
+                <div className="flex items-center gap-2">
+                  {it.usageDocUrl && (
+                    <Button size="sm" variant="outline" asChild>
+                      <a href={it.usageDocUrl} target="_blank" rel="noreferrer">
+                        <ExternalLink className="h-4 w-4 mr-1" /> 文档
+                      </a>
+                    </Button>
+                  )}
+                  <Button size="sm" variant="outline" onClick={() => copyKey(it.apiKey)}>
+                    <Copy className="h-4 w-4 mr-1" /> 复制
+                  </Button>
+                </div>
               </div>
-              <div className={cn('font-semibold', pctTone(weekPct))}>{fmtUsd(data.weekUsed)} / {fmtUsd(data.weekBudget)}</div>
+
+              {showUsage ? (
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="text-warm-gray-600">今日用量 / 日预算</div>
+                      <div className={cn('font-semibold', pctTone(todayPct))}>{fmtUsd(it.todayUsed)} / {fmtUsd(it.todayBudget)}</div>
+                    </div>
+                    <Progress value={todayPct} className="h-2 bg-honey-200" />
+                    <div className="text-xs text-warm-gray-500">已用 {todayPct}%</div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="text-warm-gray-600">
+                        本周用量 / 周预算
+                        {it.weeklyWindowStart && it.weeklyWindowEnd && (
+                          <span className="ml-2 text-[11px] text-warm-gray-500">
+                            {it.weeklyWindowStart} ~ {it.weeklyWindowEnd}
+                          </span>
+                        )}
+                      </div>
+                      <div className={cn('font-semibold', pctTone(weekPct))}>{fmtUsd(it.weekUsed)} / {fmtUsd(it.weekBudget)}</div>
+                    </div>
+                    <Progress value={weekPct} className="h-2 bg-honey-200" />
+                    <div className="text-xs text-warm-gray-500">已用 {weekPct}%</div>
+                  </div>
+                </div>
+              ) : (
+                <Alert className="mt-3">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>用量暂不可用</AlertTitle>
+                  <AlertDescription className="text-xs text-warm-gray-600">
+                    后端用量查询暂时不可用，但 API Key 正常。您仍可按文档使用；我们会尽快修复展示。
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
-            <Progress value={weekPct} className="h-2 bg-honey-200" />
-            <div className="text-xs text-warm-gray-500">已用 {weekPct}%</div>
-          </div>
-        </div>
-      ) : (
-        <Alert className="mt-4">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertTitle>用量暂不可用</AlertTitle>
-          <AlertDescription className="text-xs text-warm-gray-600">
-            后端用量查询暂时不可用，但 API Key 正常。您仍可按文档使用；我们会尽快修复展示。
-          </AlertDescription>
-        </Alert>
-      )}
+          );
+        })}
+      </div>
 
       {fatal && (
         <Alert variant="destructive" className="mt-3">
