@@ -11,6 +11,8 @@ import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
 import { NotificationsService, UpdateLogService, UserLearningService, UserService } from '@shared/services/api';
 import type { UpdateLogDTO, PageResponse, UserNotificationDTO, LearningRecordItemDTO } from '@shared/types';
 import { Switch } from '@/components/ui/switch';
+import { getNotificationContentType, isNotificationTargetable, resolveNotificationTarget } from '@shared/utils/notification-target';
+import { UpdateLogModal } from '@shared/components/business/UpdateLogModal';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -19,6 +21,8 @@ export const DashboardPage: React.FC = () => {
   // 更新日志
   const [logs, setLogs] = useState<UpdateLogDTO[]>([]);
   const [logsLoading, setLogsLoading] = useState(true);
+  const [updateLogDetail, setUpdateLogDetail] = useState<UpdateLogDTO | null>(null);
+  const [isUpdateLogOpen, setIsUpdateLogOpen] = useState(false);
 
   // 最新消息
   const [messages, setMessages] = useState<UserNotificationDTO[]>([]);
@@ -158,6 +162,38 @@ export const DashboardPage: React.FC = () => {
     }
   };
 
+  const openMessageTarget = async (message: UserNotificationDTO) => {
+    const contentType = getNotificationContentType(message);
+    if (contentType === 'UPDATE_LOG') {
+      if (!message.contentId) return;
+      try {
+        const detail = await UpdateLogService.getPublicUpdateLogDetail(message.contentId);
+        setUpdateLogDetail(detail);
+        setIsUpdateLogOpen(true);
+        if (!message.read) {
+          await NotificationsService.markAsRead(message.id);
+          setMessages(prev => prev.map(m => m.id === message.id ? { ...m, read: true } : m));
+          setUnreadCount(prev => Math.max(0, prev - 1));
+        }
+      } catch (e) {
+        console.error('获取更新日志详情失败:', e);
+      }
+      return;
+    }
+    const targetUrl = await resolveNotificationTarget(message);
+    if (!targetUrl) return;
+    if (!message.read) {
+      try {
+        await NotificationsService.markAsRead(message.id);
+        setMessages(prev => prev.map(m => m.id === message.id ? { ...m, read: true } : m));
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      } catch (e) {
+        // 错误提示交由 axios 拦截器统一处理
+      }
+    }
+    navigate(targetUrl);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -258,8 +294,19 @@ export const DashboardPage: React.FC = () => {
               ) : messages.length === 0 ? (
                 <div className="text-sm text-gray-500">暂无消息</div>
               ) : (
-                messages.map((m) => (
-                  <div key={m.id} className={`p-3 rounded-lg border ${!m.read ? 'bg-blue-50/40 border-blue-200' : 'border-gray-200'} hover:shadow-sm transition` }>
+                messages.map((m) => {
+                  const canOpen = isNotificationTargetable(m);
+                  const contentType = getNotificationContentType(m);
+                  const actionLabel = contentType === 'UPDATE_LOG'
+                    ? '查看更新'
+                    : m.type === 'COMMENT' || m.type === 'REPLY'
+                      ? '查看评论'
+                      : '查看详情';
+                  return (
+                  <div
+                    key={m.id}
+                    className={`p-3 rounded-lg border ${!m.read ? 'bg-blue-50/40 border-blue-200' : 'border-gray-200'} hover:shadow-sm transition`}
+                  >
                     <div className="flex items-start gap-3">
                       <div className="mt-0.5">
                         {getMessageIcon(m.type)}
@@ -267,13 +314,26 @@ export const DashboardPage: React.FC = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <h4 className={`text-sm font-medium ${!m.read ? 'text-gray-900' : 'text-gray-700'}`}>{m.title}</h4>
-                          <span className="text-xs text-gray-500">{new Date(m.createTime).toLocaleString()}</span>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="text-xs text-gray-500">{new Date(m.createTime).toLocaleString()}</span>
+                            {canOpen && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => openMessageTarget(m)}
+                                className="h-6 px-2 text-xs"
+                              >
+                                {actionLabel}
+                              </Button>
+                            )}
+                          </div>
                         </div>
                         <p className={`text-sm ${!m.read ? 'text-gray-800' : 'text-gray-600'} line-clamp-2`}>{m.content}</p>
                       </div>
                     </div>
                   </div>
-                ))
+                );
+                })
               )}
             </div>
           </Card>
@@ -324,6 +384,15 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       <RedeemCDKDialog open={isRedeemOpen} onOpenChange={setIsRedeemOpen} />
+
+      <UpdateLogModal
+        updateLog={updateLogDetail}
+        isOpen={isUpdateLogOpen}
+        onClose={() => {
+          setIsUpdateLogOpen(false);
+          setUpdateLogDetail(null);
+        }}
+      />
     </div>
   );
 };

@@ -1376,6 +1376,9 @@ export interface UserNotificationDTO {
   type: NotificationType;     // 通知类型
   title: string;              // 标题
   content: string;            // 内容
+  contentType?: string | null; // 关联内容类型（旧数据可能为空）
+  contentId?: string | null;         // 关联内容ID（旧数据可能为空）
+  commentId?: string | null;         // 关联评论ID（评论通知可用，旧数据可能为空）
   senderName?: string;        // 发送者名称（系统通知可为空）
   senderAvatar?: string;      // 发送者头像
   read: boolean;              // 是否已读

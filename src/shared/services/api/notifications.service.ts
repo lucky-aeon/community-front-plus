@@ -57,6 +57,11 @@ export class NotificationsService {
   private static normalizeRecord(server: any): UserNotificationDTO {
     const status: string | undefined = server?.status;
     const read: boolean = typeof server?.read === 'boolean' ? server.read : status === 'READ';
+    const contentType: string | null = server?.contentType ?? server?.content_type ?? null;
+    const contentIdRaw = server?.contentId ?? server?.content_id ?? null;
+    const contentId: string | null = contentIdRaw === null || contentIdRaw === undefined ? null : String(contentIdRaw);
+    const commentIdRaw = server?.commentId ?? server?.comment_id ?? null;
+    const commentId: string | null = commentIdRaw === null || commentIdRaw === undefined ? null : String(commentIdRaw);
 
     const typeMap: Record<string, NotificationType> = {
       COMMENT: 'COMMENT',
@@ -73,6 +78,9 @@ export class NotificationsService {
       type: mappedType,
       title: server?.title ?? '',
       content: server?.content ?? '',
+      contentType,
+      contentId,
+      commentId,
       senderName: server?.senderName ?? undefined,
       senderAvatar: server?.senderAvatar ?? undefined,
       read,

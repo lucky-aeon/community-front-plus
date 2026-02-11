@@ -23,6 +23,19 @@ export class UpdateLogService {
   }
 
   /**
+   * 获取公开更新日志详情（用户端）
+   * @param id 更新日志ID
+   */
+  static async getPublicUpdateLogDetail(id: string): Promise<UpdateLogDTO> {
+    const response = await apiClient.get<ApiResponse<UpdateLogDTO>>(`/app/update-logs/${encodeURIComponent(id)}`);
+    const data = response.data.data;
+    if (data.changes && !data.changeDetails) {
+      data.changeDetails = data.changes;
+    }
+    return data;
+  }
+
+  /**
    * 创建更新日志
    * @param request 创建请求参数
    * @returns 创建成功的更新日志信息

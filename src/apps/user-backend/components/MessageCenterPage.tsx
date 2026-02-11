@@ -3,10 +3,14 @@ import { Bell, MessageCircle, Heart, User, CheckCircle, Clock, Trash2 } from 'lu
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@shared/components/common/ConfirmDialog';
-import { NotificationsService } from '@shared/services/api';
-import type { NotificationQueryRequest, UserNotificationDTO, PageResponse } from '@shared/types';
+import { NotificationsService, UpdateLogService } from '@shared/services/api';
+import type { NotificationQueryRequest, UserNotificationDTO, PageResponse, UpdateLogDTO } from '@shared/types';
+import { getNotificationContentType, isNotificationTargetable, resolveNotificationTarget } from '@shared/utils/notification-target';
+import { useNavigate } from 'react-router-dom';
+import { UpdateLogModal } from '@shared/components/business/UpdateLogModal';
 
 export const MessageCenterPage: React.FC = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [pageNum, setPageNum] = useState(1);
   const [pageSize] = useState(10);
@@ -22,6 +26,8 @@ export const MessageCenterPage: React.FC = () => {
     pages: 0,
   });
   const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [updateLogDetail, setUpdateLogDetail] = useState<UpdateLogDTO | null>(null);
+  const [isUpdateLogOpen, setIsUpdateLogOpen] = useState(false);
 
   const getMessageIcon = (type: string) => {
     switch (type) {
@@ -89,6 +95,30 @@ export const MessageCenterPage: React.FC = () => {
     }
   };
 
+  const openMessageTarget = async (message: UserNotificationDTO) => {
+    const contentType = getNotificationContentType(message);
+    if (contentType === 'UPDATE_LOG') {
+      if (!message.contentId) return;
+      try {
+        const detail = await UpdateLogService.getPublicUpdateLogDetail(message.contentId);
+        setUpdateLogDetail(detail);
+        setIsUpdateLogOpen(true);
+        if (!message.read) {
+          void markAsRead(message.id);
+        }
+      } catch (e) {
+        console.error('获取更新日志详情失败:', e);
+      }
+      return;
+    }
+    const targetUrl = await resolveNotificationTarget(message);
+    if (!targetUrl) return;
+    if (!message.read) {
+      void markAsRead(message.id);
+    }
+    navigate(targetUrl);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -154,8 +184,19 @@ export const MessageCenterPage: React.FC = () => {
       {/* 标签筛选暂不支持，移除Tab */}
 
       <div className="space-y-3">
-        {pageData.records.map((message) => (
-          <Card key={message.id} className={`p-4 transition-all hover:shadow-md ${!message.read ? 'border-l-4 border-l-blue-500 bg-blue-50/30' : ''}`}>
+        {pageData.records.map((message) => {
+          const canOpen = isNotificationTargetable(message);
+          const contentType = getNotificationContentType(message);
+          const actionLabel = contentType === 'UPDATE_LOG'
+            ? '查看更新'
+            : message.type === 'COMMENT' || message.type === 'REPLY'
+              ? '查看评论'
+              : '查看详情';
+          return (
+            <Card
+              key={message.id}
+              className={`p-4 transition-all hover:shadow-md ${!message.read ? 'border-l-4 border-l-blue-500 bg-blue-50/30' : ''}`}
+            >
             <div className="flex items-start space-x-4">
               <div className="flex-shrink-0">
                 {message.senderAvatar ? (
@@ -187,13 +228,39 @@ export const MessageCenterPage: React.FC = () => {
                     <span className="text-xs text-gray-500">来自: {message.senderName}</span>
                   )}
                   <div className="flex items-center space-x-2">
+                    {canOpen && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openMessageTarget(message)}
+                        className="text-xs h-6 px-2"
+                      >
+                        {actionLabel}
+                      </Button>
+                    )}
                     {!message.read && (
-                      <Button variant="ghost" size="sm" onClick={() => markAsRead(message.id)} className="text-xs h-6 px-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          markAsRead(message.id);
+                        }}
+                        className="text-xs h-6 px-2"
+                      >
                         <CheckCircle className="h-3 w-3 mr-1" />
                         标记已读
                       </Button>
                     )}
-                    <Button variant="ghost" size="sm" onClick={() => setDeleteConfirm({ open: true, id: message.id })} className="text-xs h-6 px-2 text-red-600 hover:text-red-700">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeleteConfirm({ open: true, id: message.id });
+                      }}
+                      className="text-xs h-6 px-2 text-red-600 hover:text-red-700"
+                    >
                       <Trash2 className="h-3 w-3 mr-1" />
                       删除
                     </Button>
@@ -201,8 +268,9 @@ export const MessageCenterPage: React.FC = () => {
                 </div>
               </div>
             </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
 
       <div className="text-center">
@@ -227,6 +295,15 @@ export const MessageCenterPage: React.FC = () => {
           setDeleteConfirm({ open: false, id: undefined });
         }}
         onCancel={() => setDeleteConfirm({ open: false, id: undefined })}
+      />
+
+      <UpdateLogModal
+        updateLog={updateLogDetail}
+        isOpen={isUpdateLogOpen}
+        onClose={() => {
+          setIsUpdateLogOpen(false);
+          setUpdateLogDetail(null);
+        }}
       />
     </div>
   );
