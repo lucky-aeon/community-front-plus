@@ -3,6 +3,7 @@ export const ROUTES = {
   // 公开路由
   HOME: '/',
   LOGIN: '/login',
+  SKILLS: '/skills',
   OAUTH2_AUTHORIZE: '/oauth2/authorize',
 
   // 用户门户路由
@@ -18,6 +19,7 @@ export const ROUTES = {
   DASHBOARD_INTERVIEWS: '/dashboard/interviews',
   DASHBOARD_INTERVIEWS_DETAIL: '/dashboard/interviews/:id',
   DASHBOARD_CHAT: '/dashboard/chat',
+  DASHBOARD_SKILLS: '/dashboard/skills',
   // 用户公开主页（文章/问答/评论）
   DASHBOARD_USER_PROFILE: '/dashboard/users/:userId',
   
@@ -30,6 +32,7 @@ export const ROUTES = {
   USER_BACKEND_PROFILE: '/dashboard/user-backend/profile',
   USER_BACKEND_FAVORITES: '/dashboard/user-backend/favorites',
   USER_BACKEND_INTERVIEWS: '/dashboard/user-backend/interviews',
+  USER_BACKEND_SKILLS: '/dashboard/user-backend/skills',
 
   // 管理员后台
   ADMIN_DASHBOARD: '/dashboard/admin',
@@ -69,6 +72,12 @@ export const navigationConfig = [
     name: '首页', 
     path: '/dashboard/home',
     icon: 'Home'
+  },
+  { 
+    id: 'skills', 
+    name: 'Skills', 
+    path: '/dashboard/skills',
+    icon: 'Sparkles'
   },
   { 
     id: 'discussions', 

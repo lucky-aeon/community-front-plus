@@ -631,6 +631,32 @@ export interface BatchCreateInterviewQuestionsRequest {
   titles: string[]; // 每个标题非空字符串
 }
 
+// ================ Skills 市场相关接口定义 ================
+
+export interface SkillDTO {
+  id: string;
+  name: string;
+  summary: string;
+  description: string;
+  githubUrl: string;
+  createTime: string;
+  updateTime: string;
+}
+
+export interface SkillQueryRequest {
+  pageNum?: number;
+  pageSize?: number;
+}
+
+export interface CreateSkillRequest {
+  name: string;
+  summary: string;
+  description: string;
+  githubUrl: string;
+}
+
+export type UpdateSkillRequest = CreateSkillRequest;
+
 // ================ 管理员课程管理相关接口定义 ================
 
 // 课程状态枚举

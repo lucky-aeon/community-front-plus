@@ -16,6 +16,7 @@ import { InterviewQuestionDetailPage } from './InterviewQuestionDetailPage';
 import { AiNewsDetailPage } from './AiNewsDetailPage';
 import { ChatRoomsPage } from './ChatRoomsPage';
 import { UserPublicProfilePage } from './UserPublicProfilePage';
+import { DashboardSkillsPage } from '@apps/skills/components/DashboardSkillsPage';
 
 export const Dashboard: React.FC = () => {
   return (
@@ -33,6 +34,7 @@ export const Dashboard: React.FC = () => {
               <Route path="/" element={<Navigate to="/dashboard/home" replace />} />
 
               {/* 主要页面路由 */}
+              <Route path="/skills" element={<DashboardSkillsPage />} />
               <Route path="/home" element={<HomePage />} />
               <Route path="/discussions" element={<DiscussionsPage />} />
               <Route path="/discussions/:postId" element={<PostDetailPage />} />

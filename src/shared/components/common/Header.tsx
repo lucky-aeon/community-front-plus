@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { MembershipBadge, type MembershipTier } from '@shared/components/ui/MembershipBadge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ROUTES } from '@shared/routes/routes';
 
 interface HeaderProps {
   onAuthClick: () => void;
@@ -14,10 +15,11 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const navItems = [
+  const navItems: Array<{ label: string; href: string; targetBlank?: boolean }> = [
     { label: '课程', href: '#courses' },
     { label: '会员与服务', href: '#pricing' },
-    { label: '案例', href: '#testimonials' }
+    { label: '案例', href: '#testimonials' },
+    { label: 'Skills', href: ROUTES.SKILLS, targetBlank: true }
   ];
 
   const getMembershipBadge = () => {
@@ -28,8 +30,13 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
       const t = d instanceof Date && !isNaN(d.getTime()) ? d : undefined;
       return t ? t.toLocaleString('zh-CN') : String(v);
     };
-    const end = user.currentSubscriptionEndTime as string | Date | undefined;
-    const endMs = end ? new Date(end).getTime() : undefined;
+    const toMillis = (v?: string | Date) => {
+      if (!v) return undefined;
+      const d = typeof v === 'string' ? new Date(v) : v;
+      return d instanceof Date && !isNaN(d.getTime()) ? d.getTime() : undefined;
+    };
+    const end = user.currentSubscriptionEndTime;
+    const endMs = toMillis(end);
     const daysLeft = typeof endMs === 'number' ? Math.max(0, Math.floor((endMs - Date.now()) / 86400000)) : undefined;
     const isActive = typeof endMs === 'number' ? endMs > Date.now() : false;
     return (
@@ -82,6 +89,8 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
               <a
                 key={item.label}
                 href={item.href}
+                target={item.targetBlank ? '_blank' : undefined}
+                rel={item.targetBlank ? 'noreferrer' : undefined}
                 className="text-gray-600 hover:text-gray-900 transition-colors duration-200 font-medium"
               >
                 {item.label}
@@ -141,6 +150,8 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
                 <a
                   key={item.label}
                   href={item.href}
+                  target={item.targetBlank ? '_blank' : undefined}
+                  rel={item.targetBlank ? 'noreferrer' : undefined}
                   className="text-gray-600 hover:text-gray-900 transition-colors duration-200 font-medium px-2 py-1"
                   onClick={() => setIsMenuOpen(false)}
                 >

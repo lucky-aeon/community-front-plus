@@ -16,6 +16,7 @@ import { DeviceManagementPage } from './DeviceManagementPage';
 import { FollowsPage } from './FollowsPage';
 import { MyFavoritesPage } from './MyFavoritesPage';
 import { AuthorizedAppsPage } from './AuthorizedAppsPage';
+import { SkillsManagementPage } from './SkillsManagementPage';
 import { CreatePostPage } from '../../user-portal/components/CreatePostPage';
 import { PostsService } from '@shared/services/api/posts.service';
 import { PostDTO } from '@shared/types';
@@ -88,6 +89,7 @@ export const UserBackend: React.FC = () => {
         <Route path="/articles" element={<MyArticlesPage />} />
         <Route path="/articles/create" element={<CreateArticlePage />} />
         <Route path="/articles/edit/:id" element={<EditArticlePage />} />
+        <Route path="/skills" element={<SkillsManagementPage />} />
         <Route path="/testimonial" element={<MyTestimonialPage />} />
         <Route path="/resources" element={<MyResourcesPage />} />
         <Route path="/learning" element={<MyLearningPage />} />

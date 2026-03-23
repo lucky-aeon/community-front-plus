@@ -6,7 +6,9 @@ import { setDocumentTitle } from '@shared/hooks/useDocumentTitle';
 const routeTitleMap: Array<{ pattern: RegExp; title: string }> = [
   { pattern: /^\/$/, title: '首页' },
   { pattern: /^\/login$/, title: '登录' },
+  { pattern: /^\/skills$/, title: 'Skills 市场' },
   { pattern: /^\/dashboard\/home$/, title: '社区首页' },
+  { pattern: /^\/dashboard\/skills$/, title: 'Skills 市场' },
   { pattern: /^\/dashboard\/discussions$/, title: '讨论广场' },
   { pattern: /^\/dashboard\/courses$/, title: '课程' },
   { pattern: /^\/dashboard\/changelog$/, title: '更新日志' },

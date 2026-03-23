@@ -8,6 +8,7 @@ import { LoginPage } from '@apps/marketing/components/LoginPage';
 import { Dashboard } from '@apps/user-portal/components/Dashboard';
 import { AdminBackend } from '@admin-backend/components/AdminBackend';
 import { Toaster } from '@/components/ui/toaster';
+import { PublicSkillsPage } from '@apps/skills/components/PublicSkillsPage';
 import GithubOAuthCallbackPage from '@shared/components/business/GithubOAuthCallbackPage';
 import { OAuth2AuthorizePage } from '@shared/components/business/OAuth2AuthorizePage';
 import { MenuGuard } from '@shared/routes/MenuGuard';
@@ -42,6 +43,11 @@ const AppContent: React.FC = () => {
       <Route
         path="/login"
         element={<LoginPage />}
+      />
+
+      <Route
+        path="/skills"
+        element={<PublicSkillsPage />}
       />
 
       {/* 受保护路由 - 管理员后台 */}

@@ -15,7 +15,8 @@ import {
   Key,
   Bell,
   Newspaper,
-  ListChecks
+  ListChecks,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -72,6 +73,14 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
       icon: Home,
       description: '社区动态和推荐内容',
       code: MENU_CODE.DASHBOARD_HOME
+    },
+    {
+      id: 'skills',
+      name: 'Skills',
+      path: ROUTES.DASHBOARD_SKILLS,
+      icon: Sparkles,
+      description: '社区 Skills 市场',
+      code: ''
     },
     {
       id: 'courses',
@@ -207,6 +216,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
 
   const goCreateArticle = () => navigate(ROUTES.USER_BACKEND_ARTICLES_CREATE);
   const goCreateQuestion = () => navigate(ROUTES.USER_BACKEND_INTERVIEWS);
+  const goCreateSkill = () => navigate(`${ROUTES.USER_BACKEND_SKILLS}?action=create`);
 
   const handleLogoClick = () => {
     navigate('/dashboard/home');
@@ -336,6 +346,9 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                 </DropdownMenuItem>
                 <DropdownMenuItem className="cursor-pointer" onClick={goCreateQuestion}>
                   发布题目
+                </DropdownMenuItem>
+                <DropdownMenuItem className="cursor-pointer" onClick={goCreateSkill}>
+                  发布 Skills
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -639,20 +652,27 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                   <span>发布</span>
                 </Button>
                 {isMobileCreateOpen && (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <Button
                       variant="honeySoft"
                       onClick={() => { goCreateArticle(); setIsMobileMenuOpen(false); setIsMobileCreateOpen(false); }}
-                      className="w-full"
+                      className="w-full text-xs"
                     >
                       发布文章
                     </Button>
                     <Button
                       variant="honeySoft"
                       onClick={() => { goCreateQuestion(); setIsMobileMenuOpen(false); setIsMobileCreateOpen(false); }}
-                      className="w-full"
+                      className="w-full text-xs"
                     >
                       发布题目
+                    </Button>
+                    <Button
+                      variant="honeySoft"
+                      onClick={() => { goCreateSkill(); setIsMobileMenuOpen(false); setIsMobileCreateOpen(false); }}
+                      className="w-full text-xs"
+                    >
+                      发布 Skills
                     </Button>
                   </div>
                 )}
