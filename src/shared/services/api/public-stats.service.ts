@@ -15,5 +15,14 @@ export class PublicStatsService {
     const total = raw?.data?.totalCount;
     return typeof total === 'number' ? total : 0;
   }
-}
 
+  /** 获取公开 skills 总数 */
+  static async getSkillsTotalCount(): Promise<number> {
+    const resp = await apiClient.get('/public/stats/skills', {
+      headers: { 'X-Skip-Auth-Logout': 'true' },
+    } as unknown as { headers: Record<string, string> });
+    const raw = resp?.data;
+    const total = raw?.data?.totalCount;
+    return typeof total === 'number' ? total : 0;
+  }
+}

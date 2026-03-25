@@ -16,6 +16,8 @@ import { InterviewQuestionDetailPage } from './InterviewQuestionDetailPage';
 import { AiNewsDetailPage } from './AiNewsDetailPage';
 import { ChatRoomsPage } from './ChatRoomsPage';
 import { UserPublicProfilePage } from './UserPublicProfilePage';
+import { SkillsPage } from './SkillsPage';
+import { SkillDetailPage } from './SkillDetailPage';
 
 export const Dashboard: React.FC = () => {
   return (
@@ -46,6 +48,8 @@ export const Dashboard: React.FC = () => {
               <Route path="/ai-news/:id" element={<AiNewsDetailPage />} />
               <Route path="/interviews" element={<InterviewQuestionsPage />} />
               <Route path="/interviews/:id" element={<InterviewQuestionDetailPage />} />
+              <Route path="/skills" element={<SkillsPage />} />
+              <Route path="/skills/:id" element={<SkillDetailPage />} />
               <Route path="/chat" element={<ChatRoomsPage />} />
               <Route path="/users/:userId" element={<UserPublicProfilePage />} />
 

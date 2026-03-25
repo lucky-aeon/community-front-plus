@@ -2,6 +2,8 @@
 export const ROUTES = {
   // 公开路由
   HOME: '/',
+  SKILLS: '/skills',
+  SKILLS_DETAIL: '/skills/:id',
   LOGIN: '/login',
   OAUTH2_AUTHORIZE: '/oauth2/authorize',
 
@@ -17,6 +19,8 @@ export const ROUTES = {
   DASHBOARD_AI_NEWS_DETAIL: '/dashboard/ai-news/:id',
   DASHBOARD_INTERVIEWS: '/dashboard/interviews',
   DASHBOARD_INTERVIEWS_DETAIL: '/dashboard/interviews/:id',
+  DASHBOARD_SKILLS: '/dashboard/skills',
+  DASHBOARD_SKILLS_DETAIL: '/dashboard/skills/:id',
   DASHBOARD_CHAT: '/dashboard/chat',
   // 用户公开主页（文章/问答/评论）
   DASHBOARD_USER_PROFILE: '/dashboard/users/:userId',
@@ -30,6 +34,8 @@ export const ROUTES = {
   USER_BACKEND_PROFILE: '/dashboard/user-backend/profile',
   USER_BACKEND_FAVORITES: '/dashboard/user-backend/favorites',
   USER_BACKEND_INTERVIEWS: '/dashboard/user-backend/interviews',
+  USER_BACKEND_SKILLS: '/dashboard/user-backend/skills',
+  USER_BACKEND_SKILLS_CREATE: '/dashboard/user-backend/skills/create',
 
   // 管理员后台
   ADMIN_DASHBOARD: '/dashboard/admin',
@@ -47,6 +53,10 @@ export const routeUtils = {
   getCourseDetailRoute: (courseId: string) => `/dashboard/courses/${courseId}`,
   // 获取题库详情路由
   getInterviewDetailRoute: (id: string) => `/dashboard/interviews/${id}`,
+  // 获取 Skills 列表路由
+  getSkillsRoute: (dashboard = false) => dashboard ? '/dashboard/skills' : '/skills',
+  // 获取 Skills 详情路由
+  getSkillDetailRoute: (id: string, dashboard = false) => dashboard ? `/dashboard/skills/${id}` : `/skills/${id}`,
   
   // 获取编辑文章路由
   getArticleEditRoute: (articleId: string) => `/dashboard/user-backend/articles/edit/${articleId}`,
@@ -93,6 +103,12 @@ export const navigationConfig = [
     name: '题库', 
     path: '/dashboard/interviews',
     icon: 'ListChecks'
+  },
+  {
+    id: 'skills',
+    name: 'Skills',
+    path: '/dashboard/skills',
+    icon: 'Code2'
   },
   { 
     id: 'ai-news', 

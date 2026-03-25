@@ -14,8 +14,9 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
   const { user, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const navItems = [
+  const navItems: Array<{ label: string; href: string; target?: string; rel?: string }> = [
     { label: '课程', href: '#courses' },
+    { label: 'Skills', href: '/skills', target: '_blank', rel: 'noopener noreferrer' },
     { label: '价格', href: '#pricing' },
     { label: '案例', href: '#testimonials' }
   ];
@@ -28,8 +29,8 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
       const t = d instanceof Date && !isNaN(d.getTime()) ? d : undefined;
       return t ? t.toLocaleString('zh-CN') : String(v);
     };
-    const end = user.currentSubscriptionEndTime as string | Date | undefined;
-    const endMs = end ? new Date(end as any).getTime() : undefined;
+    const end = user.currentSubscriptionEndTime;
+    const endMs = end ? new Date(end).getTime() : undefined;
     const daysLeft = typeof endMs === 'number' ? Math.max(0, Math.floor((endMs - Date.now()) / 86400000)) : undefined;
     const isActive = typeof endMs === 'number' ? endMs > Date.now() : false;
     return (
@@ -55,8 +56,8 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
                 {isActive ? '活跃' : '已过期'}
               </span>
             </div>
-            <div className="text-xs text-gray-600">生效时间：<span className="font-medium">{format(user.currentSubscriptionStartTime as any)}</span></div>
-            <div className="text-xs text-gray-600">到期时间：<span className="font-medium">{format(end as any)}</span></div>
+            <div className="text-xs text-gray-600">生效时间：<span className="font-medium">{format(user.currentSubscriptionStartTime)}</span></div>
+            <div className="text-xs text-gray-600">到期时间：<span className="font-medium">{format(end)}</span></div>
             <div className="text-xs text-gray-600">剩余天数：<span className={`font-medium ${daysLeft !== undefined && daysLeft <= 7 ? 'text-orange-600' : ''}`}>{daysLeft !== undefined ? `${daysLeft} 天` : '-'}</span></div>
           </div>
         </PopoverContent>
@@ -82,6 +83,8 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
               <a
                 key={item.label}
                 href={item.href}
+                target={item.target}
+                rel={item.rel}
                 className="text-gray-600 hover:text-gray-900 transition-colors duration-200 font-medium"
               >
                 {item.label}
@@ -141,6 +144,8 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
                 <a
                   key={item.label}
                   href={item.href}
+                  target={item.target}
+                  rel={item.rel}
                   className="text-gray-600 hover:text-gray-900 transition-colors duration-200 font-medium px-2 py-1"
                   onClick={() => setIsMenuOpen(false)}
                 >

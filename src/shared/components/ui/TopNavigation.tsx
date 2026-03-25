@@ -15,7 +15,8 @@ import {
   Key,
   Bell,
   Newspaper,
-  ListChecks
+  ListChecks,
+  Code2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,8 @@ import type { UnreadSummaryDTO } from '@shared/types';
 interface TopNavigationProps {
   className?: string;
 }
+
+type AppUnreadSummary = UnreadSummaryDTO & { chatsUnread?: number };
 
 export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
   const { user, logout } = useAuth();
@@ -113,6 +116,14 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
       description: '面试题与解答',
       code: MENU_CODE.DASHBOARD_INTERVIEWS
     },
+    {
+      id: 'skills',
+      name: 'Skills',
+      path: '/dashboard/skills',
+      icon: Code2,
+      description: '公开技能与方案沉淀',
+      code: MENU_CODE.DASHBOARD_SKILLS
+    },
   ];
 
   // 临时未读数（后续可接入通知中心/接口）
@@ -140,7 +151,6 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
   // 轮询未读数量，并在通知变化时即时刷新
   useEffect(() => {
     let cancelled = false;
-    let timer: number | undefined;
     const fetchUnread = async () => {
       try {
         if (!user) return;
@@ -149,7 +159,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
       } catch { /* 静默失败 */ }
     };
     fetchUnread();
-    timer = window.setInterval(fetchUnread, 60_000);
+    const timer = window.setInterval(fetchUnread, 60_000);
     const onChanged = () => { void fetchUnread(); };
     window.addEventListener('notifications:changed', onChanged as EventListener);
     return () => {
@@ -180,17 +190,17 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
         setPostsUnread(Math.max(0, detail.postsUnread || 0));
         setQuestionsUnread(Math.max(0, detail.questionsUnread || 0));
         setChaptersUnread(Math.max(0, detail.chaptersUnread || 0));
-        setChatsUnread(Math.max(0, (detail as any).chatsUnread || 0));
+        setChatsUnread(Math.max(0, detail.chatsUnread || 0));
       }
     };
     // 启动轮询，并订阅更新事件
     AppUnreadService.start({ intervalMs: 60_000, pauseWhenHidden: true });
     // 同步一次缓存快照（若已存在）
-    const snap = AppUnreadService.getSnapshot();
+    const snap = AppUnreadService.getSnapshot() as AppUnreadSummary;
     setPostsUnread(Math.max(0, snap.postsUnread || 0));
     setQuestionsUnread(Math.max(0, snap.questionsUnread || 0));
     setChaptersUnread(Math.max(0, snap.chaptersUnread || 0));
-    setChatsUnread(Math.max(0, (snap as any).chatsUnread || 0));
+    setChatsUnread(Math.max(0, snap.chatsUnread || 0));
     window.addEventListener('unread:summary', onSummary as EventListener);
     return () => {
       cancelled = true;
@@ -209,6 +219,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
 
   const goCreateArticle = () => navigate(ROUTES.USER_BACKEND_ARTICLES_CREATE);
   const goCreateQuestion = () => navigate(ROUTES.USER_BACKEND_INTERVIEWS);
+  const goCreateSkill = () => navigate(ROUTES.USER_BACKEND_SKILLS_CREATE);
 
   const handleLogoClick = () => {
     navigate('/dashboard/home');
@@ -339,6 +350,11 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                 <DropdownMenuItem className="cursor-pointer" onClick={goCreateQuestion}>
                   发布题目
                 </DropdownMenuItem>
+                {isAllowed(MENU_CODE.USER_SKILLS) && (
+                  <DropdownMenuItem className="cursor-pointer" onClick={goCreateSkill}>
+                    发布 Skills
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -641,7 +657,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                   <span>发布</span>
                 </Button>
                 {isMobileCreateOpen && (
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className={`grid gap-2 ${isAllowed(MENU_CODE.USER_SKILLS) ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-2'}`}>
                     <Button
                       variant="honeySoft"
                       onClick={() => { goCreateArticle(); setIsMobileMenuOpen(false); setIsMobileCreateOpen(false); }}
@@ -656,6 +672,15 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                     >
                       发布题目
                     </Button>
+                    {isAllowed(MENU_CODE.USER_SKILLS) && (
+                      <Button
+                        variant="honeySoft"
+                        onClick={() => { goCreateSkill(); setIsMobileMenuOpen(false); setIsMobileCreateOpen(false); }}
+                        className="w-full"
+                      >
+                        发布 Skills
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>

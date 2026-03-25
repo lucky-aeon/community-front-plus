@@ -8,9 +8,11 @@ export const MENU_CODE = {
   DASHBOARD_INTERVIEWS: 'MENU_DASHBOARD_INTERVIEWS',
   DASHBOARD_CHANGELOG: 'MENU_DASHBOARD_CHANGELOG',
   DASHBOARD_AI_NEWS: 'MENU_DASHBOARD_AI_NEWS',
+  DASHBOARD_SKILLS: 'MENU_DASHBOARD_SKILLS',
   USER_BACKEND: 'MENU_USER_BACKEND',
   USER_ARTICLES: 'MENU_USER_ARTICLES',
   USER_INTERVIEWS: 'MENU_USER_INTERVIEWS',
+  USER_SKILLS: 'MENU_USER_SKILLS',
   USER_COMMENTS: 'MENU_USER_COMMENTS',
   USER_TESTIMONIAL: 'MENU_USER_TESTIMONIAL',
   USER_RESOURCES: 'MENU_USER_RESOURCES',
@@ -31,11 +33,13 @@ export const NAV_ID_TO_CODE: Record<string, MenuCode | undefined> = {
   chat: MENU_CODE.DASHBOARD_CHAT,
   courses: MENU_CODE.DASHBOARD_COURSES,
   interviews: MENU_CODE.DASHBOARD_INTERVIEWS,
+  skills: MENU_CODE.DASHBOARD_SKILLS,
   changelog: MENU_CODE.DASHBOARD_CHANGELOG,
   'ai-news': MENU_CODE.DASHBOARD_AI_NEWS,
   // 用户中心左侧导航 id
   articles: MENU_CODE.USER_ARTICLES,
   interviews_user: MENU_CODE.USER_INTERVIEWS,
+  skills_user: MENU_CODE.USER_SKILLS,
   comments: MENU_CODE.USER_COMMENTS,
   testimonial: MENU_CODE.USER_TESTIMONIAL,
   resources: MENU_CODE.USER_RESOURCES,
@@ -50,6 +54,7 @@ export const NAV_ID_TO_CODE: Record<string, MenuCode | undefined> = {
 const PATH_PREFIX_TO_CODE_ORDERED: Array<{ prefix: string; code: MenuCode }> = [
   // 用户中心具体页面优先于总入口
   { prefix: '/dashboard/user-backend/articles', code: MENU_CODE.USER_ARTICLES },
+  { prefix: '/dashboard/user-backend/skills', code: MENU_CODE.USER_SKILLS },
   { prefix: '/dashboard/user-backend/comments', code: MENU_CODE.USER_COMMENTS },
   { prefix: '/dashboard/user-backend/testimonial', code: MENU_CODE.USER_TESTIMONIAL },
   { prefix: '/dashboard/user-backend/resources', code: MENU_CODE.USER_RESOURCES },
@@ -61,6 +66,7 @@ const PATH_PREFIX_TO_CODE_ORDERED: Array<{ prefix: string; code: MenuCode }> = [
   // 用户门户
   { prefix: '/dashboard/membership', code: MENU_CODE.MEMBERSHIP },
   { prefix: '/dashboard/ai-news', code: MENU_CODE.DASHBOARD_AI_NEWS },
+  { prefix: '/dashboard/skills', code: MENU_CODE.DASHBOARD_SKILLS },
   { prefix: '/dashboard/interviews', code: MENU_CODE.DASHBOARD_INTERVIEWS },
   { prefix: '/dashboard/chat', code: MENU_CODE.DASHBOARD_CHAT },
   { prefix: '/dashboard/discussions', code: MENU_CODE.DASHBOARD_DISCUSSIONS },

@@ -610,7 +610,7 @@ export interface CreateInterviewQuestionRequest {
   tags?: string[];
 }
 
-export interface UpdateInterviewQuestionRequest extends CreateInterviewQuestionRequest {}
+export type UpdateInterviewQuestionRequest = CreateInterviewQuestionRequest;
 
 // 面试题查询请求（公开和我的均可使用）
 export interface InterviewQuestionQueryRequest {
@@ -1074,6 +1074,28 @@ export interface PublicCourseDetailDTO {
   likeCount?: number;            // 点赞数（公开详情返回）
   // 新增：可解锁的套餐（与课程详情一致）
   unlockPlans?: UnlockPlanDTO[];
+}
+
+// ================ 公开 Skills 相关接口定义 ================
+
+export interface PublicSkillDTO {
+  id: string;
+  name: string;
+  summary?: string;
+  githubUrl?: string;
+  authorName?: string;
+  createTime: string;
+}
+
+export interface PublicSkillDetailDTO extends PublicSkillDTO {
+  description: string;
+  updateTime?: string;
+}
+
+export interface PublicSkillQueryRequest {
+  pageNum?: number;
+  pageSize?: number;
+  keyword?: string;
 }
 
 // ================ 管理员用户活动日志相关接口定义 ================

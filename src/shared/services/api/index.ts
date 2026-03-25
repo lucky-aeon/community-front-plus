@@ -28,6 +28,7 @@ export { ReactionsService, type ReactionSummaryDTO, type ReactionUserDTO } from 
 export { LikesService, type LikeStatusDTO } from './likes.service';
 export { UserFollowsService } from './user-follows.service';
 export { PublicCoursesService } from './public-courses.service';
+export { SkillsService } from './skills.service';
 export { PublicStatsService } from './public-stats.service';
 export { apiClient, type ApiResponse } from './config';
 export { UserSubscriptionService } from './user-subscription.service';
@@ -158,4 +159,8 @@ export type {
   SendMessageRequest,
   ChatRoomMemberDTO,
   ChatRoomRole,
+  // Skills
+  PublicSkillDTO,
+  PublicSkillDetailDTO,
+  PublicSkillQueryRequest,
 } from '@shared/types';

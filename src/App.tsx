@@ -12,6 +12,22 @@ import GithubOAuthCallbackPage from '@shared/components/business/GithubOAuthCall
 import { OAuth2AuthorizePage } from '@shared/components/business/OAuth2AuthorizePage';
 import { MenuGuard } from '@shared/routes/MenuGuard';
 import { TitleSetter } from '@shared/routes/TitleSetter';
+import { SkillsPage } from '@apps/user-portal/components/SkillsPage';
+import { SkillDetailPage } from '@apps/user-portal/components/SkillDetailPage';
+import { Header } from '@shared/components/common/Header';
+import { ROUTES } from '@shared/routes/routes';
+
+const PublicSkillsLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-honey-50 via-white to-honey-50/50">
+      <div className="fixed inset-0 bg-grid-pattern opacity-[0.02] pointer-events-none" />
+      <div className="relative">
+        <Header onAuthClick={() => window.location.assign(ROUTES.LOGIN)} />
+        <main className="relative">{children}</main>
+      </div>
+    </div>
+  );
+};
 
 const AppContent: React.FC = () => {
   return (
@@ -42,6 +58,24 @@ const AppContent: React.FC = () => {
       <Route
         path="/login"
         element={<LoginPage />}
+      />
+
+      <Route
+        path={ROUTES.SKILLS}
+        element={
+          <PublicSkillsLayout>
+            <SkillsPage />
+          </PublicSkillsLayout>
+        }
+      />
+
+      <Route
+        path={ROUTES.SKILLS_DETAIL}
+        element={
+          <PublicSkillsLayout>
+            <SkillDetailPage />
+          </PublicSkillsLayout>
+        }
       />
 
       {/* 受保护路由 - 管理员后台 */}
