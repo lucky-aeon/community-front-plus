@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Star, FileText, BookOpen, MessageSquare, ListChecks, Trash2, Search, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Star, FileText, BookOpen, MessageSquare, ListChecks, Trash2, Search, ChevronRight, Code2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +24,7 @@ export const MyFavoritesPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<FavoriteTargetType | 'all'>('all');
 
   // 获取收藏列表
-  const fetchFavorites = async (page: number = 1) => {
+  const fetchFavorites = useCallback(async (page: number = 1) => {
     try {
       setIsLoading(true);
       const response = await FavoritesService.getMyFavorites({
@@ -39,7 +39,7 @@ export const MyFavoritesPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [activeTab]);
 
   // 取消收藏
   const handleUnfavorite = async (favoriteItem: FavoriteListItemDTO) => {
@@ -65,7 +65,7 @@ export const MyFavoritesPage: React.FC = () => {
   // 初始化和页面变化时获取数据
   useEffect(() => {
     fetchFavorites(currentPage);
-  }, [currentPage, activeTab]);
+  }, [currentPage, fetchFavorites]);
 
   // 搜索过滤
   const filteredFavorites = favorites.filter(fav =>
@@ -105,6 +105,13 @@ export const MyFavoritesPage: React.FC = () => {
             <span>题目</span>
           </Badge>
         );
+      case 'SKILL':
+        return (
+          <Badge variant="secondary" className="flex items-center space-x-1">
+            <Code2 className="h-3 w-3" />
+            <span>技能</span>
+          </Badge>
+        );
       default:
         return <Badge variant="secondary">未知</Badge>;
     }
@@ -124,6 +131,14 @@ export const MyFavoritesPage: React.FC = () => {
       }
       if (fav.targetType === 'INTERVIEW_QUESTION') {
         navigate(routeUtils.getInterviewDetailRoute(fav.targetId));
+        return;
+      }
+      if (fav.targetType === 'SKILL') {
+        if (!fav.targetId) {
+          console.error('技能收藏缺少目标ID');
+          return;
+        }
+        navigate(routeUtils.getSkillDetailRoute(fav.targetId, true));
         return;
       }
       // COMMENT 类型：跳转到评论所在的业务对象页面，并添加 hash 定位到评论
@@ -206,6 +221,13 @@ export const MyFavoritesPage: React.FC = () => {
               onClick={() => { setActiveTab('INTERVIEW_QUESTION'); setCurrentPage(1); }}
             >
               题目
+            </button>
+            <button
+              type="button"
+              className={`px-4 py-2 text-sm border-l border-gray-200 ${activeTab === 'SKILL' ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+              onClick={() => { setActiveTab('SKILL'); setCurrentPage(1); }}
+            >
+              技能
             </button>
           </div>
           <div className="flex-1 relative">

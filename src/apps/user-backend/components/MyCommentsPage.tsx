@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Trash2, Search, FileText, GraduationCap, Reply, Send, X, BookOpen, ChevronRight, ListChecks } from 'lucide-react';
+import { MessageSquare, Trash2, Search, FileText, GraduationCap, Reply, Send, X, BookOpen, ChevronRight, ListChecks, Code2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -187,6 +187,13 @@ export const MyCommentsPage: React.FC = () => {
             <span>题目</span>
           </Badge>
         );
+      case 'SKILL':
+        return (
+          <Badge variant="secondary" className="flex items-center space-x-1">
+            <Code2 className="h-3 w-3" />
+            <span>技能</span>
+          </Badge>
+        );
       default:
         return <Badge variant="secondary">未知</Badge>;
     }
@@ -202,6 +209,8 @@ export const MyCommentsPage: React.FC = () => {
         return <BookOpen className="h-3 w-3" />;
       case 'INTERVIEW_QUESTION':
         return <ListChecks className="h-3 w-3" />;
+      case 'SKILL':
+        return <Code2 className="h-3 w-3" />;
       default:
         return null;
     }
@@ -221,6 +230,12 @@ export const MyCommentsPage: React.FC = () => {
         targetUrl = `/dashboard/courses/${detail.courseId}/chapters/${c.businessId}`;
       } else if (c.businessType === 'INTERVIEW_QUESTION') {
         targetUrl = routeUtils.getInterviewDetailRoute(c.businessId);
+      } else if (c.businessType === 'SKILL') {
+        if (!c.businessId) {
+          console.error('技能评论缺少业务对象ID');
+          return;
+        }
+        targetUrl = routeUtils.getSkillDetailRoute(c.businessId, true);
       }
 
       // 添加 hash 定位到具体评论
