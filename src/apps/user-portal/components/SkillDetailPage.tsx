@@ -3,11 +3,15 @@ import { ArrowLeft, Calendar, ExternalLink, User } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useAuth } from '@/context/AuthContext';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { GithubMarkIcon } from '@shared/components/business/SkillCard';
-import { SkillsService } from '@shared/services/api';
+import { Comments } from '@shared/components/ui/Comments';
+import { FavoriteButton } from '@shared/components/business/FavoriteButton';
+import { LikeButton } from '@shared/components/ui/LikeButton';
+import { FavoritesService, LikesService, SkillsService } from '@shared/services/api';
 import { routeUtils } from '@shared/routes/routes';
-import type { PublicSkillDetailDTO } from '@shared/types';
+import type { PublicSkillDetailDTO, SkillInteractionState } from '@shared/types';
 import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 const formatDateTime = (value?: string) => {
@@ -20,11 +24,13 @@ export const SkillDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams<{ id: string }>();
+  const { user } = useAuth();
   const isDashboard = location.pathname.startsWith('/dashboard');
   const listRoute = useMemo(() => routeUtils.getSkillsRoute(isDashboard), [isDashboard]);
 
   const [data, setData] = useState<PublicSkillDetailDTO | null>(null);
   const [loading, setLoading] = useState(true);
+  const [interactionState, setInteractionState] = useState<SkillInteractionState | null>(null);
 
   useDocumentTitle(data?.name || 'Skill 详情');
 
@@ -43,6 +49,33 @@ export const SkillDetailPage: React.FC = () => {
         if (!cancelled) {
           setData(detail);
         }
+
+        if (user) {
+          if (!cancelled) {
+            setInteractionState({
+              liked: false,
+              likeCount: detail.likeCount ?? 0,
+              isFavorited: false,
+              favoritesCount: detail.favoriteCount ?? 0,
+            });
+          }
+
+          const [likeStatuses, favoriteStatuses] = await Promise.all([
+            LikesService.batchGetStatus([{ targetId: id, targetType: 'SKILL' }]).catch(() => []),
+            FavoritesService.batchGetFavoriteStatus([{ targetId: id, targetType: 'SKILL' }]).catch(() => []),
+          ]);
+
+          if (!cancelled) {
+            setInteractionState((prev) => ({
+              liked: likeStatuses[0]?.isLiked ?? prev?.liked ?? false,
+              likeCount: likeStatuses[0]?.likeCount ?? prev?.likeCount ?? detail.likeCount ?? 0,
+              isFavorited: favoriteStatuses[0]?.isFavorited ?? prev?.isFavorited ?? false,
+              favoritesCount: favoriteStatuses[0]?.favoritesCount ?? prev?.favoritesCount ?? detail.favoriteCount ?? 0,
+            }));
+          }
+        } else if (!cancelled) {
+          setInteractionState(null);
+        }
       } catch (error) {
         console.error('加载 skill 详情失败:', error);
         if (!cancelled) {
@@ -60,7 +93,7 @@ export const SkillDetailPage: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, [id, listRoute, navigate]);
+  }, [id, listRoute, navigate, user]);
 
   if (loading) {
     return <div className="mx-auto max-w-5xl px-4 py-10 text-warm-gray-500 sm:px-6 lg:px-8">加载中...</div>;
@@ -102,29 +135,73 @@ export const SkillDetailPage: React.FC = () => {
               </div>
             </div>
 
-            {data.githubUrl ? (
-              <Button
-                asChild
-                variant="outline"
-                className="gap-2 border-honey-200 bg-white text-gray-800 hover:bg-honey-50"
-              >
-                <a href={data.githubUrl} target="_blank" rel="noopener noreferrer">
+            <div className="flex flex-col items-start gap-3">
+              {data.githubUrl ? (
+                <Button
+                  asChild
+                  variant="outline"
+                  className="gap-2 border-honey-200 bg-white text-gray-800 hover:bg-honey-50"
+                >
+                  <a href={data.githubUrl} target="_blank" rel="noopener noreferrer">
+                    <GithubMarkIcon className="h-4 w-4" />
+                    GitHub
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="gap-2 border-honey-200 bg-white text-gray-500"
+                  disabled
+                >
                   <GithubMarkIcon className="h-4 w-4" />
-                  GitHub
-                  <ExternalLink className="h-4 w-4" />
-                </a>
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                variant="outline"
-                className="gap-2 border-honey-200 bg-white text-gray-500"
-                disabled
-              >
-                <GithubMarkIcon className="h-4 w-4" />
-                暂无 GitHub
-              </Button>
-            )}
+                  暂无 GitHub
+                </Button>
+              )}
+
+              {user && interactionState && (
+                <div className="flex items-center gap-2">
+                  <LikeButton
+                    businessType="SKILL"
+                    businessId={data.id}
+                    initialLiked={interactionState.liked}
+                    initialCount={interactionState.likeCount}
+                    skipInitialFetch
+                    onChange={(next) => {
+                      setInteractionState((prev) => prev ? { ...prev, liked: next.liked, likeCount: next.likeCount } : prev);
+                      setData((prev) => prev ? { ...prev, likeCount: next.likeCount } : prev);
+                    }}
+                  />
+                  <FavoriteButton
+                    targetId={data.id}
+                    targetType="SKILL"
+                    variant="ghost"
+                    size="sm"
+                    showCount
+                    initialIsFavorited={interactionState.isFavorited}
+                    initialCount={interactionState.favoritesCount}
+                    skipInitialFetch
+                    onToggle={(next) => {
+                      setInteractionState((prev) => {
+                        if (!prev) return prev;
+                        const favoritesCount = next
+                          ? prev.favoritesCount + 1
+                          : Math.max(0, prev.favoritesCount - 1);
+                        return { ...prev, isFavorited: next, favoritesCount };
+                      });
+                      setData((prev) => {
+                        if (!prev) return prev;
+                        const favoritesCount = next
+                          ? (prev.favoriteCount ?? 0) + 1
+                          : Math.max(0, (prev.favoriteCount ?? 0) - 1);
+                        return { ...prev, favoriteCount: favoritesCount };
+                      });
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -150,6 +227,15 @@ export const SkillDetailPage: React.FC = () => {
           )}
         </div>
       </Card>
+
+      {user && (
+        <div className="mt-6">
+          <Comments
+            businessId={data.id}
+            businessType="SKILL"
+          />
+        </div>
+      )}
     </div>
   );
 };

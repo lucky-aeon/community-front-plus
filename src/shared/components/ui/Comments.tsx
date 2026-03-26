@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { MessageSquare, Send, Loader2, Trash2, CornerDownRight, LogIn, FileText, BookOpen, Book, Clock, ChevronRight, AtSign, ListChecks } from 'lucide-react';
+import { MessageSquare, Send, Loader2, Trash2, CornerDownRight, LogIn, FileText, BookOpen, Book, Clock, ChevronRight, AtSign, ListChecks, Code2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
@@ -220,6 +220,8 @@ export const Comments: React.FC<CommentsProps> = ({
         return { label: '章节', Icon: Book, badgeCls: 'bg-purple-50 text-purple-700 border-purple-200', iconCls: 'text-purple-600' };
       case 'INTERVIEW_QUESTION':
         return { label: '题库', Icon: ListChecks, badgeCls: 'bg-amber-50 text-amber-700 border-amber-200', iconCls: 'text-amber-600' };
+      case 'SKILL':
+        return { label: 'Skills', Icon: Code2, badgeCls: 'bg-honey-50 text-honey-700 border-honey-200', iconCls: 'text-honey-600' };
       default:
         return { label: '内容', Icon: FileText, badgeCls: 'bg-gray-50 text-gray-700 border-gray-200', iconCls: 'text-gray-600' };
     }
@@ -236,6 +238,8 @@ export const Comments: React.FC<CommentsProps> = ({
         navigate(`/dashboard/courses/${detail.courseId}/chapters/${item.businessId}#comment-${item.id}`);
       } else if (item.businessType === 'INTERVIEW_QUESTION') {
         navigate(routeUtils.getInterviewDetailRoute(item.businessId) + `#comment-${item.id}`);
+      } else if (item.businessType === 'SKILL') {
+        navigate(routeUtils.getSkillDetailRoute(item.businessId) + `#comment-${item.id}`);
       }
     } catch {
       // fallback：至少跳到业务详情
@@ -243,6 +247,7 @@ export const Comments: React.FC<CommentsProps> = ({
       if (item.businessType === 'COURSE') navigate(routeUtils.getCourseDetailRoute(item.businessId));
       if (item.businessType === 'CHAPTER') navigate(`/dashboard/chapters/${item.businessId}`);
       if (item.businessType === 'INTERVIEW_QUESTION') navigate(routeUtils.getInterviewDetailRoute(item.businessId));
+      if (item.businessType === 'SKILL') navigate(routeUtils.getSkillDetailRoute(item.businessId));
     }
   };
 
@@ -305,7 +310,7 @@ export const Comments: React.FC<CommentsProps> = ({
 
   const canDelete = (c: CommentDTO) => CommentsService.canDeleteComment(c, user?.id);
 
-  const canAccept = (c: CommentDTO) => {
+  const canAccept = () => {
     // 仅文章业务、问答类型，且当前用户为作者
     if (!user || !authorId) return false;
     if (businessType !== 'POST') return false;
@@ -314,7 +319,7 @@ export const Comments: React.FC<CommentsProps> = ({
   };
 
   const handleToggleAccept = async (c: CommentDTO) => {
-    if (!canAccept(c)) return;
+    if (!canAccept()) return;
     try {
       setAccepting(prev => ({ ...prev, [c.id]: true }));
       const isAccepted = !!c.accepted;
@@ -327,7 +332,7 @@ export const Comments: React.FC<CommentsProps> = ({
       onQAResolveChange?.({
         action: isAccepted ? 'revoke' : 'accept',
         commentId: c.id,
-        resolveStatus: resPost.resolveStatus as any,
+        resolveStatus: resPost.resolveStatus as 'UNSOLVED' | 'SOLVED' | undefined,
         solvedAt: resPost.solvedAt,
       });
     } catch (e) {

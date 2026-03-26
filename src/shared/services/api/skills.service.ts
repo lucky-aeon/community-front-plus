@@ -11,12 +11,25 @@ import type {
   UpdateSkillRequest,
 } from '@shared/types';
 
+const normalizePublicSkillItem = (data: PublicSkillDTO): PublicSkillDTO => ({
+  ...data,
+  summary: data.summary ?? '',
+  githubUrl: data.githubUrl ?? '',
+  authorName: data.authorName ?? '',
+  likeCount: Number(data.likeCount ?? 0),
+  favoriteCount: Number(data.favoriteCount ?? 0),
+  commentCount: Number(data.commentCount ?? 0),
+});
+
 const normalizePublicSkillDetail = (data: PublicSkillDetailDTO): PublicSkillDetailDTO => ({
   ...data,
   summary: data.summary ?? '',
   description: data.description ?? '',
   githubUrl: data.githubUrl ?? '',
   authorName: data.authorName ?? '',
+  likeCount: Number(data.likeCount ?? 0),
+  favoriteCount: Number(data.favoriteCount ?? 0),
+  commentCount: Number(data.commentCount ?? 0),
 });
 
 const normalizeUserSkillListItem = (data: Partial<SkillListDTO> & { id: string; name: string }): SkillListDTO => ({
@@ -48,7 +61,9 @@ export class SkillsService {
       }
     );
 
-    return response.data.data;
+    const page = response.data.data;
+    page.records = (page.records || []).map((item) => normalizePublicSkillItem(item));
+    return page;
   }
 
   static async getPublicSkillById(id: string): Promise<PublicSkillDetailDTO> {

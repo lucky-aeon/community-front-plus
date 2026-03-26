@@ -4,12 +4,13 @@ import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/context/AuthContext';
 import { SearchBar } from '@shared/components/ui/SearchBar';
 import { SkillCard } from '@shared/components/business/SkillCard';
 import { SkillStatsHero } from '@shared/components/business/SkillStatsHero';
-import { PublicStatsService, SkillsService } from '@shared/services/api';
+import { FavoritesService, PublicStatsService, SkillsService, LikesService } from '@shared/services/api';
 import { routeUtils } from '@shared/routes/routes';
-import type { PublicSkillDTO } from '@shared/types';
+import type { PublicSkillDTO, SkillInteractionState } from '@shared/types';
 import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 const PAGE_SIZE = 9;
@@ -17,6 +18,7 @@ const PAGE_SIZE = 9;
 export const SkillsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const isDashboard = location.pathname.startsWith('/dashboard');
 
   useDocumentTitle('Skills 市场');
@@ -30,6 +32,7 @@ export const SkillsPage: React.FC = () => {
   const [isLoadingList, setIsLoadingList] = useState(false);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [searchVersion, setSearchVersion] = useState(0);
+  const [interactionMap, setInteractionMap] = useState<Record<string, SkillInteractionState>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -68,6 +71,77 @@ export const SkillsPage: React.FC = () => {
       cancelled = true;
     };
   }, [currentPage, keyword]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!user) {
+      setInteractionMap({});
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (skills.length === 0) {
+      setInteractionMap({});
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const loadInteractionState = async () => {
+      const baseMap = skills.reduce((acc, skill) => {
+        acc[skill.id] = {
+          liked: false,
+          likeCount: skill.likeCount ?? 0,
+          isFavorited: false,
+          favoritesCount: skill.favoriteCount ?? 0,
+        };
+        return acc;
+      }, {} as Record<string, SkillInteractionState>);
+      setInteractionMap(baseMap);
+
+      try {
+        const targets = skills.map((skill) => ({ targetId: skill.id, targetType: 'SKILL' as const }));
+        const [likeStatuses, favoriteStatuses] = await Promise.all([
+          LikesService.batchGetStatus(targets).catch(() => []),
+          FavoritesService.batchGetFavoriteStatus(targets).catch(() => []),
+        ]);
+
+        if (cancelled) return;
+
+        setInteractionMap((prev) => {
+          const nextMap = { ...prev };
+
+          likeStatuses.forEach((status) => {
+            nextMap[status.targetId] = {
+              ...(nextMap[status.targetId] ?? baseMap[status.targetId]),
+              liked: status.isLiked,
+              likeCount: status.likeCount,
+            };
+          });
+
+          favoriteStatuses.forEach((status) => {
+            nextMap[status.targetId] = {
+              ...(nextMap[status.targetId] ?? baseMap[status.targetId]),
+              isFavorited: status.isFavorited,
+              favoritesCount: status.favoritesCount,
+            };
+          });
+
+          return nextMap;
+        });
+      } catch (error) {
+        console.error('加载 skill 互动状态失败:', error);
+      }
+    };
+
+    void loadInteractionState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [skills, user]);
 
   useEffect(() => {
     let cancelled = false;
@@ -183,6 +257,49 @@ export const SkillsPage: React.FC = () => {
                   key={skill.id}
                   skill={skill}
                   onClick={() => openDetail(skill.id)}
+                  showInteraction={!!user}
+                  interactionState={interactionMap[skill.id]}
+                  onLikeChange={(next) => {
+                    setInteractionMap((prev) => {
+                      const current = prev[skill.id] ?? {
+                        liked: false,
+                        likeCount: skill.likeCount ?? 0,
+                        isFavorited: false,
+                        favoritesCount: skill.favoriteCount ?? 0,
+                      };
+
+                      return {
+                        ...prev,
+                        [skill.id]: {
+                          ...current,
+                          liked: next.liked,
+                          likeCount: next.likeCount,
+                        },
+                      };
+                    });
+                  }}
+                  onFavoriteChange={(next) => {
+                    setInteractionMap((prev) => {
+                      const current = prev[skill.id] ?? {
+                        liked: false,
+                        likeCount: skill.likeCount ?? 0,
+                        isFavorited: false,
+                        favoritesCount: skill.favoriteCount ?? 0,
+                      };
+                      const favoritesCount = next
+                        ? current.favoritesCount + 1
+                        : Math.max(0, current.favoritesCount - 1);
+
+                      return {
+                        ...prev,
+                        [skill.id]: {
+                          ...current,
+                          isFavorited: next,
+                          favoritesCount,
+                        },
+                      };
+                    });
+                  }}
                 />
               ))}
             </div>

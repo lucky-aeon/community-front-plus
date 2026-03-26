@@ -1,6 +1,6 @@
 import { apiClient, type ApiResponse } from './config';
 
-export type LikeTargetType = 'POST' | 'COMMENT' | 'COURSE' | 'CHAPTER' | 'INTERVIEW_QUESTION';
+export type LikeTargetType = 'POST' | 'COMMENT' | 'COURSE' | 'CHAPTER' | 'INTERVIEW_QUESTION' | 'SKILL';
 
 export interface ToggleLikeRequestBody {
   targetType: LikeTargetType;
@@ -27,11 +27,17 @@ export interface LikeStatusDTO {
   likeCount: number;
 }
 
+interface BatchLikeStatusDTO {
+  targetId?: unknown;
+  isLiked?: unknown;
+  likeCount?: unknown;
+}
+
 export class LikesService {
   // 批量状态 DTO（包含计数）
   // 与后端 LikeController 批量接口对齐：targetId/targetType/isLiked/likeCount
   // 注意：这是服务内局部类型，不导出到全局 types
-  private static mapBatchItem(item: any): { targetId: string; isLiked: boolean; likeCount: number } {
+  private static mapBatchItem(item: BatchLikeStatusDTO): { targetId: string; isLiked: boolean; likeCount: number } {
     return {
       targetId: String(item?.targetId ?? ''),
       isLiked: !!item?.isLiked,
@@ -73,8 +79,8 @@ export class LikesService {
   static async batchGetStatus(
     targets: { targetType: LikeTargetType; targetId: string }[],
   ): Promise<Array<{ targetId: string; isLiked: boolean; likeCount: number }>> {
-    const res = await apiClient.post<ApiResponse<any[]>>('/likes/status/batch', { targets });
-    const list = (res.data?.data || []) as any[];
+    const res = await apiClient.post<ApiResponse<BatchLikeStatusDTO[]>>('/likes/status/batch', { targets });
+    const list = (res.data?.data || []) as BatchLikeStatusDTO[];
     return list.map(this.mapBatchItem);
   }
 }

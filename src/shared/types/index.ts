@@ -473,7 +473,7 @@ export interface UserSubscriptionDTO {
 // ================ 评论相关接口定义 ================
 
 // 业务类型枚举
-export type BusinessType = 'POST' | 'COURSE' | 'CHAPTER' | 'INTERVIEW_QUESTION';
+export type BusinessType = 'POST' | 'COURSE' | 'CHAPTER' | 'INTERVIEW_QUESTION' | 'SKILL';
 
 // 评论DTO（API返回的评论数据）
 export interface CommentDTO {
@@ -1085,12 +1085,22 @@ export interface PublicSkillDTO {
   githubUrl?: string;
   authorName?: string;
   createTime: string;
+  likeCount?: number;
+  favoriteCount?: number;
+  commentCount?: number;
 }
 
 export interface PublicSkillDetailDTO extends PublicSkillDTO {
   description: string;
   updateTime?: string;
 }
+
+export type SkillInteractionState = {
+  liked: boolean;
+  likeCount: number;
+  isFavorited: boolean;
+  favoritesCount: number;
+};
 
 export interface PublicSkillQueryRequest {
   pageNum?: number;
@@ -2116,7 +2126,10 @@ export interface CourseLearningMetricDTO {
 // ================ 收藏相关接口定义 ================
 
 // 收藏目标类型
-export type FavoriteTargetType = 'POST' | 'CHAPTER' | 'COMMENT' | 'INTERVIEW_QUESTION';
+export type FavoriteTargetType = 'POST' | 'CHAPTER' | 'COMMENT' | 'INTERVIEW_QUESTION' | 'SKILL';
+
+// 点赞目标类型
+export type LikeTargetType = 'POST' | 'COMMENT' | 'COURSE' | 'CHAPTER' | 'INTERVIEW_QUESTION' | 'SKILL';
 
 // 收藏列表项DTO
 export interface FavoriteListItemDTO {

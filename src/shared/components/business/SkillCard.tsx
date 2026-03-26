@@ -2,7 +2,10 @@ import React from 'react';
 import { Calendar, ExternalLink, User } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import type { PublicSkillDTO } from '@shared/types';
+import { FavoriteButton } from '@shared/components/business/FavoriteButton';
+import { LikeButton } from '@shared/components/ui/LikeButton';
+import type { LikeStatusDTO } from '@shared/services/api/likes.service';
+import type { PublicSkillDTO, SkillInteractionState } from '@shared/types';
 
 export const GithubMarkIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
   <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden {...props}>
@@ -10,9 +13,13 @@ export const GithubMarkIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) =
   </svg>
 );
 
-interface SkillCardProps {
+export interface SkillCardProps {
   skill: PublicSkillDTO;
   onClick: () => void;
+  showInteraction: boolean;
+  interactionState?: SkillInteractionState;
+  onLikeChange?: (next: LikeStatusDTO) => void;
+  onFavoriteChange?: (next: boolean) => void;
 }
 
 const formatDate = (value?: string) => {
@@ -21,7 +28,14 @@ const formatDate = (value?: string) => {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString('zh-CN');
 };
 
-export const SkillCard: React.FC<SkillCardProps> = ({ skill, onClick }) => {
+export const SkillCard: React.FC<SkillCardProps> = ({
+  skill,
+  onClick,
+  showInteraction,
+  interactionState,
+  onLikeChange,
+  onFavoriteChange,
+}) => {
   const handleGithubClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
 
@@ -83,9 +97,38 @@ export const SkillCard: React.FC<SkillCardProps> = ({ skill, onClick }) => {
           </span>
         </div>
 
-        <div className="inline-flex items-center gap-1 text-sm font-medium text-honey-700">
-          查看详情
-          <ExternalLink className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+        <div className="flex items-center justify-between gap-3">
+          <div className="inline-flex items-center gap-1 text-sm font-medium text-honey-700">
+            查看详情
+            <ExternalLink className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
+          </div>
+
+          {showInteraction && (
+            <div
+              className="flex items-center gap-2"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <LikeButton
+                businessType="SKILL"
+                businessId={skill.id}
+                initialLiked={interactionState?.liked ?? false}
+                initialCount={interactionState?.likeCount ?? skill.likeCount ?? 0}
+                skipInitialFetch
+                onChange={(next) => onLikeChange?.(next)}
+              />
+              <FavoriteButton
+                targetId={skill.id}
+                targetType="SKILL"
+                variant="ghost"
+                size="sm"
+                showCount
+                initialIsFavorited={interactionState?.isFavorited ?? false}
+                initialCount={interactionState?.favoritesCount ?? skill.favoriteCount ?? 0}
+                skipInitialFetch
+                onToggle={(next) => onFavoriteChange?.(next)}
+              />
+            </div>
+          )}
         </div>
       </div>
     </Card>
