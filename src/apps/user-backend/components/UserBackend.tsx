@@ -12,6 +12,9 @@ import { MyLearningPage } from './MyLearningPage';
 import { MyInterviewQuestionsPage } from './MyInterviewQuestionsPage';
 import { CreateInterviewQuestionPage } from './CreateInterviewQuestionPage';
 import { EditInterviewQuestionPage } from './EditInterviewQuestionPage';
+import { MySkillsPage } from './MySkillsPage';
+import { CreateSkillPage } from './CreateSkillPage';
+import { EditSkillPage } from './EditSkillPage';
 import { DeviceManagementPage } from './DeviceManagementPage';
 import { FollowsPage } from './FollowsPage';
 import { MyFavoritesPage } from './MyFavoritesPage';
@@ -94,6 +97,9 @@ export const UserBackend: React.FC = () => {
         <Route path="/interviews" element={<MyInterviewQuestionsPage />} />
         <Route path="/interviews/create" element={<CreateInterviewQuestionPage />} />
         <Route path="/interviews/edit/:id" element={<EditInterviewQuestionPage />} />
+        <Route path="/skills" element={<MySkillsPage />} />
+        <Route path="/skills/create" element={<CreateSkillPage />} />
+        <Route path="/skills/edit/:id" element={<EditSkillPage />} />
         <Route path="/messages" element={<MessageCenterPage />} />
         <Route path="/profile" element={<ProfileSettingsPage />} />
         

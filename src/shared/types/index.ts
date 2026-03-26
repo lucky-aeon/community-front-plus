@@ -1098,6 +1098,38 @@ export interface PublicSkillQueryRequest {
   keyword?: string;
 }
 
+// ================ 用户中心 Skills 管理相关接口定义 ================
+
+export interface SkillListDTO {
+  id: string;
+  userId: string;
+  name: string;
+  summary: string;
+  githubUrl: string;
+  authorName: string;
+  createTime: string;
+  updateTime: string;
+}
+
+export interface SkillDetailDTO extends SkillListDTO {
+  description: string;
+}
+
+export interface SkillQueryRequest {
+  pageNum?: number;
+  pageSize?: number;
+  keyword?: string;
+}
+
+export interface CreateSkillRequest {
+  name: string;
+  summary: string;
+  description: string;
+  githubUrl: string;
+}
+
+export type UpdateSkillRequest = CreateSkillRequest;
+
 // ================ 管理员用户活动日志相关接口定义 ================
 
 // 活动类型枚举（与后端ActivityType.java保持一致）

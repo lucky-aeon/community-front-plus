@@ -36,6 +36,7 @@ export const ROUTES = {
   USER_BACKEND_INTERVIEWS: '/dashboard/user-backend/interviews',
   USER_BACKEND_SKILLS: '/dashboard/user-backend/skills',
   USER_BACKEND_SKILLS_CREATE: '/dashboard/user-backend/skills/create',
+  USER_BACKEND_SKILLS_EDIT: '/dashboard/user-backend/skills/edit/:id',
 
   // 管理员后台
   ADMIN_DASHBOARD: '/dashboard/admin',
@@ -60,6 +61,8 @@ export const routeUtils = {
   
   // 获取编辑文章路由
   getArticleEditRoute: (articleId: string) => `/dashboard/user-backend/articles/edit/${articleId}`,
+  // 获取用户中心 Skill 编辑路由
+  getUserBackendSkillEditRoute: (skillId: string) => `/dashboard/user-backend/skills/edit/${skillId}`,
   // 获取用户公开主页路由
   getUserProfileRoute: (userId: string) => `/dashboard/users/${userId}`,
   

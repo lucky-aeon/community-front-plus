@@ -163,4 +163,9 @@ export type {
   PublicSkillDTO,
   PublicSkillDetailDTO,
   PublicSkillQueryRequest,
+  SkillListDTO,
+  SkillDetailDTO,
+  SkillQueryRequest,
+  CreateSkillRequest,
+  UpdateSkillRequest,
 } from '@shared/types';

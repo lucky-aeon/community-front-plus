@@ -18,7 +18,8 @@ import {
   Star,
   BookOpen,
   Bookmark,
-  LayoutDashboard
+  LayoutDashboard,
+  Code2
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { MembershipBadge, type MembershipTier } from '@shared/components/ui/MembershipBadge';
@@ -77,13 +78,11 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
     };
     fetchRole();
     return () => { cancelled = true; };
-  }, [user?.id]);
+  }, [user]);
 
   // 轮询未读数量，用于导航栏小红点
   useEffect(() => {
     let cancelled = false;
-    let timer: number | undefined;
-
     const fetchUnread = async () => {
       try {
         if (!user) return;
@@ -96,7 +95,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
 
     // 首次加载 + 轮询
     fetchUnread();
-    timer = window.setInterval(fetchUnread, 60_000);
+    const timer = window.setInterval(fetchUnread, 60_000);
 
     // 监听通知变更事件（标记已读/清空等后立即刷新）
     const onChanged = () => { void fetchUnread(); };
@@ -104,10 +103,10 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
 
     return () => {
       cancelled = true;
-      if (timer) window.clearInterval(timer);
+      window.clearInterval(timer);
       window.removeEventListener('notifications:changed', onChanged as EventListener);
     };
-  }, [user?.id]);
+  }, [user]);
 
   const navigationSections = [
     {
@@ -121,6 +120,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
       items: [
         { id: 'articles', name: '我的文章', icon: FileText, path: '/dashboard/user-backend/articles' },
         { id: 'interviews_user', name: '我的题库', icon: BookOpen, path: '/dashboard/user-backend/interviews' },
+        { id: 'skills_user', name: '我的 Skills', icon: Code2, path: '/dashboard/user-backend/skills' },
         { id: 'comments', name: '我的评论', icon: MessageSquare, path: '/dashboard/user-backend/comments' },
         { id: 'favorites', name: '我的收藏', icon: Bookmark, path: '/dashboard/user-backend/favorites' },
         { id: 'testimonial', name: '我的评价', icon: Star, path: '/dashboard/user-backend/testimonial' },
