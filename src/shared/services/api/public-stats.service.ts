@@ -18,7 +18,7 @@ export class PublicStatsService {
 
   /** 获取公开 skills 总数 */
   static async getSkillsTotalCount(): Promise<number> {
-    const resp = await apiClient.get('/public/stats/skills', {
+    const resp = await apiClient.get('/public/skills/stats', {
       headers: { 'X-Skip-Auth-Logout': 'true' },
     } as unknown as { headers: Record<string, string> });
     const raw = resp?.data;

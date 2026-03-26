@@ -37,12 +37,14 @@ const normalizeUserSkillDetail = (data: Partial<SkillDetailDTO> & { id: string; 
 
 export class SkillsService {
   static async getPublicSkills(params?: PublicSkillQueryRequest): Promise<PageResponse<PublicSkillDTO>> {
-    const response = await apiClient.post<ApiResponse<PageResponse<PublicSkillDTO>>>(
-      '/public/skills/queries',
+    const response = await apiClient.get<ApiResponse<PageResponse<PublicSkillDTO>>>(
+      '/public/skills',
       {
+        params: {
         pageNum: params?.pageNum ?? 1,
         pageSize: params?.pageSize ?? 9,
         keyword: params?.keyword?.trim() || undefined,
+        },
       }
     );
 
