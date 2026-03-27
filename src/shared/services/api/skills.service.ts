@@ -1,4 +1,5 @@
 import { apiClient, type ApiResponse } from './config';
+import { ResourceAccessService } from './resource-access.service';
 import type {
   CreateSkillRequest,
   PageResponse,
@@ -11,11 +12,23 @@ import type {
   UpdateSkillRequest,
 } from '@shared/types';
 
+const normalizeSkillAuthor = <T extends {
+  userId?: string;
+  authorName?: string;
+  authorAvatar?: string | null;
+  authorDescription?: string | null;
+}>(data: T) => ({
+  userId: data.userId ?? '',
+  authorName: data.authorName ?? '',
+  authorAvatar: ResourceAccessService.toAccessUrl(data.authorAvatar),
+  authorDescription: data.authorDescription ?? '',
+});
+
 const normalizePublicSkillItem = (data: PublicSkillDTO): PublicSkillDTO => ({
   ...data,
   summary: data.summary ?? '',
   githubUrl: data.githubUrl ?? '',
-  authorName: data.authorName ?? '',
+  ...normalizeSkillAuthor(data),
   likeCount: Number(data.likeCount ?? 0),
   favoriteCount: Number(data.favoriteCount ?? 0),
   commentCount: Number(data.commentCount ?? 0),
@@ -26,7 +39,7 @@ const normalizePublicSkillDetail = (data: PublicSkillDetailDTO): PublicSkillDeta
   summary: data.summary ?? '',
   description: data.description ?? '',
   githubUrl: data.githubUrl ?? '',
-  authorName: data.authorName ?? '',
+  ...normalizeSkillAuthor(data),
   likeCount: Number(data.likeCount ?? 0),
   favoriteCount: Number(data.favoriteCount ?? 0),
   commentCount: Number(data.commentCount ?? 0),
@@ -39,6 +52,8 @@ const normalizeUserSkillListItem = (data: Partial<SkillListDTO> & { id: string; 
   summary: data.summary ?? '',
   githubUrl: data.githubUrl ?? '',
   authorName: data.authorName ?? '',
+  authorAvatar: ResourceAccessService.toAccessUrl(data.authorAvatar),
+  authorDescription: data.authorDescription ?? '',
   createTime: data.createTime ?? '',
   updateTime: data.updateTime ?? '',
 });

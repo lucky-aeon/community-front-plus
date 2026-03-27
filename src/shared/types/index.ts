@@ -1081,9 +1081,12 @@ export interface PublicCourseDetailDTO {
 export interface PublicSkillDTO {
   id: string;
   name: string;
+  userId: string;
   summary?: string;
   githubUrl?: string;
   authorName?: string;
+  authorAvatar?: string;
+  authorDescription?: string;
   createTime: string;
   likeCount?: number;
   favoriteCount?: number;
@@ -1117,6 +1120,8 @@ export interface SkillListDTO {
   summary: string;
   githubUrl: string;
   authorName: string;
+  authorAvatar?: string;
+  authorDescription?: string;
   createTime: string;
   updateTime: string;
 }

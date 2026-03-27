@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Calendar, ExternalLink, User } from 'lucide-react';
+import { ArrowLeft, Calendar, ExternalLink } from 'lucide-react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuth } from '@/context/AuthContext';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { GithubMarkIcon } from '@shared/components/business/SkillCard';
@@ -103,6 +104,14 @@ export const SkillDetailPage: React.FC = () => {
     return <div className="mx-auto max-w-5xl px-4 py-10 text-red-500 sm:px-6 lg:px-8">Skill 不存在</div>;
   }
 
+  const authorProfileRoute = data.userId ? routeUtils.getUserProfileRoute(data.userId) : '';
+  const handleAuthorClick = () => {
+    if (!authorProfileRoute) {
+      return;
+    }
+    navigate(authorProfileRoute);
+  };
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
       <Button variant="ghost" onClick={() => navigate(listRoute)} className="mb-6 gap-2">
@@ -123,15 +132,44 @@ export const SkillDetailPage: React.FC = () => {
                   {data.summary || '作者暂未填写简介。'}
                 </p>
               </div>
-              <div className="flex flex-wrap items-center gap-4 text-sm text-warm-gray-500">
-                <span className="inline-flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  {data.authorName || '匿名作者'}
-                </span>
+              <div className="flex flex-wrap items-center gap-2 text-sm text-warm-gray-500">
                 <span className="inline-flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   {formatDateTime(data.createTime)}
                 </span>
+              </div>
+
+              <div className="rounded-2xl border border-honey-100 bg-white/85 p-4 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <button
+                    type="button"
+                    onClick={handleAuthorClick}
+                    disabled={!authorProfileRoute}
+                    className="shrink-0"
+                    aria-label={authorProfileRoute ? `查看 ${data.authorName || '作者'} 的主页` : '作者主页不可用'}
+                  >
+                    <Avatar size={56}>
+                      <AvatarImage src={data.authorAvatar || undefined} alt={data.authorName || '作者头像'} />
+                      <AvatarFallback>{(data.authorName || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                  </button>
+
+                  <div className="min-w-0 flex-1">
+                    <button
+                      type="button"
+                      onClick={handleAuthorClick}
+                      disabled={!authorProfileRoute}
+                      className="text-left"
+                    >
+                      <div className="text-base font-semibold text-gray-900 transition-colors hover:text-honey-700">
+                        {data.authorName || '匿名作者'}
+                      </div>
+                    </button>
+                    <p className="mt-1 line-clamp-3 text-sm leading-6 text-warm-gray-600">
+                      {data.authorDescription || '作者暂未填写简介。'}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 

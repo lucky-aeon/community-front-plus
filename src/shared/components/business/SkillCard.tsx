@@ -1,10 +1,13 @@
 import React from 'react';
-import { Calendar, ExternalLink, User } from 'lucide-react';
+import { Calendar, ExternalLink } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FavoriteButton } from '@shared/components/business/FavoriteButton';
 import { LikeButton } from '@shared/components/ui/LikeButton';
 import type { LikeStatusDTO } from '@shared/services/api/likes.service';
+import { routeUtils } from '@shared/routes/routes';
 import type { PublicSkillDTO, SkillInteractionState } from '@shared/types';
 
 export const GithubMarkIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
@@ -36,6 +39,8 @@ export const SkillCard: React.FC<SkillCardProps> = ({
   onLikeChange,
   onFavoriteChange,
 }) => {
+  const navigate = useNavigate();
+
   const handleGithubClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
 
@@ -44,6 +49,16 @@ export const SkillCard: React.FC<SkillCardProps> = ({
     }
 
     window.open(skill.githubUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleAuthorClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+
+    if (!skill.userId) {
+      return;
+    }
+
+    navigate(routeUtils.getUserProfileRoute(skill.userId));
   };
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -86,15 +101,32 @@ export const SkillCard: React.FC<SkillCardProps> = ({
           {skill.summary || '作者暂未填写简介。'}
         </p>
 
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-warm-gray-100 pt-4 text-xs text-warm-gray-500">
-          <span className="inline-flex items-center gap-1.5">
-            <User className="h-3.5 w-3.5" />
-            {skill.authorName || '匿名作者'}
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5" />
-            {formatDate(skill.createTime)}
-          </span>
+        <div className="mt-auto space-y-4 border-t border-warm-gray-100 pt-4">
+          <div className="flex items-start justify-between gap-3">
+            <button
+              type="button"
+              className="flex min-w-0 flex-1 items-start gap-3 text-left"
+              onClick={handleAuthorClick}
+              disabled={!skill.userId}
+              aria-label={skill.userId ? `查看 ${skill.authorName || '作者'} 的主页` : '作者主页不可用'}
+            >
+              <Avatar size="sm">
+                <AvatarImage src={skill.authorAvatar || undefined} alt={skill.authorName || '作者头像'} />
+                <AvatarFallback>{(skill.authorName || 'U').slice(0, 1).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-medium text-gray-900">{skill.authorName || '匿名作者'}</div>
+                <p className="line-clamp-2 text-xs leading-5 text-warm-gray-500">
+                  {skill.authorDescription || '作者暂未填写简介。'}
+                </p>
+              </div>
+            </button>
+
+            <span className="inline-flex shrink-0 items-center gap-1.5 pt-1 text-xs text-warm-gray-500">
+              <Calendar className="h-3.5 w-3.5" />
+              {formatDate(skill.createTime)}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center justify-between gap-3">

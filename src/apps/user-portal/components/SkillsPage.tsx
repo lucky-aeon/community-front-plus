@@ -241,8 +241,15 @@ export const SkillsPage: React.FC = () => {
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-2/3" />
-                  <div className="flex items-center justify-between pt-4">
-                    <Skeleton className="h-4 w-24" />
+                  <div className="flex items-start justify-between gap-3 pt-4">
+                    <div className="flex min-w-0 flex-1 items-start gap-3">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <Skeleton className="h-4 w-28" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-5/6" />
+                      </div>
+                    </div>
                     <Skeleton className="h-4 w-20" />
                   </div>
                 </div>
