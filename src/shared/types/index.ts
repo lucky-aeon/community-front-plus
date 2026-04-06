@@ -610,7 +610,7 @@ export interface CreateInterviewQuestionRequest {
   tags?: string[];
 }
 
-export interface UpdateInterviewQuestionRequest extends CreateInterviewQuestionRequest {}
+export type UpdateInterviewQuestionRequest = CreateInterviewQuestionRequest;
 
 // 面试题查询请求（公开和我的均可使用）
 export interface InterviewQuestionQueryRequest {
@@ -1609,7 +1609,7 @@ export interface UpdateSubscriptionPlanPermissionsRequest {
 // ================ CDK管理相关接口定义 ================
 
 // CDK类型枚举
-export type CDKType = 'SUBSCRIPTION_PLAN' | 'COURSE';
+export type CDKType = 'SUBSCRIPTION_PLAN' | 'COURSE' | 'SERVICE';
 
 // CDK状态枚举
 export type CDKStatus = 'ACTIVE' | 'USED' | 'DISABLED';
@@ -1665,7 +1665,7 @@ export interface CDKQueryRequest {
 // ================ 系统配置管理相关接口定义 ================
 
 // 系统配置类型枚举
-export type SystemConfigType = 'DEFAULT_SUBSCRIPTION_PLAN' | 'EMAIL_TEMPLATE' | 'SYSTEM_MAINTENANCE' | 'USER_SESSION_LIMIT' | 'OAUTH_GITHUB';
+export type SystemConfigType = 'DEFAULT_SUBSCRIPTION_PLAN' | 'EMAIL_TEMPLATE' | 'SYSTEM_MAINTENANCE' | 'USER_SESSION_LIMIT' | 'OAUTH_GITHUB' | 'INDEPENDENT_SERVICES';
 
 // 默认套餐配置数据结构
 export interface DefaultSubscriptionConfig {
@@ -1686,6 +1686,23 @@ export interface SystemConfigDTO {
 export interface UpdateSystemConfigRequest {
   data: unknown;                        // 配置数据，根据配置类型而定
 }
+
+export type {
+  IndependentServiceConfig,
+  IndependentServicesConfigData,
+  IndependentServiceDTO,
+  ServiceOrderType,
+  IndependentServiceOrderType,
+  ServiceOrderProductType,
+  IndependentServiceOrderProductType,
+  ServiceOrderSourceChannel,
+  IndependentServiceOrderSourceChannel,
+  ServiceOrderStatus,
+  IndependentServiceOrderStatus,
+  CreateServiceOrderRequest,
+  CreateIndependentServiceOrderRequest,
+  IndependentServiceOrderDTO,
+} from './independent-services';
 
 // 用户会话限制配置（管理员可动态调整部分）
 export type SessionEvictionPolicy = 'DENY_NEW' | 'EVICT_OLDEST';
@@ -1857,22 +1874,33 @@ export interface PublicTestimonialDTO {
 // ================ 订单管理相关接口定义 ================
 
 // 订单类型枚举
-export type OrderType = 'PURCHASE' | 'GIFT';
+export type OrderType = 'PURCHASE' | 'GIFT' | 'SERVICE';
 
 // 订单数据传输对象
 export interface OrderDTO {
   id: string;                          // 订单ID
   orderNo: string;                     // 订单号
-  userId: string;                      // 用户ID
-  userName: string;                    // 用户名称
-  cdkCode: string;                     // CDK代码
-  productType: CDKType;                // 产品类型（SUBSCRIPTION_PLAN/COURSE）
+  userId?: string | null;              // 用户ID
+  userName?: string | null;            // 用户名称
+  cdkCode?: string | null;             // CDK代码
+  productType: CDKType;                // 产品类型（SUBSCRIPTION_PLAN/COURSE/SERVICE）
   productId: string;                   // 产品ID
   productName: string;                 // 产品名称
-  orderType: OrderType;                // 订单类型（PURCHASE/GIFT）
+  orderType: OrderType;                // 订单类型（PURCHASE/GIFT/SERVICE）
   amount: number;                      // 订单金额
-  activatedTime?: string;              // 激活时间（可选）
-  remark?: string;                     // 备注（可选）
+  activatedTime?: string | null;       // 激活时间（可选）
+  remark?: string | null;              // 备注（可选）
+  contactId?: string | null;           // 联系信息
+  sourceChannel?: string | null;       // 来源渠道
+  unitPrice?: number | null;           // 单价
+  quantity?: number | null;            // 数量
+  quantityUnit?: string | null;        // 数量单位
+  totalAmount?: number | null;         // 总金额
+  status?: string | null;              // 状态
+  createdBy?: string | null;           // 录单人
+  confirmedAt?: string | null;         // 确认时间
+  completedAt?: string | null;         // 完成时间
+  canceledAt?: string | null;          // 取消时间
   createTime: string;                  // 创建时间
 }
 
@@ -1900,6 +1928,7 @@ export interface OrderStatisticsDTO {
   totalCount: number;                  // 总订单数
   purchaseCount: number;               // 购买订单数
   giftCount: number;                   // 赠送订单数
+  serviceCount: number;                // 服务订单数
   totalAmount: number;                 // 总金额（单位：元）
 }
 

@@ -9,6 +9,9 @@ export { CoursesService } from './courses.service';
 export { ChaptersService } from './chapters.service';
 export { AdminUserService } from './admin-user.service';
 export { AdminTestimonialService } from './admin-testimonial.service';
+export { SystemConfigService } from './system-config.service';
+export { AdminOrderService } from './admin-order.service';
+export { IndependentServicesService } from './independent-services.service';
 export { TestimonialService } from './testimonial.service';
 export { SubscribeService, FollowService } from './subscribe.service';
 export { SubscriptionPlansService } from './subscription-plans.service';
@@ -96,6 +99,16 @@ export type {
   CDKQueryRequest,
   CDKType,
   CDKStatus,
+  IndependentServiceConfig,
+  IndependentServicesConfigData,
+  IndependentServiceDTO,
+  IndependentServiceOrderType,
+  IndependentServiceOrderProductType,
+  IndependentServiceOrderSourceChannel,
+  IndependentServiceOrderStatus,
+  CreateServiceOrderRequest,
+  CreateIndependentServiceOrderRequest,
+  IndependentServiceOrderDTO,
   UpdateLogDTO,
   CreateUpdateLogRequest,
   UpdateUpdateLogRequest,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -6,13 +6,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshCw, Search, XCircle, Eye, Copy, ShoppingCart, Gift, CreditCard, TrendingUp, Package } from 'lucide-react';
+import { RefreshCw, Search, XCircle, Eye, Copy, ShoppingCart, Gift, CreditCard, TrendingUp, Package, Plus, Wrench } from 'lucide-react';
 import { AdminOrderService } from '@shared/services/api/admin-order.service';
-import { OrderDTO, OrderQueryRequest, OrderStatisticsDTO, PageResponse } from '@shared/types';
+import { OrderDTO, OrderQueryRequest, OrderStatisticsDTO, PageResponse, OrderType, CDKType } from '@shared/types';
 import { showToast } from '@shared/utils/toast';
 import AdminPagination from '@shared/components/AdminPagination';
 import { StatsCard } from '../widgets/StatsCard';
 import { OrderDetailDialog } from './OrderDetailDialog';
+import { CreateServiceOrderDialog } from './CreateServiceOrderDialog';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { format } from 'date-fns';
 
@@ -27,6 +28,7 @@ export const OrdersPage: React.FC = () => {
     total: 0,
     pages: 0
   });
+  const [createServiceOrderOpen, setCreateServiceOrderOpen] = useState(false);
 
   // 搜索和筛选状态
   const [searchParams, setSearchParams] = useState<OrderQueryRequest>({
@@ -41,6 +43,8 @@ export const OrdersPage: React.FC = () => {
 
   // 时间范围选择器状态
   const [timeRange, setTimeRange] = useState<{ from?: Date; to?: Date }>();
+  const searchParamsRef = useRef(searchParams);
+  const timeRangeRef = useRef<{ from?: Date; to?: Date } | undefined>(timeRange);
 
   // 订单详情弹窗状态
   const [detailDialog, setDetailDialog] = useState<{
@@ -55,12 +59,14 @@ export const OrdersPage: React.FC = () => {
   const loadOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const queryParams = { ...searchParams };
-      if (timeRange?.from) {
-        queryParams.startTime = format(timeRange.from, 'yyyy-MM-dd 00:00:00');
+      const currentSearchParams = searchParamsRef.current;
+      const currentTimeRange = timeRangeRef.current;
+      const queryParams = { ...currentSearchParams };
+      if (currentTimeRange?.from) {
+        queryParams.startTime = format(currentTimeRange.from, 'yyyy-MM-dd 00:00:00');
       }
-      if (timeRange?.to) {
-        queryParams.endTime = format(timeRange.to, 'yyyy-MM-dd 23:59:59');
+      if (currentTimeRange?.to) {
+        queryParams.endTime = format(currentTimeRange.to, 'yyyy-MM-dd 23:59:59');
       }
       const response: PageResponse<OrderDTO> = await AdminOrderService.getOrders(queryParams);
       setOrders(response.records);
@@ -75,7 +81,7 @@ export const OrdersPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchParams, timeRange]);
+  }, []);
 
   // 加载统计数据（支持按需时间筛选）
   const loadStatistics = useCallback(async (needTimeFilter = false) => {
@@ -100,10 +106,18 @@ export const OrdersPage: React.FC = () => {
     }
   }, [timeRange]);
 
+  useEffect(() => {
+    searchParamsRef.current = searchParams;
+  }, [searchParams]);
+
+  useEffect(() => {
+    timeRangeRef.current = timeRange;
+  }, [timeRange]);
+
   // 仅在分页变化时加载数据
   useEffect(() => {
     loadOrders();
-  }, [searchParams.pageNum, searchParams.pageSize]);
+  }, [searchParams.pageNum, searchParams.pageSize, loadOrders]);
 
   // 初始化加载数据（统计接口不传时间参数，获取全量统计）
   useEffect(() => {
@@ -113,7 +127,7 @@ export const OrdersPage: React.FC = () => {
 
   // 重置搜索
   const handleReset = () => {
-    setSearchParams({
+    const nextSearchParams = {
       pageNum: 1,
       pageSize: 10,
       userId: '',
@@ -121,39 +135,47 @@ export const OrdersPage: React.FC = () => {
       productType: undefined,
       productName: '',
       cdkCode: ''
-    });
+    };
+    searchParamsRef.current = nextSearchParams;
+    timeRangeRef.current = undefined;
+    setSearchParams(nextSearchParams);
     setTimeRange(undefined);
     loadOrders(); // 重新加载订单
     loadStatistics(false); // 恢复全量统计，不传时间参数
   };
 
-  const handleRefresh = () => {
-    loadOrders(); // 总是刷新订单数据
+  const handleRefresh = async () => {
+    await loadOrders(); // 总是刷新订单数据
 
     // 根据当前状态决定是否更新统计
     if (timeRange?.from || timeRange?.to) {
-      loadStatistics(true); // 有时间筛选时更新统计
+      await loadStatistics(true); // 有时间筛选时更新统计
     } else {
-      loadStatistics(false); // 无时间筛选时获取全量统计
+      await loadStatistics(false); // 无时间筛选时获取全量统计
     }
   };
 
   const handleQuery = () => {
-    setSearchParams(prev => ({ ...prev, pageNum: 1 }));
+    const nextSearchParams = { ...searchParamsRef.current, pageNum: 1 };
+    searchParamsRef.current = nextSearchParams;
+    setSearchParams(nextSearchParams);
     loadOrders(); // 总是调用订单接口
 
     // 只有当选择了时间范围时，才更新统计数据
-    if (timeRange?.from || timeRange?.to) {
+    const currentTimeRange = timeRangeRef.current;
+    if (currentTimeRange?.from || currentTimeRange?.to) {
       loadStatistics(true);
     }
   };
 
   // 分页处理
   const handlePageChange = (page: number) => {
-    setSearchParams(prev => ({
-      ...prev,
+    const nextSearchParams = {
+      ...searchParamsRef.current,
       pageNum: page
-    }));
+    };
+    searchParamsRef.current = nextSearchParams;
+    setSearchParams(nextSearchParams);
   };
 
   // 复制到剪贴板
@@ -172,13 +194,21 @@ export const OrdersPage: React.FC = () => {
   };
 
   // 渲染订单类型徽章
-  const renderOrderTypeBadge = (orderType: 'PURCHASE' | 'GIFT') => {
+  const renderOrderTypeBadge = (orderType: OrderType) => {
     return (
-      <Badge variant={orderType === 'PURCHASE' ? 'default' : 'secondary'} className="flex items-center gap-1">
+      <Badge
+        variant={orderType === 'PURCHASE' ? 'default' : orderType === 'SERVICE' ? 'outline' : 'secondary'}
+        className="flex items-center gap-1"
+      >
         {orderType === 'PURCHASE' ? (
           <>
             <CreditCard className="w-3 h-3" />
             购买
+          </>
+        ) : orderType === 'SERVICE' ? (
+          <>
+            <Wrench className="w-3 h-3" />
+            服务
           </>
         ) : (
           <>
@@ -190,11 +220,24 @@ export const OrdersPage: React.FC = () => {
     );
   };
 
+  const renderOrderStatusBadge = (status?: string | null) => {
+    if (!status) {
+      return <Badge variant="secondary">-</Badge>;
+    }
+
+    const label =
+      status === 'CONFIRMED' ? '已确认' : status === 'COMPLETED' ? '已完成' : status === 'CANCELED' ? '已取消' : status;
+    const variant =
+      status === 'COMPLETED' ? 'default' : status === 'CANCELED' ? 'destructive' : 'secondary';
+
+    return <Badge variant={variant}>{label}</Badge>;
+  };
+
   // 渲染产品类型徽章
-  const renderProductTypeBadge = (productType: 'SUBSCRIPTION_PLAN' | 'COURSE') => {
+  const renderProductTypeBadge = (productType: CDKType) => {
     return (
       <Badge variant="outline">
-        {productType === 'SUBSCRIPTION_PLAN' ? '套餐' : '课程'}
+        {productType === 'SUBSCRIPTION_PLAN' ? '套餐' : productType === 'COURSE' ? '课程' : '服务'}
       </Badge>
     );
   };
@@ -212,9 +255,9 @@ export const OrdersPage: React.FC = () => {
   return (
     <div className="h-full flex flex-col space-y-6">
       {/* 统计看板 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {statsLoading ? (
-          Array.from({ length: 4 }).map((_, index) => (
+          Array.from({ length: 5 }).map((_, index) => (
             <Card key={index} className="p-6">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
@@ -249,6 +292,13 @@ export const OrdersPage: React.FC = () => {
               description="免费赠送订单"
             />
             <StatsCard
+              title="服务订单"
+              value={statistics.serviceCount}
+              icon={Wrench}
+              color="yellow"
+              description="独立服务订单"
+            />
+            <StatsCard
               title="总成交金额"
               value={formatAmount(statistics.totalAmount)}
               icon={TrendingUp}
@@ -280,24 +330,26 @@ export const OrdersPage: React.FC = () => {
             />
             <Select
               value={searchParams.orderType || 'all'}
-              onValueChange={(value) => setSearchParams(prev => ({ ...prev, orderType: value === 'all' ? undefined : (value as 'PURCHASE' | 'GIFT') }))}
+              onValueChange={(value) => setSearchParams(prev => ({ ...prev, orderType: value === 'all' ? undefined : (value as OrderType) }))}
             >
               <SelectTrigger><SelectValue placeholder="订单类型" /></SelectTrigger>
               <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
                 <SelectItem value="all">全部类型</SelectItem>
                 <SelectItem value="PURCHASE">购买订单</SelectItem>
                 <SelectItem value="GIFT">赠送订单</SelectItem>
+                <SelectItem value="SERVICE">服务订单</SelectItem>
               </SelectContent>
             </Select>
             <Select
               value={searchParams.productType || 'all'}
-              onValueChange={(value) => setSearchParams(prev => ({ ...prev, productType: value === 'all' ? undefined : (value as 'SUBSCRIPTION_PLAN' | 'COURSE') }))}
+              onValueChange={(value) => setSearchParams(prev => ({ ...prev, productType: value === 'all' ? undefined : (value as CDKType) }))}
             >
               <SelectTrigger><SelectValue placeholder="产品类型" /></SelectTrigger>
               <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
                 <SelectItem value="all">全部产品</SelectItem>
                 <SelectItem value="SUBSCRIPTION_PLAN">套餐</SelectItem>
                 <SelectItem value="COURSE">课程</SelectItem>
+                <SelectItem value="SERVICE">服务</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -312,6 +364,9 @@ export const OrdersPage: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2 mb-4">
+            <Button onClick={() => setCreateServiceOrderOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" /> 手工新增订单
+            </Button>
             <Button variant="outline" onClick={handleReset} disabled={loading}>
               <XCircle className="mr-2 h-4 w-4" /> 重置
             </Button>
@@ -332,6 +387,7 @@ export const OrdersPage: React.FC = () => {
                   <TableHead className="min-w-[140px]">用户信息</TableHead>
                   <TableHead className="min-w-[180px]">产品信息</TableHead>
                   <TableHead className="min-w-[100px]">订单类型</TableHead>
+                  <TableHead className="min-w-[100px]">状态</TableHead>
                   <TableHead className="min-w-[100px]">金额</TableHead>
                   <TableHead className="min-w-[150px]">CDK代码</TableHead>
                   <TableHead className="min-w-[140px]">激活时间</TableHead>
@@ -348,6 +404,7 @@ export const OrdersPage: React.FC = () => {
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-36" /></TableCell>
                       <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-16" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-28" /></TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
@@ -358,85 +415,95 @@ export const OrdersPage: React.FC = () => {
                 ) : orders.length === 0 ? (
                   // 空数据状态
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center text-muted-foreground py-8">
+                    <TableCell colSpan={10} className="text-center text-muted-foreground py-8">
                       <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
                       <div>暂无订单数据</div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   // 订单数据行
-                  orders.map((order) => (
-                    <TableRow key={order.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-sm">{order.orderNo}</span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyToClipboard(order.orderNo, '订单号')}
-                            className="h-6 px-2"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium text-sm">{order.userName}</div>
-                          <div className="text-xs text-muted-foreground font-mono">{order.userId}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
+                  orders.map((order) => {
+                    const isServiceOrder = order.orderType === 'SERVICE';
+
+                    return (
+                      <TableRow key={order.id}>
+                        <TableCell>
                           <div className="flex items-center gap-2">
-                            {renderProductTypeBadge(order.productType)}
+                            <span className="font-mono text-sm">{order.orderNo}</span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => copyToClipboard(order.orderNo, '订单号')}
+                              className="h-6 px-2"
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
                           </div>
-                          <div className="text-sm font-medium">{order.productName}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {renderOrderTypeBadge(order.orderType)}
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-semibold text-green-600">
-                          {formatAmount(order.amount)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs">{order.cdkCode}</span>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium text-sm">{order.userName || '-'}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              {renderProductTypeBadge(order.productType)}
+                            </div>
+                            <div className="text-sm font-medium">{isServiceOrder ? '独立服务' : order.productName}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {renderOrderTypeBadge(order.orderType)}
+                        </TableCell>
+                        <TableCell>
+                          {renderOrderStatusBadge(order.status)}
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-semibold text-green-600">
+                            {formatAmount(order.amount)}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {!isServiceOrder && order.cdkCode ? (
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-xs">{order.cdkCode}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => copyToClipboard(order.cdkCode, 'CDK代码')}
+                                className="h-6 px-2"
+                              >
+                                <Copy className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs">
+                            {!isServiceOrder && order.activatedTime ? formatDateTime(order.activatedTime) : '-'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs">
+                            {formatDateTime(order.createTime)}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
-                            onClick={() => copyToClipboard(order.cdkCode, 'CDK代码')}
-                            className="h-6 px-2"
+                            onClick={() => openOrderDetail(order.id)}
                           >
-                            <Copy className="w-3 h-3" />
+                            <Eye className="w-4 h-4 mr-1" />
+                            详情
                           </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-xs">
-                          {order.activatedTime ? formatDateTime(order.activatedTime) : '-'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-xs">
-                          {formatDateTime(order.createTime)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openOrderDetail(order.id)}
-                        >
-                          <Eye className="w-4 h-4 mr-1" />
-                          详情
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
                 )}
               </TableBody>
             </Table>
@@ -466,6 +533,14 @@ export const OrdersPage: React.FC = () => {
         open={detailDialog.open}
         onOpenChange={(open) => setDetailDialog({ open, orderId: null })}
         orderId={detailDialog.orderId}
+      />
+
+      <CreateServiceOrderDialog
+        open={createServiceOrderOpen}
+        onOpenChange={setCreateServiceOrderOpen}
+        onCreated={async () => {
+          await handleRefresh();
+        }}
       />
     </div>
   );

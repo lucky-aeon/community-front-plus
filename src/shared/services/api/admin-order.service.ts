@@ -4,7 +4,8 @@ import {
   OrderDTO,
   OrderStatisticsRequest,
   OrderStatisticsDTO,
-  PageResponse
+  PageResponse,
+  CreateServiceOrderRequest
 } from '@shared/types';
 
 /**
@@ -66,6 +67,21 @@ export class AdminOrderService {
         ...params.endTime && { endTime: params.endTime }
       }
     });
+    return response.data.data;
+  }
+
+  /**
+   * 创建独立服务订单
+   * POST /api/admin/orders
+   *
+   * @description 手工新增独立服务订单记录，供后台统计与审计使用
+   * @param request 独立服务订单创建参数
+   * @returns Promise<IndependentServiceOrderDTO> 创建后的订单信息
+   */
+  static async createServiceOrder(
+    request: CreateServiceOrderRequest
+  ): Promise<OrderDTO> {
+    const response = await apiClient.post<ApiResponse<OrderDTO>>('/admin/orders', request);
     return response.data.data;
   }
 }

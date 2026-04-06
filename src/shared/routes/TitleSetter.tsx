@@ -10,7 +10,7 @@ const routeTitleMap: Array<{ pattern: RegExp; title: string }> = [
   { pattern: /^\/dashboard\/discussions$/, title: '讨论广场' },
   { pattern: /^\/dashboard\/courses$/, title: '课程' },
   { pattern: /^\/dashboard\/changelog$/, title: '更新日志' },
-  { pattern: /^\/dashboard\/membership$/, title: '会员中心' },
+  { pattern: /^\/dashboard\/membership$/, title: '会员与服务' },
   { pattern: /^\/dashboard\/ai-news(?:$|\/daily\/[^/]+$)/, title: 'AI 日报' },
   { pattern: /^\/dashboard\/ai-news\/[^/]+$/, title: 'AI 日报详情' },
   { pattern: /^\/dashboard\/interviews$/, title: '面试题库' },

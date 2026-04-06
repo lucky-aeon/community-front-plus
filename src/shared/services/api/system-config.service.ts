@@ -3,7 +3,8 @@ import {
   SystemConfigDTO,
   SystemConfigType,
   UpdateSystemConfigRequest,
-  UserSessionLimitConfigData
+  UserSessionLimitConfigData,
+  IndependentServicesConfigData
 } from '@shared/types';
 import type { GithubOAuthConfig } from '@shared/types/system';
 
@@ -84,5 +85,19 @@ export class SystemConfigService {
    */
   static async updateGithubOAuthConfig(data: GithubOAuthConfig): Promise<SystemConfigDTO> {
     return this.updateConfigByType('OAUTH_GITHUB', data);
+  }
+
+  /**
+   * 获取独立服务配置（INDEPENDENT_SERVICES）
+   */
+  static async getIndependentServicesConfig(): Promise<SystemConfigDTO> {
+    return this.getConfigByType('INDEPENDENT_SERVICES');
+  }
+
+  /**
+   * 更新独立服务配置（INDEPENDENT_SERVICES）
+   */
+  static async updateIndependentServicesConfig(data: IndependentServicesConfigData): Promise<SystemConfigDTO> {
+    return this.updateConfigByType('INDEPENDENT_SERVICES', data);
   }
 }

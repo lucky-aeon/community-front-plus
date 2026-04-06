@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,21 @@ import { RefreshCw, Save, Eye, EyeOff } from 'lucide-react';
 import { showToast } from '@shared/utils/toast';
 import { Input } from '@/components/ui/input';
 import type { GithubOAuthConfig } from '@shared/types/system';
+import { IndependentServicesConfigCard } from './IndependentServicesConfigCard';
+
+const GITHUB_OAUTH_DEFAULT: GithubOAuthConfig = {
+  clientId: '',
+  clientSecret: '',
+  redirectUri: '',
+  scopes: ['read:user', 'user:email'],
+  authorizeBaseUri: 'https://github.com/login/oauth/authorize',
+  tokenUri: 'https://github.com/login/oauth/access_token',
+  userApi: 'https://api.github.com/user',
+  emailApi: 'https://api.github.com/user/emails',
+  requireVerifiedEmailForMerge: true,
+  fetchEmailFromApi: true,
+  updateUserProfileIfEmpty: true,
+};
 
 export const SettingsPage: React.FC = () => {
   // 默认套餐配置 - 数据与状态
@@ -71,7 +86,7 @@ export const SettingsPage: React.FC = () => {
       setLoadingSessionCfg(true);
       const cfg: SystemConfigDTO = await SystemConfigService.getUserSessionLimitConfig();
       const data = cfg?.data as Partial<UserSessionLimitConfigData & { maxActiveIps?: number; maxDevices?: number; maxIpsPerDevice?: number }> | undefined;
-      const maxDevices = Math.min(10, Math.max(1, Number((data?.maxDevices ?? (data as any)?.maxActiveIps) ?? 2)));
+      const maxDevices = Math.min(10, Math.max(1, Number((data?.maxDevices ?? data?.maxActiveIps) ?? 2)));
       const maxIpsPerDevice = Math.min(10, Math.max(1, Number((data?.maxIpsPerDevice ?? 3))));
       const norm: UserSessionLimitConfigData = {
         maxDevices,
@@ -97,10 +112,6 @@ export const SettingsPage: React.FC = () => {
     fetchSessionLimitConfig();
   }, []);
 
-  useEffect(() => {
-    fetchGithubOAuthConfig();
-  }, []);
-
   const handleSave = async () => {
     if (!selectedPlanId) return showToast.error('请选择一个默认套餐');
     try {
@@ -124,39 +135,29 @@ export const SettingsPage: React.FC = () => {
   const [ghSaving, setGhSaving] = useState(false);
   const [showSecret, setShowSecret] = useState(false);
 
-  const ghDefault: GithubOAuthConfig = {
-    clientId: '',
-    clientSecret: '',
-    redirectUri: '',
-    scopes: ['read:user', 'user:email'],
-    authorizeBaseUri: 'https://github.com/login/oauth/authorize',
-    tokenUri: 'https://github.com/login/oauth/access_token',
-    userApi: 'https://api.github.com/user',
-    emailApi: 'https://api.github.com/user/emails',
-    requireVerifiedEmailForMerge: true,
-    fetchEmailFromApi: true,
-    updateUserProfileIfEmpty: true,
-  };
-
-  const fetchGithubOAuthConfig = async () => {
+  const fetchGithubOAuthConfig = useCallback(async () => {
     try {
       setGhLoading(true);
       const cfg: SystemConfigDTO = await SystemConfigService.getGithubOAuthConfig();
       const raw = (cfg?.data as Partial<GithubOAuthConfig> | undefined) || {};
       const normalized: GithubOAuthConfig = {
-        ...ghDefault,
+        ...GITHUB_OAUTH_DEFAULT,
         ...raw,
-        scopes: Array.isArray(raw.scopes) ? raw.scopes : ghDefault.scopes,
+        scopes: Array.isArray(raw.scopes) ? raw.scopes : GITHUB_OAUTH_DEFAULT.scopes,
       };
       setGhCfg(normalized);
       setInitialGhCfg(normalized);
     } catch {
-      setGhCfg(ghDefault);
-      setInitialGhCfg(ghDefault);
+      setGhCfg(GITHUB_OAUTH_DEFAULT);
+      setInitialGhCfg(GITHUB_OAUTH_DEFAULT);
     } finally {
       setGhLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchGithubOAuthConfig();
+  }, [fetchGithubOAuthConfig]);
 
   const ghDirty = useMemo(() => JSON.stringify(ghCfg) !== JSON.stringify(initialGhCfg), [ghCfg, initialGhCfg]);
 
@@ -327,6 +328,8 @@ export const SettingsPage: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      <IndependentServicesConfigCard />
 
       {/* GitHub OAuth 配置 */}
       <Card>

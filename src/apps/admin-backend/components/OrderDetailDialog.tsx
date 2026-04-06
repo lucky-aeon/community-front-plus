@@ -3,9 +3,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Copy, Package, User, CreditCard, Gift } from 'lucide-react';
+import { Copy, Package, User, CreditCard, Gift, Wrench } from 'lucide-react';
 import { AdminOrderService } from '@shared/services/api/admin-order.service';
-import { OrderDTO } from '@shared/types';
+import { OrderDTO, OrderType, CDKType } from '@shared/types';
 import { showToast } from '@shared/utils/toast';
 
 interface OrderDetailDialogProps {
@@ -56,13 +56,21 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
   };
 
   // 渲染订单类型徽章
-  const renderOrderTypeBadge = (orderType: 'PURCHASE' | 'GIFT') => {
+  const renderOrderTypeBadge = (orderType: OrderType) => {
     return (
-      <Badge variant={orderType === 'PURCHASE' ? 'default' : 'secondary'} className="flex items-center gap-1">
+      <Badge
+        variant={orderType === 'PURCHASE' ? 'default' : orderType === 'SERVICE' ? 'outline' : 'secondary'}
+        className="flex items-center gap-1"
+      >
         {orderType === 'PURCHASE' ? (
           <>
             <CreditCard className="w-3 h-3" />
             购买订单
+          </>
+        ) : orderType === 'SERVICE' ? (
+          <>
+            <Wrench className="w-3 h-3" />
+            服务订单
           </>
         ) : (
           <>
@@ -75,13 +83,26 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
   };
 
   // 渲染产品类型徽章
-  const renderProductTypeBadge = (productType: 'SUBSCRIPTION_PLAN' | 'COURSE') => {
+  const renderProductTypeBadge = (productType: CDKType) => {
     return (
       <Badge variant="outline" className="flex items-center gap-1">
         <Package className="w-3 h-3" />
-        {productType === 'SUBSCRIPTION_PLAN' ? '套餐' : '课程'}
+        {productType === 'SUBSCRIPTION_PLAN' ? '套餐' : productType === 'COURSE' ? '课程' : '服务'}
       </Badge>
     );
+  };
+
+  const renderOrderStatusBadge = (status?: string | null) => {
+    if (!status) {
+      return <Badge variant="secondary">-</Badge>;
+    }
+
+    const label =
+      status === 'CONFIRMED' ? '已确认' : status === 'COMPLETED' ? '已完成' : status === 'CANCELED' ? '已取消' : status;
+    const variant =
+      status === 'COMPLETED' ? 'default' : status === 'CANCELED' ? 'destructive' : 'secondary';
+
+    return <Badge variant={variant}>{label}</Badge>;
   };
 
   // 格式化金额
@@ -90,9 +111,14 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
   };
 
   // 格式化时间
-  const formatDateTime = (dateString: string) => {
+  const formatDateTime = (dateString?: string | null) => {
+    if (!dateString) {
+      return '-';
+    }
     return new Date(dateString).toLocaleString('zh-CN');
   };
+
+  const isServiceOrder = order?.orderType === 'SERVICE';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -150,6 +176,14 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
                   <div className="text-sm text-muted-foreground">订单类型</div>
                   <div>{renderOrderTypeBadge(order.orderType)}</div>
                 </div>
+                <div className="space-y-2">
+                  <div className="text-sm text-muted-foreground">订单状态</div>
+                  <div>{renderOrderStatusBadge(order.status)}</div>
+                </div>
+                <div className="space-y-2">
+                  <div className="text-sm text-muted-foreground">订单金额</div>
+                  <div className="text-lg font-semibold text-green-600">{formatAmount(order.amount)}</div>
+                </div>
               </div>
             </div>
 
@@ -159,14 +193,10 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
                 <User className="w-4 h-4" />
                 用户信息
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6 border-l-2 border-muted">
-                <div>
-                  <div className="text-sm text-muted-foreground">用户ID</div>
-                  <div className="font-mono text-sm">{order.userId}</div>
-                </div>
+              <div className="grid grid-cols-1 gap-4 pl-6 border-l-2 border-muted">
                 <div>
                   <div className="text-sm text-muted-foreground">用户名称</div>
-                  <div className="text-sm">{order.userName}</div>
+                  <div className="text-sm">{order.userName || '-'}</div>
                 </div>
               </div>
             </div>
@@ -177,54 +207,50 @@ export const OrderDetailDialog: React.FC<OrderDetailDialogProps> = ({
                 <Package className="w-4 h-4" />
                 产品信息
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6 border-l-2 border-muted">
+              <div className={`grid grid-cols-1 ${isServiceOrder ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-4 pl-6 border-l-2 border-muted`}>
                 <div>
                   <div className="text-sm text-muted-foreground">产品类型</div>
                   <div>{renderProductTypeBadge(order.productType)}</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground">产品名称</div>
-                  <div className="text-sm">{order.productName}</div>
+                  <div className="text-sm">{isServiceOrder ? '独立服务' : order.productName}</div>
                 </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">产品ID</div>
-                  <div className="font-mono text-sm">{order.productId}</div>
-                </div>
-                <div>
-                  <div className="text-sm text-muted-foreground">CDK代码</div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm">{order.cdkCode}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(order.cdkCode, 'CDK代码')}
-                      className="h-6 px-2"
-                    >
-                      <Copy className="w-3 h-3" />
-                    </Button>
+                {!isServiceOrder && (
+                  <div>
+                    <div className="text-sm text-muted-foreground">CDK代码</div>
+                    {order.cdkCode ? (
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-sm">{order.cdkCode}</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(order.cdkCode as string, 'CDK代码')}
+                          className="h-6 px-2"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-muted-foreground">-</div>
+                    )}
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
-            {/* 订单详情 */}
+            {/* 时间与备注 */}
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <CreditCard className="w-4 h-4" />
-                订单详情
+                时间与备注
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6 border-l-2 border-muted">
-                <div>
-                  <div className="text-sm text-muted-foreground">订单金额</div>
-                  <div className="text-lg font-semibold text-green-600">
-                    {formatAmount(order.amount)}
-                  </div>
-                </div>
                 <div>
                   <div className="text-sm text-muted-foreground">创建时间</div>
                   <div className="text-sm">{formatDateTime(order.createTime)}</div>
                 </div>
-                {order.activatedTime && (
+                {!isServiceOrder && order.activatedTime && (
                   <div className="md:col-span-2">
                     <div className="text-sm text-muted-foreground">激活时间</div>
                     <div className="text-sm">{formatDateTime(order.activatedTime)}</div>

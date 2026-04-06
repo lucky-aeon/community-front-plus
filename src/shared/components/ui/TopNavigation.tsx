@@ -140,7 +140,6 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
   // 轮询未读数量，并在通知变化时即时刷新
   useEffect(() => {
     let cancelled = false;
-    let timer: number | undefined;
     const fetchUnread = async () => {
       try {
         if (!user) return;
@@ -149,22 +148,21 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
       } catch { /* 静默失败 */ }
     };
     fetchUnread();
-    timer = window.setInterval(fetchUnread, 60_000);
+    const timer = window.setInterval(fetchUnread, 60_000);
     const onChanged = () => { void fetchUnread(); };
     window.addEventListener('notifications:changed', onChanged as EventListener);
     return () => {
       cancelled = true;
-      if (timer) window.clearInterval(timer);
+      window.clearInterval(timer);
       window.removeEventListener('notifications:changed', onChanged as EventListener);
     };
-  }, [user?.id]);
+  }, [user]);
 
   // 路由切换时，主动刷新一次未读汇总（避免等待下一轮轮询）
   useEffect(() => {
     if (!user) return;
     void AppUnreadService.refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.pathname]);
+  }, [location.pathname, user]);
 
   // 文章/题目未读红点：加载与轮询（前后台切换暂停）
   useEffect(() => {
@@ -180,7 +178,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
         setPostsUnread(Math.max(0, detail.postsUnread || 0));
         setQuestionsUnread(Math.max(0, detail.questionsUnread || 0));
         setChaptersUnread(Math.max(0, detail.chaptersUnread || 0));
-        setChatsUnread(Math.max(0, (detail as any).chatsUnread || 0));
+        setChatsUnread(Math.max(0, detail.chatsUnread || 0));
       }
     };
     // 启动轮询，并订阅更新事件
@@ -190,7 +188,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
     setPostsUnread(Math.max(0, snap.postsUnread || 0));
     setQuestionsUnread(Math.max(0, snap.questionsUnread || 0));
     setChaptersUnread(Math.max(0, snap.chaptersUnread || 0));
-    setChatsUnread(Math.max(0, (snap as any).chatsUnread || 0));
+    setChatsUnread(Math.max(0, snap.chatsUnread || 0));
     window.addEventListener('unread:summary', onSummary as EventListener);
     return () => {
       cancelled = true;
@@ -198,7 +196,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
       // 清理轮询，避免在未挂载时继续请求
       AppUnreadService.stop();
     };
-  }, [user?.id]);
+  }, [user]);
 
   const isActiveRoute = (path: string) => {
     if (path === '/dashboard/home') {
@@ -423,7 +421,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                         aria-disabled={!isAllowed(MENU_CODE.MEMBERSHIP)}
                       >
                         <Crown className="h-4 w-4" />
-                        <span>套餐升级</span>
+                        <span>会员与服务</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => { if (isAllowed(MENU_CODE.REDEEM_CDK)) setIsRedeemOpen(true); }}
@@ -582,7 +580,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                       disabled={!isAllowed(MENU_CODE.MEMBERSHIP)}
                     >
                       <Crown className="h-5 w-5" />
-                      <span className="text-sm font-medium">套餐升级</span>
+                      <span className="text-sm font-medium">会员与服务</span>
                     </button>
 
                     <button
