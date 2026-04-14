@@ -3,6 +3,8 @@ export interface User {
   email: string;
   name: string;
   avatar?: string;
+  // 用户角色（ADMIN / USER）
+  role?: 'ADMIN' | 'USER';
   // 用户标签（后端标签系统返回）
   tags?: string[];
   // 并发设备上限（来自后端用户信息）

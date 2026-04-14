@@ -17,6 +17,7 @@ import { Comments } from '@shared/components/ui/Comments';
 import { LikeButton } from '@shared/components/ui/LikeButton';
 import { extractVideoUrl, removeVideoTags } from '@shared/utils/videoUtils';
 import { FavoriteButton } from '@shared/components/business/FavoriteButton';
+import { ShareButton } from '@shared/components/ui/ShareButton';
 import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 export const ChapterDetailPage: React.FC = () => {
@@ -240,6 +241,11 @@ export const ChapterDetailPage: React.FC = () => {
               variant="ghost"
               size="sm"
               showCount={true}
+            />
+            <ShareButton
+              businessType="CHAPTER"
+              businessId={chapterDetail.id}
+              shareTitle={chapterDetail.title}
             />
           </div>
           {/* 上/下一章按钮 */}

@@ -13,6 +13,7 @@ import { Comments } from '@shared/components/ui/Comments';
 import { SubscribeButton } from '@/components/ui/subscribe-button';
 import { LikeButton } from '@shared/components/ui/LikeButton';
 import { FavoriteButton } from '@shared/components/business/FavoriteButton';
+import { ShareButton } from '@shared/components/ui/ShareButton';
 // 评论组件
 import { routeUtils } from '@shared/routes/routes';
 import { PostsService } from '@shared/services/api/posts.service';
@@ -140,21 +141,6 @@ export const PostDetailPage: React.FC = () => {
       </div>
     );
   }
-
-
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  
-
   return (
     <div className="py-6 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
@@ -318,6 +304,12 @@ export const PostDetailPage: React.FC = () => {
                 variant="ghost"
                 size="sm"
                 showCount={true}
+              />
+              <ShareButton
+                businessType="POST"
+                businessId={post.id}
+                shareTitle={post.title}
+                shareDescription={post.summary || post.content?.slice(0, 100)}
               />
               <Button
                 variant="ghost"

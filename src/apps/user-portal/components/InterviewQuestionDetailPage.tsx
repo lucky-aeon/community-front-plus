@@ -3,14 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Tag, Eye, MessageSquare, Heart } from 'lucide-react';
+import { ArrowLeft, Tag, Eye, MessageSquare } from 'lucide-react';
 import { InterviewQuestionsService } from '@shared/services/api';
 import type { InterviewQuestionDTO } from '@shared/types';
 import { MarkdownEditor } from '@shared/components/ui/MarkdownEditor';
 import { LikeButton } from '@shared/components/ui/LikeButton';
-import { useAuth } from '@/context/AuthContext';
 import { Comments } from '@shared/components/ui/Comments';
 import { FavoriteButton } from '@shared/components/business/FavoriteButton';
+import { ShareButton } from '@shared/components/ui/ShareButton';
 import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 export const InterviewQuestionDetailPage: React.FC = () => {
@@ -18,8 +18,6 @@ export const InterviewQuestionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [data, setData] = useState<InterviewQuestionDTO | null>(null);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
-
   // 页面标题：题目标题优先
   useDocumentTitle(data?.title || '题目详情');
 
@@ -69,6 +67,12 @@ export const InterviewQuestionDetailPage: React.FC = () => {
             variant="ghost"
             size="sm"
             showCount={true}
+          />
+          <ShareButton
+            businessType="INTERVIEW_QUESTION"
+            businessId={data.id}
+            shareTitle={data.title}
+            shareDescription={data.description?.slice(0, 100)}
           />
           <span className="inline-flex items-center gap-1"><MessageSquare className="h-4 w-4" />{data.commentCount ?? 0}</span>
           <span className="inline-flex items-center gap-1"><Eye className="h-4 w-4" />{data.viewCount ?? 0}</span>

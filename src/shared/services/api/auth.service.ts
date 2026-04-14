@@ -22,6 +22,7 @@ export interface BackendUser {
   createTime: string;
   updateTime: string;
   tags?: string[];
+  role?: string;
   // ===== 后端用户信息中包含的当前套餐回显字段（扁平） =====
   currentSubscriptionPlanId?: string | null;
   currentSubscriptionPlanName?: string | null;
@@ -303,8 +304,9 @@ export class AuthService {
       id: backendUser.id,
       name: backendUser.name,
       email: backendUser.email,
-      avatar: normalizeAvatar(backendUser.avatar) || `/avatars/avatar_1.png`,
+      avatar: normalizeAvatar(backendUser.avatar ?? undefined) || `/avatars/avatar_1.png`,
       maxConcurrentDevices: backendUser.maxConcurrentDevices,
+      role: (backendUser.role as 'ADMIN' | 'USER' | undefined),
       tags: backendUser.tags || [],
       // 不在前端推断套餐等级
       membershipTier: 'basic',

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, Clock, ExternalLink, Tags, Star, Lock, MessageSquare } from 'lucide-react';
+import { BookOpen, Clock, ExternalLink, Tags, Star, Lock } from 'lucide-react';
 import { CoursesService, SubscribeService, AppUnreadService } from '@shared/services/api';
 import { FrontCourseDetailDTO, FrontChapterDTO } from '@shared/types';
 import { Card } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import { ReactionBar } from '@shared/components/ui/ReactionBar';
 import { Comments } from '@shared/components/ui/Comments';
 import { PaymentModal } from '@shared/components/business/PaymentModal';
 import { LikeButton } from '@shared/components/ui/LikeButton';
+import { ShareButton } from '@shared/components/ui/ShareButton';
 import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 export const CourseDetailPage: React.FC = () => {
@@ -257,6 +258,12 @@ export const CourseDetailPage: React.FC = () => {
                 businessId={course.id}
                 initialCount={course.likeCount}
                 onChange={(s) => setCourse(prev => prev ? { ...prev, likeCount: s.likeCount } as FrontCourseDetailDTO : prev)}
+              />
+              <ShareButton
+                businessType="COURSE"
+                businessId={course.id}
+                shareTitle={course.title}
+                shareDescription={course.description?.slice(0, 100)}
               />
             </div>
             <ReactionBar businessType={'COURSE'} businessId={course.id} />

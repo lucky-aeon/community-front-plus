@@ -17,6 +17,7 @@ import { ReactionBar } from '@shared/components/ui/ReactionBar';
 import type { ReactionSummaryDTO } from '@shared/services/api';
 import { LikeButton } from '@shared/components/ui/LikeButton';
 import { FavoriteButton } from '@shared/components/business/FavoriteButton';
+import { ShareButton } from '@shared/components/ui/ShareButton';
 import { useNavigate } from 'react-router-dom';
 import { routeUtils } from '@shared/routes/routes';
 
@@ -416,6 +417,11 @@ export const Comments: React.FC<CommentsProps> = ({
                 skipInitialFetch={true}
                 initialIsFavorited={commentFavoriteStatus[c.id]?.isFavorited ?? false}
                 initialCount={commentFavoriteStatus[c.id]?.favoritesCount ?? 0}
+              />
+              <ShareButton
+                businessType="COMMENT"
+                businessId={c.id}
+                shareUrl={`${window.location.origin}${window.location.pathname}#comment-${c.id}`}
               />
               <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => setOpenReply(prev => ({ ...prev, [c.id]: !prev[c.id] }))}>
                 <CornerDownRight className="h-4 w-4 mr-1" /> 回复
