@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { Play, Pause, Volume2, VolumeX, Maximize, Settings } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface VideoPlayerProps {
@@ -172,13 +172,19 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>((props, 
         autoPlay={autoPlay}
         className="w-full h-full object-contain"
         playsInline
+      />
+
+      <button
+        type="button"
+        className="absolute inset-0 z-10 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-honey-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+        aria-label={isPlaying ? '暂停视频' : '播放视频'}
         onClick={togglePlay}
       />
 
       {/* 控制条 */}
       <div
         className={cn(
-          'absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300',
+          'absolute bottom-0 left-0 right-0 z-20 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300',
           showControls || !isPlaying ? 'opacity-100' : 'opacity-0'
         )}
       >
@@ -197,6 +203,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>((props, 
           <div className="flex items-center gap-3">
             {/* 播放/暂停 */}
             <button
+              type="button"
               onClick={togglePlay}
               className="hover:text-honey-400 transition-colors"
               aria-label={isPlaying ? '暂停' : '播放'}
@@ -206,6 +213,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>((props, 
 
             {/* 音量 */}
             <button
+              type="button"
               onClick={toggleMute}
               className="hover:text-honey-400 transition-colors"
               aria-label={isMuted ? '取消静音' : '静音'}
@@ -222,6 +230,7 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>((props, 
           <div className="flex items-center gap-3">
             {/* 全屏 */}
             <button
+              type="button"
               onClick={toggleFullscreen}
               className="hover:text-honey-400 transition-colors"
               aria-label="全屏"
@@ -234,13 +243,12 @@ export const VideoPlayer = forwardRef<VideoPlayerRef, VideoPlayerProps>((props, 
 
       {/* 中央播放按钮（仅在暂停时显示） */}
       {!isPlaying && (
-        <button
-          onClick={togglePlay}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-honey-500/90 hover:bg-honey-600 rounded-full flex items-center justify-center transition-colors shadow-lg"
-          aria-label="播放"
+        <div
+          className="pointer-events-none absolute top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-honey-500/90 rounded-full flex items-center justify-center shadow-lg"
+          aria-hidden="true"
         >
           <Play className="h-8 w-8 text-white ml-1" />
-        </button>
+        </div>
       )}
     </div>
   );
