@@ -1667,7 +1667,14 @@ export interface CDKQueryRequest {
 // ================ 系统配置管理相关接口定义 ================
 
 // 系统配置类型枚举
-export type SystemConfigType = 'DEFAULT_SUBSCRIPTION_PLAN' | 'EMAIL_TEMPLATE' | 'SYSTEM_MAINTENANCE' | 'USER_SESSION_LIMIT' | 'OAUTH_GITHUB' | 'INDEPENDENT_SERVICES';
+export type SystemConfigType =
+  | 'DEFAULT_SUBSCRIPTION_PLAN'
+  | 'EMAIL_TEMPLATE'
+  | 'SYSTEM_MAINTENANCE'
+  | 'USER_SESSION_LIMIT'
+  | 'OAUTH_GITHUB'
+  | 'INDEPENDENT_SERVICES'
+  | 'CREATOR_ABOUT_PAGE';
 
 // 默认套餐配置数据结构
 export interface DefaultSubscriptionConfig {
@@ -1687,6 +1694,32 @@ export interface SystemConfigDTO {
 // 更新系统配置请求参数
 export interface UpdateSystemConfigRequest {
   data: unknown;                        // 配置数据，根据配置类型而定
+}
+
+export interface CreatorAboutProjectConfigData {
+  name: string;
+  description: string;
+  githubUrl: string;
+}
+
+export interface CreatorAboutPageConfigData {
+  displayName: string;
+  introduction: string;
+  bilibiliUrl: string;
+  githubProfileUrl: string;
+  projects: CreatorAboutProjectConfigData[];
+}
+
+export interface CreatorAboutProjectDTO extends CreatorAboutProjectConfigData {
+  githubStars: number | null;
+}
+
+export interface CreatorAboutPageDTO {
+  displayName: string;
+  introduction: string;
+  bilibiliUrl: string;
+  githubProfileUrl: string;
+  projects: CreatorAboutProjectDTO[];
 }
 
 export type {

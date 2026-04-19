@@ -1,5 +1,6 @@
 import { apiClient, ApiResponse } from './config';
 import {
+  CreatorAboutPageConfigData,
   SystemConfigDTO,
   SystemConfigType,
   UpdateSystemConfigRequest,
@@ -99,5 +100,19 @@ export class SystemConfigService {
    */
   static async updateIndependentServicesConfig(data: IndependentServicesConfigData): Promise<SystemConfigDTO> {
     return this.updateConfigByType('INDEPENDENT_SERVICES', data);
+  }
+
+  /**
+   * 获取关于我页面配置（CREATOR_ABOUT_PAGE）
+   */
+  static async getCreatorAboutPageConfig(): Promise<SystemConfigDTO> {
+    return this.getConfigByType('CREATOR_ABOUT_PAGE');
+  }
+
+  /**
+   * 更新关于我页面配置（CREATOR_ABOUT_PAGE）
+   */
+  static async updateCreatorAboutPageConfig(data: CreatorAboutPageConfigData): Promise<SystemConfigDTO> {
+    return this.updateConfigByType('CREATOR_ABOUT_PAGE', data);
   }
 }

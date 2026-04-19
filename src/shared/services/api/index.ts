@@ -50,6 +50,7 @@ export { FavoritesService } from './favorites.service';
 export { UserOAuth2Service } from './user-oauth2.service';
 export { ChatRoomsService } from './chat-rooms.service';
 export { ChatMessagesService } from './chat-messages.service';
+export { CreatorAboutService } from './creator-about.service';
 
 // 导出类型定义
 export type {
@@ -95,6 +96,10 @@ export type {
   SimpleCourseDTO,
   UpdateSubscriptionPlanCoursesRequest,
   CDKDTO,
+  CreatorAboutPageConfigData,
+  CreatorAboutPageDTO,
+  CreatorAboutProjectConfigData,
+  CreatorAboutProjectDTO,
   CreateCDKRequest,
   CDKQueryRequest,
   CDKType,

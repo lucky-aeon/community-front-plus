@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ProtectedRoute, PublicOnlyRoute } from '@shared/routes/ProtectedRoute';
 import { MarketingPage } from '@apps/marketing/components/MarketingPage';
+import { AboutPage } from '@apps/marketing/components/AboutPage';
 import { LoginPage } from '@apps/marketing/components/LoginPage';
 import { Dashboard } from '@apps/user-portal/components/Dashboard';
 import { AdminBackend } from '@admin-backend/components/AdminBackend';
@@ -36,6 +37,11 @@ const AppContent: React.FC = () => {
             <MarketingPage />
           </PublicOnlyRoute>
         }
+      />
+
+      <Route
+        path="/about"
+        element={<AboutPage />}
       />
 
       {/* 公开路由 - 登录页 */}

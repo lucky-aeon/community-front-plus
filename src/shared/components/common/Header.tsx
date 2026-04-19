@@ -15,9 +15,10 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const navItems = [
-    { label: '课程', href: '#courses' },
-    { label: '会员与服务', href: '#pricing' },
-    { label: '案例', href: '#testimonials' }
+    { label: '课程', href: '/#courses' },
+    { label: '关于我', href: '/about' },
+    { label: '会员与服务', href: '/#pricing' },
+    { label: '案例', href: '/#testimonials' }
   ];
 
   const getMembershipBadge = () => {

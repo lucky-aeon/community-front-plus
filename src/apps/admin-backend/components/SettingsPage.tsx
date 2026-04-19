@@ -11,6 +11,7 @@ import { showToast } from '@shared/utils/toast';
 import { Input } from '@/components/ui/input';
 import type { GithubOAuthConfig } from '@shared/types/system';
 import { IndependentServicesConfigCard } from './IndependentServicesConfigCard';
+import { CreatorAboutPageConfigCard } from './CreatorAboutPageConfigCard';
 
 const GITHUB_OAUTH_DEFAULT: GithubOAuthConfig = {
   clientId: '',
@@ -330,6 +331,7 @@ export const SettingsPage: React.FC = () => {
       </Card>
 
       <IndependentServicesConfigCard />
+      <CreatorAboutPageConfigCard />
 
       {/* GitHub OAuth 配置 */}
       <Card>

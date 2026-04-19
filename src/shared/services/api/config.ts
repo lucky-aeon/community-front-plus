@@ -66,6 +66,7 @@ apiClient.interceptors.response.use(
       const cfg = error.config || {};
       const headers = (cfg.headers || {}) as Record<string, string>;
       const skipAuthLogout = headers['X-Skip-Auth-Logout'] === 'true' || (cfg as unknown as { __skipAuthLogout?: boolean }).__skipAuthLogout === true;
+      const skipErrorToast = headers['X-Skip-Error-Toast'] === 'true' || (cfg as unknown as { __skipErrorToast?: boolean }).__skipErrorToast === true;
       const urlStr = String(cfg?.url || '');
       let toastShown = false;
 
@@ -108,13 +109,15 @@ apiClient.interceptors.response.use(
           break;
         case 403:
           // 统一 403 文案（禁止覆盖）
-          showToast.error('权限不足');
-          toastShown = true;
+          if (!skipErrorToast) {
+            showToast.error('权限不足');
+            toastShown = true;
+          }
           break;
         case 404: {
           // 优先显示后端 message，否则兜底
           const msg = data?.message || '请求的资源未找到';
-          if (msg.trim() !== '') {
+          if (!skipErrorToast && msg.trim() !== '') {
             showToast.error(msg);
             toastShown = true;
           }
@@ -123,7 +126,7 @@ apiClient.interceptors.response.use(
         case 500: {
           // 优先显示后端 message，否则兜底
           const msg = data?.message || '服务器错误，请稍后再试';
-          if (msg.trim() !== '') {
+          if (!skipErrorToast && msg.trim() !== '') {
             showToast.error(msg);
             toastShown = true;
           }
@@ -132,7 +135,7 @@ apiClient.interceptors.response.use(
         case 400: {
           // 客户端请求错误，显示后端返回的具体错误信息
           const badRequestMessage = data?.message || '请求参数有误';
-          if (badRequestMessage.trim() !== '') {
+          if (!skipErrorToast && badRequestMessage.trim() !== '') {
             showToast.error(badRequestMessage);
             toastShown = true;
           }
@@ -141,7 +144,7 @@ apiClient.interceptors.response.use(
         default: {
           // 显示后端返回的错误信息，如果没有则显示默认信息
           const errorMessage = data?.message || '请求失败，请稍后再试';
-          if (errorMessage.trim() !== '') {
+          if (!skipErrorToast && errorMessage.trim() !== '') {
             showToast.error(errorMessage);
             toastShown = true;
           }
