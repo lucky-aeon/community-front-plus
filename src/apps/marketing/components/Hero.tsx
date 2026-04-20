@@ -1,10 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { TrendingUp, Users, Award, Code, MessageSquare } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { TrendingUp, Users, Award, Code, MessageSquare, Copy, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { showToast } from '@shared/utils/toast';
 import { PublicCoursesService, PublicStatsService } from '@shared/services/api';
 
 export const Hero: React.FC = () => {
+  const qiaoyaCommand = 'npx qiaoya';
   const [courseTotal, setCourseTotal] = useState<number>(0);
   const [userTotal, setUserTotal] = useState<number>(0);
+  const [isCommandCopied, setIsCommandCopied] = useState(false);
+  const copyResetTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -27,7 +32,12 @@ export const Hero: React.FC = () => {
       }
     };
     loadTotal();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      if (copyResetTimerRef.current) {
+        window.clearTimeout(copyResetTimerRef.current);
+      }
+    };
   }, []);
 
   const courseCountDisplay = useMemo(() => {
@@ -50,6 +60,24 @@ export const Hero: React.FC = () => {
     { icon: TrendingUp, value: '95%', label: '就业率' }
   ];
 
+  const handleCopyCommand = async () => {
+    try {
+      await navigator.clipboard.writeText(qiaoyaCommand);
+      setIsCommandCopied(true);
+      showToast.success('命令已复制');
+
+      if (copyResetTimerRef.current) {
+        window.clearTimeout(copyResetTimerRef.current);
+      }
+      copyResetTimerRef.current = window.setTimeout(() => {
+        setIsCommandCopied(false);
+      }, 2000);
+    } catch (error) {
+      console.error('复制 qiaoya 命令失败', error);
+      showToast.error('复制失败，请手动复制');
+    }
+  };
+
   return (
     <section className="relative bg-gradient-to-br from-yellow-50 via-white to-orange-50 pt-20 pb-32 overflow-hidden">
       {/* Background decoration */}
@@ -68,7 +96,7 @@ export const Hero: React.FC = () => {
               </span>
             </h1>
             
-            <p className="text-xl text-gray-600 mb-12 leading-relaxed">
+            <p className="text-xl text-gray-600 mb-10 leading-relaxed">
               加入我们的技术社区，与专业开发者一起学习、成长、分享
             </p>
 
@@ -83,6 +111,36 @@ export const Hero: React.FC = () => {
                   <div className="text-sm text-gray-600">{stat.label}</div>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-8 max-w-2xl rounded-2xl border border-honey-200/80 bg-white/80 p-4 text-left shadow-lg shadow-honey-200/20 backdrop-blur-sm">
+              <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-honey-700">
+                <span className="h-2 w-2 rounded-full bg-honey-500" />
+                给 AI 的快速入口
+              </div>
+              <h2 className="text-lg font-bold text-gray-900">
+                也可以让 AI 先替你逛一圈敲鸭社区
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-gray-600">
+                适用于 Claude Code、Codex、Cursor、Cline、Windsurf、Trae 等 Agent 工具，执行后可让 AI 直接了解社区课程、服务和内容结构。
+              </p>
+
+              <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-honey-100 bg-gradient-to-r from-honey-50 via-white to-honey-50/80 p-3 sm:flex-row sm:items-center sm:justify-between">
+                <code className="overflow-x-auto text-sm font-semibold text-amber-800 sm:text-base">
+                  {qiaoyaCommand}
+                </code>
+                <Button
+                  type="button"
+                  variant="honeySoft"
+                  size="sm"
+                  onClick={handleCopyCommand}
+                  aria-label="复制 npx qiaoya 命令"
+                  className="shrink-0"
+                >
+                  {isCommandCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {isCommandCopied ? '已复制' : '复制命令'}
+                </Button>
+              </div>
             </div>
           </div>
 
