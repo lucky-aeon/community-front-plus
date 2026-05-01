@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Check, CheckCircle2, Copy, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,6 @@ type TargetRect = {
   height: number;
 };
 
-const GUIDE_VERSION = 'v4';
 const MIN_PLUS_LEVEL = 2;
 const resolveLatestCourseDetailPath = async () => {
   try {
@@ -134,11 +133,6 @@ export const PlusCommunityOnboarding: React.FC = () => {
 
   const planLevel = Number(user?.currentSubscriptionLevel ?? user?.currentSubscriptionPlanLevel ?? 0);
   const shouldRun = Boolean(user?.id && planLevel >= MIN_PLUS_LEVEL);
-  const storageKey = useMemo(() => {
-    if (!user?.id) return '';
-    return `plus-community-onboarding:${GUIDE_VERSION}:${user.id}`;
-  }, [user?.id]);
-
   useEffect(() => {
     if (!shouldRun) return;
 
@@ -200,17 +194,13 @@ export const PlusCommunityOnboarding: React.FC = () => {
   }, [activeIndex, activeStep, location.pathname, navigate, open]);
 
   useEffect(() => {
-    if (!shouldRun || !storageKey) {
+    if (!shouldRun) {
       setOpen(false);
       return;
     }
 
-    // 优先使用后端状态
+    // 使用后端状态判断
     if (user?.plusGuideCompletedAt) return;
-
-    // 降级：检查 localStorage
-    const completed = window.localStorage.getItem(storageKey);
-    if (completed) return;
 
     // 需要等 tourSteps 加载完成
     if (tourSteps.length === 0) return;
@@ -221,7 +211,7 @@ export const PlusCommunityOnboarding: React.FC = () => {
     }, 600);
 
     return () => window.clearTimeout(timer);
-  }, [shouldRun, storageKey, user?.plusGuideCompletedAt, tourSteps]);
+  }, [shouldRun, user?.plusGuideCompletedAt, tourSteps]);
 
   useEffect(() => {
     if (!open) return;
@@ -284,17 +274,11 @@ export const PlusCommunityOnboarding: React.FC = () => {
   }, [activeIndex]);
 
   const completeGuide = async () => {
-    // 调用后端接口标记完成
     try {
       const { UserService } = await import('@shared/services/api');
       await UserService.completePlusGuide();
     } catch (error) {
       console.error('标记Plus指引完成失败:', error);
-    }
-
-    // 同时写入 localStorage（降级）
-    if (storageKey) {
-      window.localStorage.setItem(storageKey, new Date().toISOString());
     }
     setOpen(false);
   };
