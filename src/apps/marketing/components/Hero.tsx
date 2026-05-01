@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { TrendingUp, Users, Award, Code, MessageSquare, Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { showToast } from '@shared/utils/toast';
-import { PublicCoursesService, PublicStatsService } from '@shared/services/api';
+import { PublicCoursesService, PublicStatsService, apiClient, ApiResponse } from '@shared/services/api';
 
 export const Hero: React.FC = () => {
-  const qiaoyaCommand = 'curl -fsSL https://code.xhyovo.cn/install | sh';
+  const [qiaoyaCommand, setQiaoyaCommand] = useState<string>('');
   const [courseTotal, setCourseTotal] = useState<number>(0);
   const [userTotal, setUserTotal] = useState<number>(0);
   const [isCommandCopied, setIsCommandCopied] = useState(false);
@@ -38,6 +38,22 @@ export const Hero: React.FC = () => {
         window.clearTimeout(copyResetTimerRef.current);
       }
     };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadConfig = async () => {
+      try {
+        const resp = await apiClient.get<ApiResponse<{ installCommand?: string }>>('/public/site/plus-guide-config');
+        if (!cancelled) {
+          setQiaoyaCommand(resp.data.data?.installCommand || '');
+        }
+      } catch {
+        // 静默失败
+      }
+    };
+    loadConfig();
+    return () => { cancelled = true; };
   }, []);
 
   const courseCountDisplay = useMemo(() => {
@@ -113,6 +129,7 @@ export const Hero: React.FC = () => {
               ))}
             </div>
 
+            {qiaoyaCommand && (
             <div className="mt-8 max-w-2xl rounded-2xl border border-honey-200/80 bg-white/80 p-4 text-left shadow-lg shadow-honey-200/20 backdrop-blur-sm">
               <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-honey-700">
                 <span className="h-2 w-2 rounded-full bg-honey-500" />
@@ -142,6 +159,7 @@ export const Hero: React.FC = () => {
                 </Button>
               </div>
             </div>
+            )}
           </div>
 
           {/* Hero Image */}
