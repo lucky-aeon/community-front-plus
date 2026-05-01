@@ -31,6 +31,7 @@ export interface BackendUser {
   currentSubscriptionPlanLevel?: number | null;
   // 新字段：后端返回的当前套餐等级（用于业务判断）
   currentSubscriptionLevel?: number | null;
+  plusGuideCompletedAt?: string | null;
 }
 
 // 登录响应接口
@@ -317,6 +318,7 @@ export class AuthService {
       currentSubscriptionEndTime: end || undefined,
       currentSubscriptionPlanLevel: backendUser.currentSubscriptionPlanLevel || undefined,
       currentSubscriptionLevel: backendUser.currentSubscriptionLevel || undefined,
+      plusGuideCompletedAt: backendUser.plusGuideCompletedAt || undefined,
     };
   }
 

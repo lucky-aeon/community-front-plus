@@ -19,6 +19,8 @@ export interface User {
   currentSubscriptionPlanLevel?: number; // 1/2/3 用于样式层级
   // 业务判断使用：后端用户信息返回的当前套餐等级（仅此字段，按你的后端为准）
   currentSubscriptionLevel?: number;
+  // Plus 指引完成时间（null 表示未完成）
+  plusGuideCompletedAt?: string | null;
 }
 
 export interface Course {
@@ -442,6 +444,7 @@ export interface UserDTO {
   currentSubscriptionStartTime?: string; // ISO字符串
   currentSubscriptionEndTime?: string;   // ISO字符串
   currentSubscriptionPlanLevel?: number; // 1/2/3（如果后端提供则直传）
+  plusGuideCompletedAt?: string | null;
 }
 
 // 公开用户资料（对接 UserPublicProfileDTO）

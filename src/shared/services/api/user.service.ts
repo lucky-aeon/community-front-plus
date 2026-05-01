@@ -80,7 +80,17 @@ export class UserService {
     
     // 更新本地存储的用户信息
     this.updateLocalUserInfo(response.data.data);
-    
+
+    return response.data.data;
+  }
+
+  /**
+   * 标记 Plus 指引完成
+   * POST /api/user/plus-guide/complete
+   */
+  static async completePlusGuide(): Promise<UserDTO> {
+    const response = await apiClient.post<ApiResponse<UserDTO>>('/user/plus-guide/complete');
+    this.updateLocalUserInfo(response.data.data);
     return response.data.data;
   }
 
@@ -125,6 +135,7 @@ export class UserService {
           currentSubscriptionStartTime: userDTO.currentSubscriptionStartTime || user.currentSubscriptionStartTime,
           currentSubscriptionEndTime: userDTO.currentSubscriptionEndTime || user.currentSubscriptionEndTime,
           currentSubscriptionPlanLevel: userDTO.currentSubscriptionPlanLevel ?? user.currentSubscriptionPlanLevel,
+          plusGuideCompletedAt: userDTO.plusGuideCompletedAt ?? user.plusGuideCompletedAt,
         };
         
         // 保存到本地存储

@@ -166,6 +166,10 @@ export const PlusCommunityOnboarding: React.FC = () => {
       return;
     }
 
+    // 优先使用后端状态
+    if (user?.plusGuideCompletedAt) return;
+
+    // 降级：检查 localStorage
     const completed = window.localStorage.getItem(storageKey);
     if (completed) return;
 
@@ -175,7 +179,7 @@ export const PlusCommunityOnboarding: React.FC = () => {
     }, 600);
 
     return () => window.clearTimeout(timer);
-  }, [shouldRun, storageKey]);
+  }, [shouldRun, storageKey, user?.plusGuideCompletedAt]);
 
   useEffect(() => {
     if (!open) return;
@@ -237,7 +241,16 @@ export const PlusCommunityOnboarding: React.FC = () => {
     setCommandCopied(false);
   }, [activeIndex]);
 
-  const completeGuide = () => {
+  const completeGuide = async () => {
+    // 调用后端接口标记完成
+    try {
+      const { UserService } = await import('@shared/services/api');
+      await UserService.completePlusGuide();
+    } catch (error) {
+      console.error('标记Plus指引完成失败:', error);
+    }
+
+    // 同时写入 localStorage（降级）
     if (storageKey) {
       window.localStorage.setItem(storageKey, new Date().toISOString());
     }
@@ -246,7 +259,7 @@ export const PlusCommunityOnboarding: React.FC = () => {
 
   const goNext = () => {
     if (isLastStep) {
-      completeGuide();
+      void completeGuide();
       return;
     }
     setActiveIndex((value) => value + 1);
