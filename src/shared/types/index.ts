@@ -1677,7 +1677,8 @@ export type SystemConfigType =
   | 'USER_SESSION_LIMIT'
   | 'OAUTH_GITHUB'
   | 'INDEPENDENT_SERVICES'
-  | 'CREATOR_ABOUT_PAGE';
+  | 'CREATOR_ABOUT_PAGE'
+  | 'PLUS_GUIDE';
 
 // 默认套餐配置数据结构
 export interface DefaultSubscriptionConfig {

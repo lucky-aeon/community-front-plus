@@ -129,6 +129,35 @@ export const SettingsPage: React.FC = () => {
   const loading = loadingPlans || loadingConfig;
   const sessionLoading = loadingSessionCfg;
 
+  // ============== Plus 指引配置 ==============
+  const [plusGuideCfg, setPlusGuideCfg] = useState<{ installCommand: string }>({ installCommand: '' });
+  const [initialPlusGuideCfg, setInitialPlusGuideCfg] = useState<{ installCommand: string }>({ installCommand: '' });
+  const [plusGuideLoading, setPlusGuideLoading] = useState(false);
+  const [plusGuideSaving, setPlusGuideSaving] = useState(false);
+  const plusGuideDirty = useMemo(() =>
+    plusGuideCfg.installCommand !== initialPlusGuideCfg.installCommand,
+    [plusGuideCfg, initialPlusGuideCfg]);
+
+  const fetchPlusGuideConfig = useCallback(async () => {
+    try {
+      setPlusGuideLoading(true);
+      const cfg = await SystemConfigService.getPlusGuideConfig();
+      const data = (cfg?.data as { installCommand?: string } | undefined) || {};
+      const normalized = { installCommand: data.installCommand || '' };
+      setPlusGuideCfg(normalized);
+      setInitialPlusGuideCfg(normalized);
+    } catch {
+      setPlusGuideCfg({ installCommand: '' });
+      setInitialPlusGuideCfg({ installCommand: '' });
+    } finally {
+      setPlusGuideLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPlusGuideConfig();
+  }, [fetchPlusGuideConfig]);
+
   // ============== GitHub OAuth 配置 ==============
   const [ghCfg, setGhCfg] = useState<GithubOAuthConfig | null>(null);
   const [initialGhCfg, setInitialGhCfg] = useState<GithubOAuthConfig | null>(null);
@@ -332,6 +361,51 @@ export const SettingsPage: React.FC = () => {
 
       <IndependentServicesConfigCard />
       <CreatorAboutPageConfigCard />
+
+      {/* Plus 指引配置 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Plus 指引配置</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="install-command">CLI 安装命令</Label>
+              <Input
+                id="install-command"
+                value={plusGuideCfg.installCommand}
+                onChange={(e) => setPlusGuideCfg(prev => ({ ...prev, installCommand: e.target.value }))}
+                disabled={plusGuideLoading || plusGuideSaving}
+                placeholder="例如：curl -fsSL https://code.xhyovo.cn/install | sh"
+              />
+              <p className="text-xs text-muted-foreground">
+                Plus 用户首次进入社区时会看到引导导览。配置后，该命令会在导览中展示供用户复制。留空则跳过该步骤。
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={fetchPlusGuideConfig} disabled={plusGuideLoading}>
+                <RefreshCw className="mr-2 h-4 w-4" />刷新
+              </Button>
+              <Button
+                onClick={async () => {
+                  try {
+                    setPlusGuideSaving(true);
+                    await SystemConfigService.updatePlusGuideConfig({ installCommand: plusGuideCfg.installCommand || undefined });
+                    setInitialPlusGuideCfg(plusGuideCfg);
+                  } catch {
+                    // 错误由拦截器提示
+                  } finally {
+                    setPlusGuideSaving(false);
+                  }
+                }}
+                disabled={!plusGuideDirty || plusGuideSaving}
+              >
+                <Save className="mr-2 h-4 w-4" />保存配置
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* GitHub OAuth 配置 */}
       <Card>

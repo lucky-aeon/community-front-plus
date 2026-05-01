@@ -103,6 +103,22 @@ export class SystemConfigService {
   }
 
   /**
+   * 获取 Plus 指引配置
+   */
+  static async getPlusGuideConfig(): Promise<SystemConfigDTO> {
+    const response = await apiClient.get<ApiResponse<SystemConfigDTO>>('/admin/system-configs/plus_guide');
+    return response.data.data;
+  }
+
+  /**
+   * 更新 Plus 指引配置
+   */
+  static async updatePlusGuideConfig(data: { installCommand?: string }): Promise<SystemConfigDTO> {
+    const response = await apiClient.put<ApiResponse<SystemConfigDTO>>('/admin/system-configs/plus_guide', { data });
+    return response.data.data;
+  }
+
+  /**
    * 获取关于我页面配置（CREATOR_ABOUT_PAGE）
    */
   static async getCreatorAboutPageConfig(): Promise<SystemConfigDTO> {
