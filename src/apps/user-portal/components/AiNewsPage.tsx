@@ -1,12 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { RefreshCw, Calendar, Newspaper, Sparkles } from 'lucide-react';
 import { AppAiNewsService } from '@shared/services/api';
 import { sanitizeHtml } from '@shared/utils/sanitize-html';
 import type { FrontDailyItemDTO, DailyQueryRequest, TodayDailyDTO, HistoryOverviewDTO } from '@shared/types';
-import { Link, useNavigate, useSearchParams, useParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 // 分页在日期视图不再使用，此处不引入 AdminPagination
 
 export const AiNewsPage: React.FC = () => {
@@ -18,7 +17,6 @@ export const AiNewsPage: React.FC = () => {
   const [query, setQuery] = useState<DailyQueryRequest>({ pageNum: 1, pageSize: 10, date: undefined });
   const [items, setItems] = useState<FrontDailyItemDTO[]>([]);
   const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState({ current: 1, size: 10, total: 0, pages: 0 });
   const listAnchor = React.useRef<HTMLDivElement | null>(null);
   const [pastPreview, setPastPreview] = useState<Record<string, string>>({});
   const navigate = useNavigate();
@@ -55,7 +53,6 @@ export const AiNewsPage: React.FC = () => {
       const resp = await AppAiNewsService.getDailyByDate({ date: query.date, pageNum: query.pageNum, pageSize: query.pageSize });
       const records = resp.records || [];
       setItems(records);
-      setPagination({ current: resp.current, size: resp.size, total: resp.total, pages: resp.pages });
     } catch (e) {
       console.error('加载AI日报列表失败:', e);
     } finally {
@@ -77,8 +74,6 @@ export const AiNewsPage: React.FC = () => {
     loadDaily();
   }, [query.pageNum, query.pageSize, query.date, loadDaily, dateParamFromPath]);
 
-  const onPageChange = (p: number) => setQuery(prev => ({ ...prev, pageNum: p }));
-  const formatDateTime = (s?: string) => !s ? '-' : new Date(s).toLocaleString('zh-CN');
   const activeDate = query.date || 'latest';
   const latestDate = today?.date;
   const displayPastDates = useMemo(() => history, [history]);
@@ -186,7 +181,7 @@ export const AiNewsPage: React.FC = () => {
     }, { root: null, rootMargin: '0px', threshold: 0.1 });
     io.observe(el);
     return () => io.disconnect();
-  }, [activeDate, isDateRoute, historyMoreRef.current, loadMoreHistory]);
+  }, [activeDate, isDateRoute, loadMoreHistory]);
   return (
     <div className="px-4 py-6">
       <div className="flex items-center gap-2 mb-4">
@@ -196,7 +191,19 @@ export const AiNewsPage: React.FC = () => {
           {activeDate !== 'latest' && (
             <Button variant="outline" size="sm" onClick={() => navigate('/dashboard/ai-news')}>回到今日</Button>
           )}
-          <Button variant="outline" size="sm" onClick={() => { activeDate === 'latest' ? (loadToday(), loadHistory()) : loadDaily(); }} disabled={loading}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (activeDate === 'latest') {
+                void loadToday();
+                void loadHistory();
+              } else {
+                void loadDaily();
+              }
+            }}
+            disabled={loading}
+          >
             <RefreshCw className="w-4 h-4 mr-1" /> 刷新
           </Button>
         </div>

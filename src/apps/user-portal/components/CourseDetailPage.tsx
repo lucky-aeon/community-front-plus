@@ -220,6 +220,7 @@ export const CourseDetailPage: React.FC = () => {
                   variant={isFollowing ? 'secondary' : 'outline'}
                   onClick={toggleSubscribe}
                   disabled={followLoading}
+                  data-plus-guide="course-detail-subscribe"
                 >
                   {isFollowing ? '已订阅' : '订阅课程'}
                 </Button>

@@ -236,6 +236,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
             {/* Logo */}
             <button
               onClick={handleLogoClick}
+              data-plus-guide="brand"
               className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
             >
               <img
@@ -261,6 +262,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                 return (
                   <div
                     key={item.id}
+                    data-plus-guide={`nav-${item.id}`}
                     className={cn(
                       "relative px-4 py-2 rounded-xl font-medium text-sm",
                       "text-warm-gray-400 bg-transparent opacity-60 cursor-not-allowed"
@@ -285,6 +287,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                 <NavLink
                   key={item.id}
                   to={item.path}
+                  data-plus-guide={`nav-${item.id}`}
                   className={cn(
                     "relative px-4 py-2 rounded-xl font-medium text-sm transition-all duration-200 group",
                     "hover:bg-honey-50 hover:text-honey-600",
@@ -365,6 +368,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                 <DropdownMenu open={isUserMenuOpen} onOpenChange={setIsUserMenuOpen}>
                   <DropdownMenuTrigger asChild>
                     <button
+                      data-plus-guide="user-menu"
                       className={cn(
                         "flex items-center space-x-3 p-2 rounded-xl transition-all duration-200",
                         "hover:bg-honey-50 focus:outline-none focus:ring-2 focus:ring-honey-500/20",
@@ -502,6 +506,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                       return (
                         <div
                           key={item.id}
+                          data-plus-guide={`nav-${item.id}`}
                           className={cn(
                             "flex items-center space-x-3 px-4 py-3 rounded-xl font-medium",
                             "text-warm-gray-400 opacity-60 cursor-not-allowed"
@@ -527,6 +532,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                       <NavLink
                         key={item.id}
                         to={item.path}
+                        data-plus-guide={`nav-${item.id}`}
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={cn(
                           "flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-colors",

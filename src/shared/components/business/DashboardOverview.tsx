@@ -128,20 +128,24 @@ export const DashboardOverview: React.FC<DashboardOverviewProps> = ({ className 
         {/* 左侧栏：最新课程 + 更新日志 */}
         <div className="lg:col-span-3 space-y-6">
           {/* 最新课程章节 */}
-          <RecentCourseChapters
-            chapters={recentChapters}
-            isLoading={loadingStates.chapters}
-          />
+          <div data-plus-guide="home-recent-chapters">
+            <RecentCourseChapters
+              chapters={recentChapters}
+              isLoading={loadingStates.chapters}
+            />
+          </div>
 
           {/* 更新日志 */}
-          <UpdateLogs
-            logs={updateLogs}
-            isLoading={loadingStates.logs}
-          />
+          <div data-plus-guide="home-update-logs">
+            <UpdateLogs
+              logs={updateLogs}
+              isLoading={loadingStates.logs}
+            />
+          </div>
         </div>
 
         {/* 中间主栏：最新文章 */}
-        <div className="lg:col-span-6">
+        <div className="lg:col-span-6" data-plus-guide="home-recent-articles">
           <RecentContent
             items={loadingStates.posts ? undefined : transformedPosts}
             showHeader={true}

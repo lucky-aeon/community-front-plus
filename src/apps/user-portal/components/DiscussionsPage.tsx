@@ -68,7 +68,6 @@ export const DiscussionsPage: React.FC = () => {
       fetchPosts(currentPage, categoryType, searchTerm);
     }, 300); // 300ms 防抖
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, currentPage, searchTerm]);
 
   // 搜索词变化时，重置页码
@@ -128,7 +127,7 @@ export const DiscussionsPage: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="mb-6" data-plus-guide="discussions-content">
         <TabsList className="grid w-full grid-cols-3 rounded-full bg-muted p-1 h-12">
           {tabs.map((tab) => (
             <TabsTrigger

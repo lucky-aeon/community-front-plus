@@ -35,21 +35,27 @@ export const HomePage: React.FC = () => {
   return (
     <PageContainer className="space-y-8">
       {/* 顶部：AI 日报横幅摘要 */}
-      <AiDailyHero />
+      <div data-plus-guide="home-ai-daily">
+        <AiDailyHero />
+      </div>
 
       {/* AI 工具使用卡片（共享 Key） */}
       <AiToolUsageCard />
 
       {/* 最近学习：顶部强调卡片（使用现有学习记录接口） */}
-      <RecentLearningBanner />
+      <div data-plus-guide="home-learning">
+        <RecentLearningBanner />
+      </div>
 
       {/* 置顶推荐文章 */}
-      <PinnedPostsBanner />
+      <div data-plus-guide="home-pinned-posts">
+        <PinnedPostsBanner />
+      </div>
 
       {/* 套餐即将到期提示（<=7天） */}
       {(() => {
         if (!user?.currentSubscriptionEndTime) return null;
-        const end = new Date(user.currentSubscriptionEndTime as any).getTime();
+        const end = new Date(user.currentSubscriptionEndTime).getTime();
         if (isNaN(end)) return null;
         const days = Math.floor((end - Date.now()) / 86400000);
         if (days < 0 || days > 7) return null;
@@ -58,7 +64,7 @@ export const HomePage: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="text-sm text-orange-700">
                 您的套餐{user.currentSubscriptionPlanName ? `「${user.currentSubscriptionPlanName}」` : ''}将于
-                <span className="mx-1 font-medium">{new Date(user.currentSubscriptionEndTime as any).toLocaleString('zh-CN')}</span>
+                <span className="mx-1 font-medium">{new Date(user.currentSubscriptionEndTime).toLocaleString('zh-CN')}</span>
                 到期（剩余 {Math.max(0, days)} 天）。
               </div>
               <div className="flex gap-2">

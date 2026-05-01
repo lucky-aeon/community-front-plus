@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { TopNavigation } from '@shared/components/ui/TopNavigation';
+import { PlusCommunityOnboarding } from '@shared/components/business/PlusCommunityOnboarding';
 import { cn } from '@shared/utils/cn';
 
 interface AppLayoutProps {
@@ -26,6 +27,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
       {/* Navigation */}
       <TopNavigation />
+      <PlusCommunityOnboarding />
 
       {/* Main Content */}
       <main className="relative">
