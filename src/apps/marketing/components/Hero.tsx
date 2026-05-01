@@ -5,7 +5,7 @@ import { showToast } from '@shared/utils/toast';
 import { PublicCoursesService, PublicStatsService } from '@shared/services/api';
 
 export const Hero: React.FC = () => {
-  const qiaoyaCommand = 'npx qiaoya';
+  const qiaoyaCommand = 'curl -fsSL https://code.xhyovo.cn/install | sh';
   const [courseTotal, setCourseTotal] = useState<number>(0);
   const [userTotal, setUserTotal] = useState<number>(0);
   const [isCommandCopied, setIsCommandCopied] = useState(false);
@@ -122,7 +122,7 @@ export const Hero: React.FC = () => {
                 也可以让 AI 先替你逛一圈敲鸭社区
               </h2>
               <p className="mt-2 text-sm leading-6 text-gray-600">
-                适用于 Claude Code、Codex、Cursor、Cline、Windsurf、Trae 等 Agent 工具，执行后可让 AI 直接了解社区课程、服务和内容结构。
+                适用于 Codex、Claude Code、Cursor、Windsurf、OpenClaw 等 Agent 工具，无需 Node / Python，执行后可让 AI 直接了解社区课程、服务和内容结构。
               </p>
 
               <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-honey-100 bg-gradient-to-r from-honey-50 via-white to-honey-50/80 p-3 sm:flex-row sm:items-center sm:justify-between">
@@ -134,7 +134,7 @@ export const Hero: React.FC = () => {
                   variant="honeySoft"
                   size="sm"
                   onClick={handleCopyCommand}
-                  aria-label="复制 npx qiaoya 命令"
+                  aria-label="复制 qiaoya 一键安装命令"
                   className="shrink-0"
                 >
                   {isCommandCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}

@@ -43,11 +43,13 @@ describe('Hero', () => {
 
     expect(await screen.findByText('也可以让 AI 先替你逛一圈敲鸭社区')).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: '复制 npx qiaoya 命令' }));
+    expect(screen.getByText('curl -fsSL https://code.xhyovo.cn/install | sh')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: '复制 qiaoya 一键安装命令' }));
 
     await waitFor(() => {
       expect(showToast.success).toHaveBeenCalledWith('命令已复制');
-      expect(screen.getByRole('button', { name: '复制 npx qiaoya 命令' }).textContent).toContain('已复制');
+      expect(screen.getByRole('button', { name: '复制 qiaoya 一键安装命令' }).textContent).toContain('已复制');
     });
   });
 });
