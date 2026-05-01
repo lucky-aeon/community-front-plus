@@ -26,8 +26,6 @@ type TargetRect = {
 
 const GUIDE_VERSION = 'v4';
 const MIN_PLUS_LEVEL = 2;
-const QIAOYA_INSTALL_COMMAND = 'curl -fsSL https://code.xhyovo.cn/install | sh';
-
 const resolveLatestCourseDetailPath = async () => {
   try {
     const page = await CoursesService.getFrontCoursesList({ pageNum: 1, pageSize: 1 });
@@ -39,77 +37,89 @@ const resolveLatestCourseDetailPath = async () => {
   }
 };
 
-const TOUR_STEPS: TourStep[] = [
-  {
-    target: 'brand',
-    title: '你已开通敲鸭 Plus',
-    description: '这个导览会在开通 Plus 套餐后首次出现，带你认识敲鸭里最常用的内容入口。完整看完后，以后不会重复打扰你。',
-  },
-  {
-    title: '让 AI 先了解敲鸭',
-    description: '把这行命令交给 Codex、Claude Code、Cursor、Windsurf 或 OpenClaw 等 Agent 工具执行。安装后，AI 会获得敲鸭的社区说明和查询入口，你可以直接问它有哪些课程、Plus 能看什么、最近更新了什么，或让它按你的目标推荐学习路线。',
-    command: QIAOYA_INSTALL_COMMAND,
-  },
-  {
-    path: ROUTES.DASHBOARD_HOME,
-    target: 'home-ai-daily',
-    title: '首页的 AI 日报',
-    description: '这是首页里的 AI 日报摘要。每天先看这里，可以快速知道今天有哪些 AI 热点，再决定要不要进入完整日报深读。',
-  },
-  {
-    path: ROUTES.DASHBOARD_HOME,
-    target: 'home-learning',
-    title: '继续学习',
-    description: '最近学习会记录你上次看到的课程和章节。下次回来时直接从这里继续，不用重新找课程位置。',
-  },
-  {
-    path: ROUTES.DASHBOARD_HOME,
-    target: 'home-pinned-posts',
-    title: '置顶推荐文章',
-    description: '置顶推荐是社区希望你优先看的文章或讨论。遇到方向不明确时，先从这里看精选内容。',
-  },
-  {
-    path: ROUTES.DASHBOARD_HOME,
-    target: 'home-recent-chapters',
-    title: '最新章节',
-    description: '最新章节告诉你课程最近更新了什么。看到感兴趣的章节，可以直接进入课程或章节详情。',
-  },
-  {
-    path: ROUTES.DASHBOARD_HOME,
-    target: 'home-recent-articles',
-    title: '最新文章',
-    description: '最新文章是社区内容流的核心单元。这里能看到文章标题、摘要、作者和互动数据，适合快速判断是否值得打开。',
-  },
-  {
-    path: ROUTES.DASHBOARD_HOME,
-    target: 'home-update-logs',
-    title: '首页更新日志',
-    description: '这个小模块会提示近期平台功能变化。点击任意更新可以看详情，方便你知道哪些入口或能力刚上线。',
-  },
-  {
-    resolvePath: resolveLatestCourseDetailPath,
-    target: 'course-detail-subscribe',
-    title: '课程详情里的订阅课程',
-    description: '这里的“订阅课程”不是购买套餐，而是关注这门课。订阅后，课程新增章节、资料或其它更新时，你会收到通知；如果课程提供在线演示，也可以在详情页直接查看项目效果。',
-  },
-  {
-    path: ROUTES.DASHBOARD_DISCUSSIONS,
-    target: 'discussions-content',
-    title: '讨论区的文章和问答',
-    description: '讨论区可以切换全部、文章和问答，也可以搜索标题。找不到答案时再发布问题，标题和背景越清楚越容易被回应。',
-  },
-  {
-    path: ROUTES.DASHBOARD_INTERVIEWS,
-    target: 'interviews-list',
-    title: '题库列表',
-    description: '题库卡片会展示难度、分类、标签和互动数据。适合按知识点查漏补缺，也适合准备面试。',
-  },
-  {
-    target: 'user-menu',
-    title: '用户中心找回你的动作',
-    description: '右上角头像里可以进入用户中心、会员与服务、CDK 激活和消息中心。收藏、评论、学习记录、设备管理都从这里回看。',
-  },
-];
+function buildTourSteps(installCommand?: string): TourStep[] {
+  const steps: TourStep[] = [
+    {
+      target: 'brand',
+      title: '你已开通敲鸭 Plus',
+      description: '这个导览会在开通 Plus 套餐后首次出现，带你认识敲鸭里最常用的内容入口。完整看完后，以后不会重复打扰你。',
+    },
+  ];
+
+  // 仅当后端配置了安装命令时才显示该步骤
+  if (installCommand) {
+    steps.push({
+      title: '让 AI 先了解敲鸭',
+      description: '把这行命令交给 Codex、Claude Code、Cursor、Windsurf 或 OpenClaw 等 Agent 工具执行。安装后，AI 会获得敲鸭的社区说明和查询入口，你可以直接问它有哪些课程、Plus 能看什么、最近更新了什么，或让它按你的目标推荐学习路线。',
+      command: installCommand,
+    });
+  }
+
+  steps.push(
+    {
+      path: ROUTES.DASHBOARD_HOME,
+      target: 'home-ai-daily',
+      title: '首页的 AI 日报',
+      description: '这是首页里的 AI 日报摘要。每天先看这里，可以快速知道今天有哪些 AI 热点，再决定要不要进入完整日报深读。',
+    },
+    {
+      path: ROUTES.DASHBOARD_HOME,
+      target: 'home-learning',
+      title: '学习记录',
+      description: '这里记录你最近的学习进度。回到这里就能接着上次的课程继续往下看。',
+    },
+    {
+      path: ROUTES.DASHBOARD_HOME,
+      target: 'home-pinned-posts',
+      title: '推荐文章',
+      description: '置顶或重点推荐的文章会出现在这里，适合先了解社区里最有价值的内容。',
+    },
+    {
+      path: ROUTES.DASHBOARD_HOME,
+      target: 'home-recent-chapters',
+      title: '最新章节',
+      description: '最近更新的课程章节会出现在这里。新内容上线后，可以从这里直接进入学习。',
+    },
+    {
+      path: ROUTES.DASHBOARD_HOME,
+      target: 'home-recent-articles',
+      title: '最新文章',
+      description: '社区里最新的文章会出现在这里，适合快速浏览最近发布的内容。',
+    },
+    {
+      path: ROUTES.DASHBOARD_HOME,
+      target: 'home-update-logs',
+      title: '更新日志',
+      description: '这里记录社区最近的更新和变化。如果好奇最近加了什么功能或改了什么，可以从这里查看。',
+    },
+    {
+      path: ROUTES.DASHBOARD_COURSES,
+      resolvePath: resolveLatestCourseDetailPath,
+      target: 'course-detail-subscribe',
+      title: '课程详情订阅',
+      description: '这是课程详情页。订阅感兴趣的课程后，可以第一时间收到新章节通知，也能在学习记录里持续追踪进度。',
+    },
+    {
+      path: ROUTES.DASHBOARD_DISCUSSIONS,
+      target: 'discussions-content',
+      title: '讨论区',
+      description: '这里是社区讨论区。学习时遇到问题或想法，可以在这里提问和交流，也能看看别人在聊什么。',
+    },
+    {
+      path: ROUTES.DASHBOARD_INTERVIEWS,
+      target: 'interviews-list',
+      title: '题库列表',
+      description: '这里收录了常见面试题。准备面试或想自测时，可以从这里按主题挑选题目练习。',
+    },
+    {
+      target: 'user-menu',
+      title: '用户菜单',
+      description: '点击这里可以进入个人设置、查看会员信息或退出登录。如果以后需要修改资料或调整设置，从这里进入就行。',
+    },
+  );
+
+  return steps;
+}
 
 export const PlusCommunityOnboarding: React.FC = () => {
   const { user } = useAuth();
@@ -117,6 +127,7 @@ export const PlusCommunityOnboarding: React.FC = () => {
   const location = useLocation();
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [tourSteps, setTourSteps] = useState<TourStep[]>([]);
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
   const [commandCopied, setCommandCopied] = useState(false);
   const resolvedPathCacheRef = useRef<Record<number, string>>({});
@@ -128,9 +139,37 @@ export const PlusCommunityOnboarding: React.FC = () => {
     return `plus-community-onboarding:${GUIDE_VERSION}:${user.id}`;
   }, [user?.id]);
 
-  const activeStep = TOUR_STEPS[activeIndex];
+  useEffect(() => {
+    if (!shouldRun) return;
+
+    let cancelled = false;
+
+    const fetchConfig = async () => {
+      try {
+        const { UserService } = await import('@shared/services/api');
+        const config = await UserService.getPlusGuideConfig();
+        if (!cancelled) {
+          setTourSteps(buildTourSteps(config.installCommand || undefined));
+        }
+      } catch (error) {
+        console.error('获取Plus指引配置失败:', error);
+        if (!cancelled) {
+          // 降级：不传安装命令
+          setTourSteps(buildTourSteps());
+        }
+      }
+    };
+
+    void fetchConfig();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [shouldRun]);
+
+  const activeStep = tourSteps[activeIndex];
   const isFirstStep = activeIndex === 0;
-  const isLastStep = activeIndex === TOUR_STEPS.length - 1;
+  const isLastStep = activeIndex === tourSteps.length - 1;
 
   useEffect(() => {
     if (!open || !activeStep) return;
@@ -173,13 +212,16 @@ export const PlusCommunityOnboarding: React.FC = () => {
     const completed = window.localStorage.getItem(storageKey);
     if (completed) return;
 
+    // 需要等 tourSteps 加载完成
+    if (tourSteps.length === 0) return;
+
     const timer = window.setTimeout(() => {
       setActiveIndex(0);
       setOpen(true);
     }, 600);
 
     return () => window.clearTimeout(timer);
-  }, [shouldRun, storageKey, user?.plusGuideCompletedAt]);
+  }, [shouldRun, storageKey, user?.plusGuideCompletedAt, tourSteps]);
 
   useEffect(() => {
     if (!open) return;
@@ -326,7 +368,7 @@ export const PlusCommunityOnboarding: React.FC = () => {
             </div>
             <div>
               <div className="text-xs font-medium text-honey-700">
-                {activeIndex + 1} / {TOUR_STEPS.length}
+                {activeIndex + 1} / {tourSteps.length}
               </div>
               <h2 id="plus-community-onboarding-title" className="text-base font-semibold text-gray-900">
                 {activeStep.title}
@@ -353,7 +395,7 @@ export const PlusCommunityOnboarding: React.FC = () => {
         )}
 
         <div className="mt-4 flex items-center gap-1">
-          {TOUR_STEPS.map((step, index) => (
+          {tourSteps.map((step, index) => (
             <div
               key={step.title}
               className={cn(

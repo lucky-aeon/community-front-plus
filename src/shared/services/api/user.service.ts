@@ -95,6 +95,15 @@ export class UserService {
   }
 
   /**
+   * 获取 Plus 指引配置
+   * GET /api/user/plus-guide/config
+   */
+  static async getPlusGuideConfig(): Promise<{ installCommand?: string }> {
+    const response = await apiClient.get<ApiResponse<{ installCommand?: string }>>('/user/plus-guide/config');
+    return response.data.data;
+  }
+
+  /**
    * 更新本地存储的用户信息
    * @private
    * @param userDTO 从API获取的用户数据
