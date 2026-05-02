@@ -19,6 +19,7 @@ import { extractVideoUrl, removeVideoTags } from '@shared/utils/videoUtils';
 import { FavoriteButton } from '@shared/components/business/FavoriteButton';
 import { ShareButton } from '@shared/components/ui/ShareButton';
 import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
+import { ChapterAiRepresentative } from './ChapterAiRepresentative';
 
 export const ChapterDetailPage: React.FC = () => {
   const navigate = useNavigate();
@@ -320,6 +321,7 @@ export const ChapterDetailPage: React.FC = () => {
                     </AlertDescription>
                   </Alert>
                 )}
+                <ChapterAiRepresentative chapterId={chapterDetail.id} videoPlayerRef={videoPlayerRef} />
                 {/* 视频下方的文字说明（如果有） */}
                 {chapterDetail.content && removeVideoTags(chapterDetail.content).trim() && (
                   <div className="prose-content">

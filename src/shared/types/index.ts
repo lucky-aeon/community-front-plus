@@ -1194,6 +1194,50 @@ export interface FrontChapterDetailDTO {
   contentType?: ChapterContentType; // 章节内容类型：VIDEO 或 TEXT
 }
 
+export type ChapterTranscriptStatus =
+  | 'NOT_GENERATED'
+  | 'PENDING'
+  | 'SUBMITTED'
+  | 'RUNNING'
+  | 'SUCCEEDED'
+  | 'FAILED'
+  | 'CANCELLED';
+
+export interface ChapterTranscriptSegmentDTO {
+  startMs?: number;
+  endMs?: number;
+  speaker?: string;
+  text: string;
+  sortOrder?: number;
+}
+
+export interface ChapterTranscriptDTO {
+  chapterId: string;
+  resourceId?: string;
+  status: ChapterTranscriptStatus;
+  durationMs?: number;
+  text?: string;
+  summary?: string;
+  keyPoints?: string[];
+  segments?: ChapterTranscriptSegmentDTO[];
+  completedAt?: string;
+}
+
+export interface AdminChapterTranscriptDTO {
+  chapterId: string;
+  resourceId?: string;
+  status: ChapterTranscriptStatus;
+  provider?: string;
+  model?: string;
+  providerTaskId?: string;
+  durationMs?: number;
+  estimatedCost?: number;
+  errorCode?: string;
+  errorMessage?: string;
+  submittedAt?: string;
+  completedAt?: string;
+}
+
 // ================ 关注功能相关接口定义 ================
 
 // 订阅目标类型

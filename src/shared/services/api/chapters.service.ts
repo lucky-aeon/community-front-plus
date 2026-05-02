@@ -4,7 +4,9 @@ import {
   UpdateChapterRequest,
   ChapterQueryRequest,
   ChapterDTO,
+  AdminChapterTranscriptDTO,
   FrontChapterDetailDTO,
+  ChapterTranscriptDTO,
   LatestChapterDTO,
   PageResponse
 } from '@shared/types';
@@ -89,6 +91,26 @@ export class ChaptersService {
     await apiClient.put<ApiResponse<null>>('/admin/chapters/order', { chapterIds });
   }
 
+  static async getAdminChapterTranscript(chapterId: string): Promise<AdminChapterTranscriptDTO> {
+    const response = await apiClient.get<ApiResponse<AdminChapterTranscriptDTO>>(`/admin/chapters/${chapterId}/transcript`);
+    return response.data.data;
+  }
+
+  static async retryChapterTranscript(chapterId: string): Promise<AdminChapterTranscriptDTO> {
+    const response = await apiClient.post<ApiResponse<AdminChapterTranscriptDTO>>(`/admin/chapters/${chapterId}/transcript/retry`);
+    return response.data.data;
+  }
+
+  static async regenerateChapterTranscript(chapterId: string): Promise<AdminChapterTranscriptDTO> {
+    const response = await apiClient.post<ApiResponse<AdminChapterTranscriptDTO>>(`/admin/chapters/${chapterId}/transcript/regenerate`);
+    return response.data.data;
+  }
+
+  static async batchGenerateCourseTranscripts(courseId: string): Promise<{ count: number }> {
+    const response = await apiClient.post<ApiResponse<{ count: number }>>(`/admin/courses/${courseId}/transcripts/batch`);
+    return response.data.data;
+  }
+
   /**
    * ============= 前台章节接口 =============
    */
@@ -102,6 +124,11 @@ export class ChaptersService {
     const data = response.data.data as FrontChapterDetailDTO;
     // 稳定字段：aiSummary 位于 data.aiSummary
     return data;
+  }
+
+  static async getChapterTranscript(id: string): Promise<ChapterTranscriptDTO> {
+    const response = await apiClient.get<ApiResponse<ChapterTranscriptDTO>>(`/app/chapters/${id}/transcript`);
+    return response.data.data;
   }
 
   /**

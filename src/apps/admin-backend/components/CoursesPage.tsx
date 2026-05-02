@@ -15,7 +15,7 @@ import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { Rating } from '@/components/ui/rating';
 import { TagsInput } from '@/components/ui/tags-input';
 import { ChaptersService } from '@shared/services/api/chapters.service';
-import type { ChapterDTO, CreateChapterRequest, UpdateChapterRequest } from '@shared/types';
+import type { AdminChapterTranscriptDTO, ChapterDTO, CreateChapterRequest, UpdateChapterRequest } from '@shared/types';
 import { DndContext, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -194,12 +194,34 @@ export const CoursesPage: React.FC = () => {
     items: ChapterDTO[];
     edit?: { index?: number; data: { title: string; content: string; sortOrder: string; readingTime?: string } };
   }>({ open: false, loading: false, saving: false, items: [] });
+  const [chapterTranscripts, setChapterTranscripts] = useState<Record<string, AdminChapterTranscriptDTO>>({});
+
+  const refreshChapterTranscript = async (chapterId: string) => {
+    try {
+      const transcript = await ChaptersService.getAdminChapterTranscript(chapterId);
+      setChapterTranscripts(prev => ({ ...prev, [chapterId]: transcript }));
+    } catch (e) {
+      console.error('加载章节文字稿状态失败', e);
+    }
+  };
+
+  const loadChapterTranscripts = async (items: ChapterDTO[]) => {
+    const pairs = await Promise.all(items.map(async (item) => {
+      try {
+        return [item.id, await ChaptersService.getAdminChapterTranscript(item.id)] as const;
+      } catch {
+        return [item.id, { chapterId: item.id, status: 'NOT_GENERATED' } as AdminChapterTranscriptDTO] as const;
+      }
+    }));
+    setChapterTranscripts(Object.fromEntries(pairs));
+  };
 
   const openChapters = async (course: CourseDTO) => {
     try {
       setChapterDialog({ open: true, course, loading: true, saving: false, items: [] });
       const items = await ChaptersService.getAllCourseChapters(course.id);
       setChapterDialog({ open: true, course, loading: false, saving: false, items });
+      void loadChapterTranscripts(items);
     } catch (e) {
       console.error('加载章节失败', e);
       setChapterDialog({ open: false, loading: false, saving: false, items: [] });
@@ -255,6 +277,7 @@ export const CoursesPage: React.FC = () => {
           readingTime: reading,
         } as CreateChapterRequest);
         setChapterDialog(prev => ({ ...prev, saving: false, edit: undefined, items: [...prev.items, created] }));
+        void refreshChapterTranscript(created.id);
       } else {
         const target = chapterDialog.items[index];
         const updated = await ChaptersService.updateChapter(target.id, {
@@ -267,6 +290,7 @@ export const CoursesPage: React.FC = () => {
         const next = [...chapterDialog.items];
         next[index] = updated;
         setChapterDialog(prev => ({ ...prev, saving: false, edit: undefined, items: next }));
+        void refreshChapterTranscript(updated.id);
       }
     } catch (e) {
       console.error('保存章节失败', e);
@@ -281,6 +305,11 @@ export const CoursesPage: React.FC = () => {
       await ChaptersService.deleteChapter(ch.id);
       const next = chapterDialog.items.filter((_, i) => i !== index);
       setChapterDialog(prev => ({ ...prev, saving: false, items: next }));
+      setChapterTranscripts(prev => {
+        const copy = { ...prev };
+        delete copy[ch.id];
+        return copy;
+      });
     } catch (e) {
       console.error('删除章节失败', e);
       setChapterDialog(prev => ({ ...prev, saving: false }));
@@ -290,9 +319,47 @@ export const CoursesPage: React.FC = () => {
   // 章节删除二次确认
   const [chapterDeleteConfirm, setChapterDeleteConfirm] = useState<{ open: boolean; index?: number }>({ open: false });
 
+  const retryTranscript = async (chapterId: string) => {
+    try {
+      setChapterDialog(prev => ({ ...prev, saving: true }));
+      const transcript = await ChaptersService.retryChapterTranscript(chapterId);
+      setChapterTranscripts(prev => ({ ...prev, [chapterId]: transcript }));
+    } catch (e) {
+      console.error('重试章节文字稿失败', e);
+    } finally {
+      setChapterDialog(prev => ({ ...prev, saving: false }));
+    }
+  };
+
+  const regenerateTranscript = async (chapterId: string) => {
+    try {
+      setChapterDialog(prev => ({ ...prev, saving: true }));
+      const transcript = await ChaptersService.regenerateChapterTranscript(chapterId);
+      setChapterTranscripts(prev => ({ ...prev, [chapterId]: transcript }));
+    } catch (e) {
+      console.error('重新生成章节文字稿失败', e);
+    } finally {
+      setChapterDialog(prev => ({ ...prev, saving: false }));
+    }
+  };
+
+  const batchGenerateTranscripts = async () => {
+    if (!chapterDialog.course) return;
+    try {
+      setChapterDialog(prev => ({ ...prev, saving: true }));
+      await ChaptersService.batchGenerateCourseTranscripts(chapterDialog.course.id);
+      await loadChapterTranscripts(chapterDialog.items);
+    } catch (e) {
+      console.error('批量生成章节文字稿失败', e);
+    } finally {
+      setChapterDialog(prev => ({ ...prev, saving: false }));
+    }
+  };
+
   const SortableChapterRow: React.FC<{ item: ChapterDTO; index: number }> = ({ item, index }) => {
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
     const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), transition };
+    const transcript = chapterTranscripts[item.id];
     return (
       <div ref={setNodeRef} style={style} className={`flex items-center gap-3 p-2 border rounded-md ${isDragging ? 'shadow ring-2 ring-primary' : ''}`}>
         <button type="button" {...attributes} {...listeners} className="h-8 w-8 inline-flex items-center justify-center rounded-md border cursor-grab active:cursor-grabbing" aria-label="拖拽排序">
@@ -301,8 +368,18 @@ export const CoursesPage: React.FC = () => {
         <div className="flex-1 min-w-0">
           <div className="font-medium truncate">{item.title}</div>
           <div className="text-xs text-muted-foreground">阅读时长：{ChaptersService.formatReadingTime(item.readingTime || 0)} · 排序：{item.sortOrder}</div>
+          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <Badge variant={transcript?.status === 'SUCCEEDED' ? 'default' : 'secondary'}>{chapterTranscriptText(transcript?.status)}</Badge>
+            {transcript?.model && <span>模型：{transcript.model}</span>}
+            {typeof transcript?.estimatedCost === 'number' && <span>成本约 ¥{transcript.estimatedCost.toFixed(3)}</span>}
+            {transcript?.errorMessage && <span className="text-red-600 truncate max-w-[280px]">{transcript.errorMessage}</span>}
+          </div>
         </div>
         <div className="flex gap-2">
+          {transcript?.status === 'FAILED' && (
+            <Button variant="outline" size="sm" onClick={() => retryTranscript(item.id)} disabled={chapterDialog.saving}>重试</Button>
+          )}
+          <Button variant="outline" size="sm" onClick={() => regenerateTranscript(item.id)} disabled={chapterDialog.saving}>重新生成</Button>
           <Button variant="outline" size="sm" onClick={() => openChapterEdit(index)}>编辑</Button>
           <Button
             variant="outline"
@@ -610,6 +687,7 @@ export const CoursesPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="text-sm text-muted-foreground">共 {chapterDialog.items.length} 个章节</div>
                 <div className="flex items-center gap-2">
+                  <Button variant="outline" onClick={batchGenerateTranscripts} disabled={chapterDialog.saving || chapterDialog.items.length === 0}>批量生成文字稿</Button>
                   <Button variant="secondary" onClick={() => openChapterEdit()}>新增章节</Button>
                   <Button onClick={saveChapterOrder} disabled={chapterDialog.saving}>保存排序</Button>
                 </div>
@@ -717,3 +795,22 @@ export const CoursesPage: React.FC = () => {
     </div>
   );
 };
+
+function chapterTranscriptText(status?: string): string {
+  switch (status) {
+    case 'SUCCEEDED':
+      return '文字稿已生成';
+    case 'PENDING':
+    case 'SUBMITTED':
+    case 'RUNNING':
+      return '文字稿生成中';
+    case 'FAILED':
+      return '文字稿失败';
+    case 'CANCELLED':
+      return '文字稿已取消';
+    case 'NOT_GENERATED':
+      return '文字稿未生成';
+    default:
+      return '文字稿状态未知';
+  }
+}
