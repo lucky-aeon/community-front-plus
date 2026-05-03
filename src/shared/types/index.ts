@@ -1211,6 +1211,15 @@ export interface ChapterTranscriptSegmentDTO {
   sortOrder?: number;
 }
 
+export interface ChapterTranscriptSectionDTO {
+  title: string;
+  startMs?: number;
+  endMs?: number;
+  summary?: string;
+  text?: string;
+  sortOrder?: number;
+}
+
 export interface ChapterTranscriptDTO {
   chapterId: string;
   resourceId?: string;
@@ -1219,6 +1228,7 @@ export interface ChapterTranscriptDTO {
   text?: string;
   summary?: string;
   keyPoints?: string[];
+  sections?: ChapterTranscriptSectionDTO[];
   segments?: ChapterTranscriptSegmentDTO[];
   completedAt?: string;
 }

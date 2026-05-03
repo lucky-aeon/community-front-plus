@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChaptersService } from '@shared/services/api';
 import { showToast } from '@shared/utils/toast';
-import type { ChapterTranscriptDTO, ChapterTranscriptSegmentDTO } from '@shared/types';
+import type { ChapterTranscriptDTO, ChapterTranscriptSectionDTO, ChapterTranscriptSegmentDTO } from '@shared/types';
 import type { VideoPlayerRef } from '@shared/components/ui/VideoPlayer';
 
 interface ChapterAiRepresentativeProps {
@@ -51,6 +51,17 @@ export const ChapterAiRepresentative: React.FC<ChapterAiRepresentativeProps> = (
     return source.filter((segment) => segment.text.toLowerCase().includes(q));
   }, [transcript?.segments, keyword]);
 
+  const sections = useMemo(() => {
+    const source = transcript?.sections || [];
+    const q = keyword.trim().toLowerCase();
+    if (!q) return source;
+    return source.filter((section) => (
+      section.title.toLowerCase().includes(q) ||
+      (section.summary || '').toLowerCase().includes(q) ||
+      (section.text || '').toLowerCase().includes(q)
+    ));
+  }, [transcript?.sections, keyword]);
+
   const statusLabel = statusText(transcript?.status);
   const isReady = transcript?.status === 'SUCCEEDED';
   const isRunning = transcript?.status ? RUNNING_STATUSES.has(transcript.status) : false;
@@ -59,6 +70,12 @@ export const ChapterAiRepresentative: React.FC<ChapterAiRepresentativeProps> = (
   const seekTo = (segment: ChapterTranscriptSegmentDTO) => {
     if (segment.startMs === undefined || !videoPlayerRef.current?.videoElement) return;
     videoPlayerRef.current.videoElement.currentTime = Math.max(0, segment.startMs / 1000);
+    videoPlayerRef.current.videoElement.play().catch(() => {});
+  };
+
+  const seekToSection = (section: ChapterTranscriptSectionDTO) => {
+    if (section.startMs === undefined || !videoPlayerRef.current?.videoElement) return;
+    videoPlayerRef.current.videoElement.currentTime = Math.max(0, section.startMs / 1000);
     videoPlayerRef.current.videoElement.play().catch(() => {});
   };
 
@@ -141,10 +158,54 @@ export const ChapterAiRepresentative: React.FC<ChapterAiRepresentativeProps> = (
             </div>
             <div className="flex items-center gap-1.5 text-xs text-warm-gray-500">
               <PlayCircle className="h-3.5 w-3.5" />
-              <span>点击任意文字稿可跳转到对应视频时间点</span>
+              <span>点击任意时间段可跳转到对应视频位置</span>
             </div>
-            <div className="max-h-[420px] overflow-y-auto space-y-2 pr-1">
-              {segments.length === 0 ? (
+            <div className="max-h-[520px] overflow-y-auto space-y-2 pr-1">
+              {sections.length > 0 ? (
+                sections.map((section, index) => (
+                  <div
+                    key={`${section.startMs}-${section.title}-${index}`}
+                    role="button"
+                    tabIndex={0}
+                    className="rounded-md border bg-white/80 p-3 cursor-pointer transition-colors hover:border-honey-300 hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-honey-400"
+                    onClick={() => seekToSection(section)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        seekToSection(section);
+                      }
+                    }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <button
+                        type="button"
+                        className="text-xs font-mono tabular-nums text-honey-700 hover:text-honey-900 shrink-0 mt-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          seekToSection(section);
+                        }}
+                      >
+                        {formatRange(section.startMs, section.endMs)}
+                      </button>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="text-sm font-medium text-gray-900">{section.title}</div>
+                        {section.summary && <div className="text-sm leading-6 text-gray-700">{section.summary}</div>}
+                        {section.text && <div className="text-sm leading-6 text-gray-800 whitespace-pre-wrap">{section.text}</div>}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          copyText([section.title, section.summary, section.text].filter(Boolean).join('\n'));
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))
+              ) : segments.length === 0 ? (
                 <div className="text-sm text-warm-gray-600">没有匹配的文字稿内容。</div>
               ) : (
                 segments.map((segment, index) => (
@@ -212,6 +273,11 @@ function statusText(status?: string): string {
     default:
       return '加载中';
   }
+}
+
+function formatRange(startMs?: number, endMs?: number): string {
+  if (endMs === undefined || !Number.isFinite(endMs)) return formatTime(startMs);
+  return `${formatTime(startMs)}-${formatTime(endMs)}`;
 }
 
 function formatTime(ms?: number): string {
