@@ -755,6 +755,7 @@ export interface ChapterDTO {
   createTime: string;            // 创建时间
   updateTime: string;            // 更新时间
   likeCount?: number;            // 点赞数（管理端返回/统计）
+  transcript?: AdminChapterTranscriptDTO; // 管理端文字稿状态
 }
 
 // 创建课程章节请求参数

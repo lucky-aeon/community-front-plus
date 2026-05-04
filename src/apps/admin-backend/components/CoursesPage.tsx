@@ -196,32 +196,19 @@ export const CoursesPage: React.FC = () => {
   }>({ open: false, loading: false, saving: false, items: [] });
   const [chapterTranscripts, setChapterTranscripts] = useState<Record<string, AdminChapterTranscriptDTO>>({});
 
-  const refreshChapterTranscript = async (chapterId: string) => {
-    try {
-      const transcript = await ChaptersService.getAdminChapterTranscript(chapterId);
-      setChapterTranscripts(prev => ({ ...prev, [chapterId]: transcript }));
-    } catch (e) {
-      console.error('加载章节文字稿状态失败', e);
-    }
-  };
-
-  const loadChapterTranscripts = async (items: ChapterDTO[]) => {
-    const pairs = await Promise.all(items.map(async (item) => {
-      try {
-        return [item.id, await ChaptersService.getAdminChapterTranscript(item.id)] as const;
-      } catch {
-        return [item.id, { chapterId: item.id, status: 'NOT_GENERATED' } as AdminChapterTranscriptDTO] as const;
-      }
-    }));
-    setChapterTranscripts(Object.fromEntries(pairs));
-  };
+  const buildChapterTranscriptMap = (items: ChapterDTO[]) => Object.fromEntries(
+    items.map((item) => [
+      item.id,
+      item.transcript || { chapterId: item.id, status: 'NOT_GENERATED' } as AdminChapterTranscriptDTO,
+    ])
+  );
 
   const openChapters = async (course: CourseDTO) => {
     try {
       setChapterDialog({ open: true, course, loading: true, saving: false, items: [] });
       const items = await ChaptersService.getAllCourseChapters(course.id);
       setChapterDialog({ open: true, course, loading: false, saving: false, items });
-      void loadChapterTranscripts(items);
+      setChapterTranscripts(buildChapterTranscriptMap(items));
     } catch (e) {
       console.error('加载章节失败', e);
       setChapterDialog({ open: false, loading: false, saving: false, items: [] });
@@ -277,7 +264,10 @@ export const CoursesPage: React.FC = () => {
           readingTime: reading,
         } as CreateChapterRequest);
         setChapterDialog(prev => ({ ...prev, saving: false, edit: undefined, items: [...prev.items, created] }));
-        void refreshChapterTranscript(created.id);
+        setChapterTranscripts(prev => ({
+          ...prev,
+          [created.id]: created.transcript || { chapterId: created.id, status: 'NOT_GENERATED' } as AdminChapterTranscriptDTO,
+        }));
       } else {
         const target = chapterDialog.items[index];
         const updated = await ChaptersService.updateChapter(target.id, {
@@ -290,7 +280,10 @@ export const CoursesPage: React.FC = () => {
         const next = [...chapterDialog.items];
         next[index] = updated;
         setChapterDialog(prev => ({ ...prev, saving: false, edit: undefined, items: next }));
-        void refreshChapterTranscript(updated.id);
+        setChapterTranscripts(prev => ({
+          ...prev,
+          [updated.id]: updated.transcript || { chapterId: updated.id, status: 'NOT_GENERATED' } as AdminChapterTranscriptDTO,
+        }));
       }
     } catch (e) {
       console.error('保存章节失败', e);
@@ -348,7 +341,9 @@ export const CoursesPage: React.FC = () => {
     try {
       setChapterDialog(prev => ({ ...prev, saving: true }));
       await ChaptersService.batchGenerateCourseTranscripts(chapterDialog.course.id);
-      await loadChapterTranscripts(chapterDialog.items);
+      const items = await ChaptersService.getAllCourseChapters(chapterDialog.course.id);
+      setChapterDialog(prev => ({ ...prev, items }));
+      setChapterTranscripts(buildChapterTranscriptMap(items));
     } catch (e) {
       console.error('批量生成章节文字稿失败', e);
     } finally {
