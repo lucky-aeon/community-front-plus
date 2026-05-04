@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import type { GithubOAuthConfig } from '@shared/types/system';
 import { IndependentServicesConfigCard } from './IndependentServicesConfigCard';
 import { CreatorAboutPageConfigCard } from './CreatorAboutPageConfigCard';
+import type { InstallCommandConfig } from '@shared/utils/install-command';
 
 const GITHUB_OAUTH_DEFAULT: GithubOAuthConfig = {
   clientId: '',
@@ -25,6 +26,52 @@ const GITHUB_OAUTH_DEFAULT: GithubOAuthConfig = {
   requireVerifiedEmailForMerge: true,
   fetchEmailFromApi: true,
   updateUserProfileIfEmpty: true,
+};
+
+type PlusGuideForm = {
+  installCommand: string;
+  installCommands: {
+    macosLinux: string;
+    windows: string;
+  };
+};
+
+const EMPTY_PLUS_GUIDE_FORM: PlusGuideForm = {
+  installCommand: '',
+  installCommands: {
+    macosLinux: '',
+    windows: '',
+  },
+};
+
+const normalizePlusGuideConfig = (data?: InstallCommandConfig | null): PlusGuideForm => {
+  const macosLinux =
+    data?.installCommands?.macosLinux ||
+    data?.installCommands?.darwin ||
+    data?.installCommands?.linux ||
+    data?.installCommand ||
+    '';
+  const windows =
+    data?.installCommands?.windows ||
+    data?.installCommands?.win ||
+    '';
+
+  return {
+    installCommand: macosLinux,
+    installCommands: { macosLinux, windows },
+  };
+};
+
+const toPlusGuidePayload = (form: PlusGuideForm): InstallCommandConfig => {
+  const macosLinux = form.installCommands.macosLinux.trim();
+  const windows = form.installCommands.windows.trim();
+  const installCommands: InstallCommandConfig['installCommands'] = {};
+  if (macosLinux) installCommands.macosLinux = macosLinux;
+  if (windows) installCommands.windows = windows;
+  return {
+    installCommand: macosLinux || undefined,
+    installCommands,
+  };
 };
 
 export const SettingsPage: React.FC = () => {
@@ -130,25 +177,26 @@ export const SettingsPage: React.FC = () => {
   const sessionLoading = loadingSessionCfg;
 
   // ============== Plus 指引配置 ==============
-  const [plusGuideCfg, setPlusGuideCfg] = useState<{ installCommand: string }>({ installCommand: '' });
-  const [initialPlusGuideCfg, setInitialPlusGuideCfg] = useState<{ installCommand: string }>({ installCommand: '' });
+  const [plusGuideCfg, setPlusGuideCfg] = useState<PlusGuideForm>(EMPTY_PLUS_GUIDE_FORM);
+  const [initialPlusGuideCfg, setInitialPlusGuideCfg] = useState<PlusGuideForm>(EMPTY_PLUS_GUIDE_FORM);
   const [plusGuideLoading, setPlusGuideLoading] = useState(false);
   const [plusGuideSaving, setPlusGuideSaving] = useState(false);
   const plusGuideDirty = useMemo(() =>
-    plusGuideCfg.installCommand !== initialPlusGuideCfg.installCommand,
+    plusGuideCfg.installCommands.macosLinux !== initialPlusGuideCfg.installCommands.macosLinux ||
+    plusGuideCfg.installCommands.windows !== initialPlusGuideCfg.installCommands.windows,
     [plusGuideCfg, initialPlusGuideCfg]);
 
   const fetchPlusGuideConfig = useCallback(async () => {
     try {
       setPlusGuideLoading(true);
       const cfg = await SystemConfigService.getPlusGuideConfig();
-      const data = (cfg?.data as { installCommand?: string } | undefined) || {};
-      const normalized = { installCommand: data.installCommand || '' };
+      const data = (cfg?.data as InstallCommandConfig | undefined) || {};
+      const normalized = normalizePlusGuideConfig(data);
       setPlusGuideCfg(normalized);
       setInitialPlusGuideCfg(normalized);
     } catch {
-      setPlusGuideCfg({ installCommand: '' });
-      setInitialPlusGuideCfg({ installCommand: '' });
+      setPlusGuideCfg(EMPTY_PLUS_GUIDE_FORM);
+      setInitialPlusGuideCfg(EMPTY_PLUS_GUIDE_FORM);
     } finally {
       setPlusGuideLoading(false);
     }
@@ -370,16 +418,33 @@ export const SettingsPage: React.FC = () => {
         <CardContent>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="install-command">CLI 安装命令</Label>
+              <Label htmlFor="install-command-macos-linux">macOS / Linux 安装命令</Label>
               <Input
-                id="install-command"
-                value={plusGuideCfg.installCommand}
-                onChange={(e) => setPlusGuideCfg(prev => ({ ...prev, installCommand: e.target.value }))}
+                id="install-command-macos-linux"
+                value={plusGuideCfg.installCommands.macosLinux}
+                onChange={(e) => setPlusGuideCfg(prev => ({
+                  ...prev,
+                  installCommand: e.target.value,
+                  installCommands: { ...prev.installCommands, macosLinux: e.target.value },
+                }))}
                 disabled={plusGuideLoading || plusGuideSaving}
                 placeholder="例如：curl -fsSL https://code.xhyovo.cn/install | sh"
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="install-command-windows">Windows PowerShell 安装命令</Label>
+              <Input
+                id="install-command-windows"
+                value={plusGuideCfg.installCommands.windows}
+                onChange={(e) => setPlusGuideCfg(prev => ({
+                  ...prev,
+                  installCommands: { ...prev.installCommands, windows: e.target.value },
+                }))}
+                disabled={plusGuideLoading || plusGuideSaving}
+                placeholder="例如：irm https://code.xhyovo.cn/install.ps1 | iex"
+              />
               <p className="text-xs text-muted-foreground">
-                Plus 用户首次进入社区时会看到引导导览。配置后，该命令会在导览中展示供用户复制。留空则跳过该步骤。
+                Plus 用户首次进入社区时会看到引导导览。至少配置一条命令后，导览和营销页会按用户系统默认选中对应命令；全部留空则跳过该步骤。
               </p>
             </div>
             <div className="flex gap-2">
@@ -390,7 +455,7 @@ export const SettingsPage: React.FC = () => {
                 onClick={async () => {
                   try {
                     setPlusGuideSaving(true);
-                    await SystemConfigService.updatePlusGuideConfig({ installCommand: plusGuideCfg.installCommand || undefined });
+                    await SystemConfigService.updatePlusGuideConfig(toPlusGuidePayload(plusGuideCfg));
                     setInitialPlusGuideCfg(plusGuideCfg);
                   } catch {
                     // 错误由拦截器提示

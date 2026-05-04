@@ -8,6 +8,7 @@ import {
   IndependentServicesConfigData
 } from '@shared/types';
 import type { GithubOAuthConfig } from '@shared/types/system';
+import type { InstallCommandConfig } from '@shared/utils/install-command';
 
 /**
  * 系统配置管理API服务
@@ -113,7 +114,7 @@ export class SystemConfigService {
   /**
    * 更新 Plus 指引配置
    */
-  static async updatePlusGuideConfig(data: { installCommand?: string }): Promise<SystemConfigDTO> {
+  static async updatePlusGuideConfig(data: InstallCommandConfig): Promise<SystemConfigDTO> {
     const response = await apiClient.put<ApiResponse<SystemConfigDTO>>('/admin/system-configs/plus_guide', { data });
     return response.data.data;
   }

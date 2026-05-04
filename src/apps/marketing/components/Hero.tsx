@@ -1,15 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { TrendingUp, Users, Award, Code, MessageSquare, Copy, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { showToast } from '@shared/utils/toast';
+import React, { useEffect, useMemo, useState } from 'react';
+import { TrendingUp, Users, Award, Code, MessageSquare } from 'lucide-react';
 import { PublicCoursesService, PublicStatsService, apiClient, ApiResponse } from '@shared/services/api';
+import { InstallCommandBlock } from '@shared/components/business/InstallCommandBlock';
+import { hasConfiguredInstallCommand, type InstallCommandConfig } from '@shared/utils/install-command';
 
 export const Hero: React.FC = () => {
-  const [qiaoyaCommand, setQiaoyaCommand] = useState<string>('');
+  const [qiaoyaConfig, setQiaoyaConfig] = useState<InstallCommandConfig | null>(null);
   const [courseTotal, setCourseTotal] = useState<number>(0);
   const [userTotal, setUserTotal] = useState<number>(0);
-  const [isCommandCopied, setIsCommandCopied] = useState(false);
-  const copyResetTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -34,9 +32,6 @@ export const Hero: React.FC = () => {
     loadTotal();
     return () => {
       cancelled = true;
-      if (copyResetTimerRef.current) {
-        window.clearTimeout(copyResetTimerRef.current);
-      }
     };
   }, []);
 
@@ -44,9 +39,9 @@ export const Hero: React.FC = () => {
     let cancelled = false;
     const loadConfig = async () => {
       try {
-        const resp = await apiClient.get<ApiResponse<{ installCommand?: string }>>('/public/site/plus-guide-config');
+        const resp = await apiClient.get<ApiResponse<InstallCommandConfig>>('/public/site/plus-guide-config');
         if (!cancelled) {
-          setQiaoyaCommand(resp.data.data?.installCommand || '');
+          setQiaoyaConfig(resp.data.data || null);
         }
       } catch {
         // 静默失败
@@ -70,29 +65,13 @@ export const Hero: React.FC = () => {
     return String(userTotal);
   }, [userTotal]);
 
+  const showInstallCommand = hasConfiguredInstallCommand(qiaoyaConfig);
+
   const stats = [
     { icon: Users, value: userCountDisplay, label: '活跃学员' },
     { icon: Award, value: courseCountDisplay, label: '专业课程' },
     { icon: TrendingUp, value: '95%', label: '就业率' }
   ];
-
-  const handleCopyCommand = async () => {
-    try {
-      await navigator.clipboard.writeText(qiaoyaCommand);
-      setIsCommandCopied(true);
-      showToast.success('命令已复制');
-
-      if (copyResetTimerRef.current) {
-        window.clearTimeout(copyResetTimerRef.current);
-      }
-      copyResetTimerRef.current = window.setTimeout(() => {
-        setIsCommandCopied(false);
-      }, 2000);
-    } catch (error) {
-      console.error('复制 qiaoya 命令失败', error);
-      showToast.error('复制失败，请手动复制');
-    }
-  };
 
   return (
     <section className="relative bg-gradient-to-br from-yellow-50 via-white to-orange-50 pt-20 pb-32 overflow-hidden">
@@ -129,7 +108,7 @@ export const Hero: React.FC = () => {
               ))}
             </div>
 
-            {qiaoyaCommand && (
+            {showInstallCommand && qiaoyaConfig && (
             <div className="mt-8 max-w-2xl rounded-2xl border border-honey-200/80 bg-white/80 p-4 text-left shadow-lg shadow-honey-200/20 backdrop-blur-sm">
               <div className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-honey-700">
                 <span className="h-2 w-2 rounded-full bg-honey-500" />
@@ -142,22 +121,7 @@ export const Hero: React.FC = () => {
                 适用于 Codex、Claude Code、Cursor、Windsurf、OpenClaw 等 Agent 工具，无需 Node / Python，执行后可让 AI 直接了解社区课程、服务和内容结构。
               </p>
 
-              <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-honey-100 bg-gradient-to-r from-honey-50 via-white to-honey-50/80 p-3 sm:flex-row sm:items-center sm:justify-between">
-                <code className="overflow-x-auto text-sm font-semibold text-amber-800 sm:text-base">
-                  {qiaoyaCommand}
-                </code>
-                <Button
-                  type="button"
-                  variant="honeySoft"
-                  size="sm"
-                  onClick={handleCopyCommand}
-                  aria-label="复制 qiaoya 一键安装命令"
-                  className="shrink-0"
-                >
-                  {isCommandCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  {isCommandCopied ? '已复制' : '复制命令'}
-                </Button>
-              </div>
+              <InstallCommandBlock config={qiaoyaConfig} className="mt-4" />
             </div>
             )}
           </div>

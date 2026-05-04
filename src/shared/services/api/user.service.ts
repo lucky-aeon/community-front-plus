@@ -6,6 +6,7 @@ import {
   UserDTO,
   UserPublicProfileDTO,
 } from '@shared/types';
+import type { InstallCommandConfig } from '@shared/utils/install-command';
 
 /**
  * 用户个人信息管理服务类
@@ -98,8 +99,8 @@ export class UserService {
    * 获取 Plus 指引配置
    * GET /api/user/plus-guide/config
    */
-  static async getPlusGuideConfig(): Promise<{ installCommand?: string }> {
-    const response = await apiClient.get<ApiResponse<{ installCommand?: string }>>('/user/plus-guide/config');
+  static async getPlusGuideConfig(): Promise<InstallCommandConfig> {
+    const response = await apiClient.get<ApiResponse<InstallCommandConfig>>('/user/plus-guide/config');
     return response.data.data;
   }
 

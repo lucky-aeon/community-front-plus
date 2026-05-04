@@ -1,12 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Copy, Sparkles } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { CoursesService } from '@shared/services/api';
 import { ROUTES, routeUtils } from '@shared/routes/routes';
 import { cn } from '@shared/utils/cn';
-import { showToast } from '@shared/utils/toast';
+import { InstallCommandBlock } from './InstallCommandBlock';
+import { hasConfiguredInstallCommand, type InstallCommandConfig } from '@shared/utils/install-command';
 
 type TourStep = {
   path?: string;
@@ -14,7 +15,7 @@ type TourStep = {
   target?: string;
   title: string;
   description: string;
-  command?: string;
+  installConfig?: InstallCommandConfig;
 };
 
 type TargetRect = {
@@ -36,7 +37,7 @@ const resolveLatestCourseDetailPath = async () => {
   }
 };
 
-function buildTourSteps(installCommand?: string): TourStep[] {
+function buildTourSteps(installConfig?: InstallCommandConfig): TourStep[] {
   const steps: TourStep[] = [
     {
       target: 'brand',
@@ -46,11 +47,11 @@ function buildTourSteps(installCommand?: string): TourStep[] {
   ];
 
   // 仅当后端配置了安装命令时才显示该步骤
-  if (installCommand) {
+  if (hasConfiguredInstallCommand(installConfig)) {
     steps.push({
       title: '让 AI 先了解敲鸭',
       description: '把这行命令交给 Codex、Claude Code、Cursor、Windsurf 或 OpenClaw 等 Agent 工具执行。安装后，AI 会获得敲鸭的社区说明和查询入口，你可以直接问它有哪些课程、Plus 能看什么、最近更新了什么，或让它按你的目标推荐学习路线。',
-      command: installCommand,
+      installConfig,
     });
   }
 
@@ -128,7 +129,6 @@ export const PlusCommunityOnboarding: React.FC = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [tourSteps, setTourSteps] = useState<TourStep[]>([]);
   const [targetRect, setTargetRect] = useState<TargetRect | null>(null);
-  const [commandCopied, setCommandCopied] = useState(false);
   const resolvedPathCacheRef = useRef<Record<number, string>>({});
 
   const planLevel = Number(user?.currentSubscriptionLevel ?? user?.currentSubscriptionPlanLevel ?? 0);
@@ -143,7 +143,7 @@ export const PlusCommunityOnboarding: React.FC = () => {
         const { UserService } = await import('@shared/services/api');
         const config = await UserService.getPlusGuideConfig();
         if (!cancelled) {
-          setTourSteps(buildTourSteps(config.installCommand || undefined));
+          setTourSteps(buildTourSteps(config));
         }
       } catch (error) {
         console.error('获取Plus指引配置失败:', error);
@@ -269,10 +269,6 @@ export const PlusCommunityOnboarding: React.FC = () => {
     };
   }, [open, activeIndex, location.pathname, resolveTargetRect]);
 
-  useEffect(() => {
-    setCommandCopied(false);
-  }, [activeIndex]);
-
   const completeGuide = async () => {
     try {
       const { UserService } = await import('@shared/services/api');
@@ -294,18 +290,6 @@ export const PlusCommunityOnboarding: React.FC = () => {
   const goPrevious = () => {
     if (isFirstStep) return;
     setActiveIndex((value) => value - 1);
-  };
-
-  const copyCommand = async () => {
-    if (!activeStep.command) return;
-    try {
-      await navigator.clipboard.writeText(activeStep.command);
-      setCommandCopied(true);
-      showToast.success('命令已复制');
-    } catch (error) {
-      console.error('复制敲鸭安装命令失败:', error);
-      showToast.error('复制失败，请手动复制');
-    }
   };
 
   if (!open || !activeStep) return null;
@@ -363,18 +347,12 @@ export const PlusCommunityOnboarding: React.FC = () => {
 
         <p className="mt-4 text-sm leading-6 text-warm-gray-600">{activeStep.description}</p>
 
-        {activeStep.command && (
+        {activeStep.installConfig && (
           <div className="mt-4 rounded-lg border border-honey-100 bg-honey-50/70 p-3">
-            <div className="mb-2 text-xs font-medium text-honey-700">macOS / Linux 一键安装</div>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-              <code className="min-w-0 flex-1 overflow-x-auto rounded-md bg-white px-3 py-2 text-xs font-semibold text-amber-800">
-                {activeStep.command}
-              </code>
-              <Button type="button" variant="outline" size="sm" onClick={copyCommand} className="shrink-0">
-                {commandCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {commandCopied ? '已复制' : '复制'}
-              </Button>
-            </div>
+            <InstallCommandBlock
+              config={activeStep.installConfig}
+              commandClassName="rounded-md bg-white px-3 py-2 text-xs"
+            />
           </div>
         )}
 
