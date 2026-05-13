@@ -111,7 +111,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           <SidebarHeader className={isCollapsed ? 'px-2' : ''}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded shrink-0 object-contain" />
+                <img src="/brand/qiaoya-handdrawn-logo.png" alt="Logo" className="h-8 w-8 rounded shrink-0 object-contain" />
                 {!isCollapsed && <span className="font-bold">管理后台</span>}
               </div>
               <div className="shrink-0">
@@ -220,7 +220,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               <SidebarHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <img src="/logo.jpg" className="h-8 w-8 rounded" />
+                    <img src="/brand/qiaoya-handdrawn-logo.png" className="h-8 w-8 rounded" />
                     <span className="font-bold">管理后台</span>
                   </div>
                 </div>

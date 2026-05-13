@@ -45,7 +45,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           <SidebarHeader className={isCollapsed ? 'px-2' : ''}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded object-contain shrink-0" />
+                <img src="/brand/qiaoya-handdrawn-logo.png" alt="Logo" className="h-8 w-8 rounded object-contain shrink-0" />
                 {!isCollapsed && <span className="font-bold">敲鸭</span>}
               </div>
               <div className="shrink-0">
@@ -151,7 +151,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
             <Sidebar className="h-full" collapsed={false}>
               <SidebarHeader>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2"><img src="/logo.jpg" className="h-8 w-8 rounded" /><span className="font-bold">敲鸭</span></div>
+                  <div className="flex items-center gap-2"><img src="/brand/qiaoya-handdrawn-logo.png" className="h-8 w-8 rounded" /><span className="font-bold">敲鸭</span></div>
                   <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)}><X className="h-4 w-4" /></Button>
                 </div>
               </SidebarHeader>
