@@ -9,6 +9,7 @@ import { MessageCenterPage } from './MessageCenterPage';
 import { ProfileSettingsPage } from './ProfileSettingsPage';
 import { MyResourcesPage } from './MyResourcesPage';
 import { MyLearningPage } from './MyLearningPage';
+import { MyCourseOwnershipsPage } from './MyCourseOwnershipsPage';
 import { MyInterviewQuestionsPage } from './MyInterviewQuestionsPage';
 import { CreateInterviewQuestionPage } from './CreateInterviewQuestionPage';
 import { EditInterviewQuestionPage } from './EditInterviewQuestionPage';
@@ -91,6 +92,7 @@ export const UserBackend: React.FC = () => {
         <Route path="/testimonial" element={<MyTestimonialPage />} />
         <Route path="/resources" element={<MyResourcesPage />} />
         <Route path="/learning" element={<MyLearningPage />} />
+        <Route path="/course-ownerships" element={<MyCourseOwnershipsPage />} />
         <Route path="/interviews" element={<MyInterviewQuestionsPage />} />
         <Route path="/interviews/create" element={<CreateInterviewQuestionPage />} />
         <Route path="/interviews/edit/:id" element={<EditInterviewQuestionPage />} />

@@ -142,6 +142,10 @@ export type {
   // 用户套餐回显相关类型
   UserSubscriptionDTO,
   SubscriptionStatus,
+  UserCourseOwnershipDTO,
+  OwnershipSourceDTO,
+  UserCourseOwnershipStatus,
+  UserCourseOwnershipSourceType,
   // 资源管理
   ResourceDTO,
   ResourceQueryRequest,

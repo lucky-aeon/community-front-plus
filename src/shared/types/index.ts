@@ -475,6 +475,32 @@ export interface UserSubscriptionDTO {
   createTime: string;
 }
 
+export type UserCourseOwnershipStatus = 'ACTIVE' | 'NOT_YET_EFFECTIVE' | 'EXPIRED';
+export type UserCourseOwnershipSourceType = 'DIRECT_COURSE' | 'SUBSCRIPTION_PLAN';
+
+export interface OwnershipSourceDTO {
+  sourceType: UserCourseOwnershipSourceType;
+  sourceRecordId: string;
+  sourceBusinessId: string;
+  sourceName: string;
+  status: UserCourseOwnershipStatus | string;
+  effectiveTime?: string | null;
+  expireTime?: string | null;
+  permanent: boolean;
+}
+
+export interface UserCourseOwnershipDTO {
+  courseId: string;
+  courseTitle: string;
+  coverImage?: string | null;
+  courseStatus?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | string;
+  ownershipStatus: UserCourseOwnershipStatus | string;
+  effectiveTime?: string | null;
+  expireTime?: string | null;
+  permanent: boolean;
+  sources: OwnershipSourceDTO[];
+}
+
 // ================ 评论相关接口定义 ================
 
 // 业务类型枚举

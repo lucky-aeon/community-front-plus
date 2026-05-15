@@ -30,6 +30,7 @@ export const ROUTES = {
   USER_BACKEND_PROFILE: '/dashboard/user-backend/profile',
   USER_BACKEND_FAVORITES: '/dashboard/user-backend/favorites',
   USER_BACKEND_INTERVIEWS: '/dashboard/user-backend/interviews',
+  USER_BACKEND_COURSE_OWNERSHIPS: '/dashboard/user-backend/course-ownerships',
 
   // 管理员后台
   ADMIN_DASHBOARD: '/dashboard/admin',
