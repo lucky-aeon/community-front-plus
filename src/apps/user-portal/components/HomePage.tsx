@@ -1,22 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { PageContainer } from '@shared/components/layout/PageContainer';
-import { DashboardOverview } from '@shared/components/business/DashboardOverview';
-import { AiDailyHero } from '@shared/components/business/AiDailyHero';
-import { AiToolUsageCard } from '@shared/components/business/AiToolUsageCard';
-import { PinnedPostsBanner } from '@shared/components/business/PinnedPostsBanner';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ROUTES } from '@shared/routes/routes';
-import { useNavigate } from 'react-router-dom';
-import { RedeemCDKDialog } from '@shared/components/business/RedeemCDKDialog';
-import { RecentLearningBanner } from '@shared/components/business/RecentLearningBanner';
+import { HomePortalDashboard } from '@shared/components/business/HomePortalDashboard';
 import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
 
 export const HomePage: React.FC = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [isRedeemOpen, setIsRedeemOpen] = useState(false);
 
   // 页面标题
   useDocumentTitle('社区首页');
@@ -33,51 +22,8 @@ export const HomePage: React.FC = () => {
   }
 
   return (
-    <PageContainer className="space-y-8">
-      {/* 顶部：AI 日报横幅摘要 */}
-      <div data-plus-guide="home-ai-daily">
-        <AiDailyHero />
-      </div>
-
-      {/* AI 工具使用卡片（共享 Key） */}
-      <AiToolUsageCard />
-
-      {/* 最近学习：顶部强调卡片（使用现有学习记录接口） */}
-      <div data-plus-guide="home-learning">
-        <RecentLearningBanner />
-      </div>
-
-      {/* 置顶推荐文章 */}
-      <div data-plus-guide="home-pinned-posts">
-        <PinnedPostsBanner />
-      </div>
-
-      {/* 套餐即将到期提示（<=7天） */}
-      {(() => {
-        if (!user?.currentSubscriptionEndTime) return null;
-        const end = new Date(user.currentSubscriptionEndTime).getTime();
-        if (isNaN(end)) return null;
-        const days = Math.floor((end - Date.now()) / 86400000);
-        if (days < 0 || days > 7) return null;
-        return (
-          <Card className="p-4 border-orange-200 bg-orange-50">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="text-sm text-orange-700">
-                您的套餐{user.currentSubscriptionPlanName ? `「${user.currentSubscriptionPlanName}」` : ''}将于
-                <span className="mx-1 font-medium">{new Date(user.currentSubscriptionEndTime).toLocaleString('zh-CN')}</span>
-                到期（剩余 {Math.max(0, days)} 天）。
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" variant="honeySoft" onClick={() => navigate(ROUTES.MEMBERSHIP)}>续费 / 升级</Button>
-                <Button size="sm" variant="honeySoft" onClick={() => setIsRedeemOpen(true)}>兑换码兑换</Button>
-              </div>
-            </div>
-          </Card>
-        );
-      })()}
-      {/* Dashboard Overview - 三栏布局 */}
-      <DashboardOverview />
-      <RedeemCDKDialog open={isRedeemOpen} onOpenChange={setIsRedeemOpen} />
+    <PageContainer>
+      <HomePortalDashboard userName={user.name} />
     </PageContainer>
   );
 };

@@ -1493,6 +1493,10 @@ export interface UnreadSummaryDTO {
   chaptersUnread: number;
   // 新增：聊天室未读汇总，用于顶部导航“聊天室”红点
   chatsUnread?: number;
+  // 细粒度未读 ID，用于列表逐条展示“新”标识
+  postIds?: string[];
+  questionIds?: string[];
+  chapterIds?: string[];
 }
 
 // ================ 前台 AI 工具摘要（共享 Key） ================
