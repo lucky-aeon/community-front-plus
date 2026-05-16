@@ -84,9 +84,9 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ showAvatar = false }
 
   // 渲染加载状态
   const renderLoading = () => (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">
       {Array.from({ length: 3 }).map((_, index) => (
-        <Card key={index} className="p-8">
+        <Card key={index} className="p-6 sm:p-8">
           <div className="flex items-center mb-4">
             <Skeleton className="h-5 w-20" />
           </div>
@@ -118,13 +118,13 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ showAvatar = false }
   );
 
   return (
-    <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
+    <section className="py-14 sm:py-20 bg-gradient-to-br from-amber-50 via-white to-orange-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
+        <div className="text-center mb-10 sm:mb-16">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">
             学员真实评价
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto">
             听听我们学员的真实声音，了解他们在敲鸭社区的学习体验和收获。
           </p>
         </div>
@@ -133,10 +133,10 @@ export const Testimonials: React.FC<TestimonialsProps> = ({ showAvatar = false }
           <>
             {error && renderError()}
             {testimonials.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8 items-stretch">
                 {testimonials.map((testimonial) => (
-                  <Card key={testimonial.id} className="p-8 relative hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
-                    <Quote className="absolute top-4 right-4 h-8 w-8 text-blue-200" />
+                  <Card key={testimonial.id} className="p-6 sm:p-8 relative hover:shadow-lg transition-shadow duration-300 flex flex-col h-full border-amber-100">
+                    <Quote className="absolute top-4 right-4 h-8 w-8 text-amber-200" />
 
                     <div className="flex items-center mb-4">
                       {[...Array(testimonial.rating)].map((_, i) => (

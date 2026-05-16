@@ -86,13 +86,16 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onPlanSelect, on
   const visibleServices = services.filter((service) => service.visibleInHome !== false);
 
   return (
-    <section id="pricing" className="py-20 bg-white">
+    <section id="pricing" className="py-14 sm:py-20 bg-white">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto mb-16 max-w-3xl text-center">
+        <div className="mx-auto mb-10 max-w-3xl text-center sm:mb-16">
           <div className="mb-4 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1 text-sm font-medium text-emerald-700">
             会员与服务
           </div>
-          <p className="text-lg leading-8 text-gray-600">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            选择适合你的成长方式
+          </h2>
+          <p className="mt-4 text-base leading-7 text-gray-600 sm:text-lg sm:leading-8">
             会员权益继续围绕课程与内容，独立服务则提供按需支持。
           </p>
         </div>
@@ -104,9 +107,9 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onPlanSelect, on
                 <Skeleton className="h-8 w-32" />
                 <Skeleton className="h-4 w-48" />
               </div>
-              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-5 sm:gap-6 md:grid-cols-2 xl:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, idx) => (
-                  <Card key={idx} className="p-8">
+                  <Card key={idx} className="p-6 sm:p-8">
                     <div className="space-y-4">
                       <Skeleton className="h-5 w-20" />
                       <Skeleton className="h-8 w-32" />
@@ -124,7 +127,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onPlanSelect, on
             </div>
           </div>
         ) : (
-          <div className="space-y-14">
+          <div className="space-y-10 sm:space-y-14">
             <div>
               <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
               <div>
@@ -138,7 +141,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onPlanSelect, on
                   暂无可用套餐
                 </div>
               ) : mappedPlans.length === 1 ? (
-                <div className="grid gap-8 md:grid-cols-3">
+                <div className="grid gap-5 sm:gap-8 md:grid-cols-3">
                   <div className="md:col-start-2">
                     <PricingCard plan={mappedPlans[0]} onSelect={onPlanSelect} buttonLabel="立即订阅" />
                   </div>
@@ -146,7 +149,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onPlanSelect, on
               ) : (
                 <div
                   className={cn(
-                    'grid gap-8 items-stretch',
+                    'grid gap-5 sm:gap-8 items-stretch',
                     mappedPlans.length === 2
                       ? 'grid-cols-1 md:grid-cols-2'
                       : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'
@@ -169,7 +172,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onPlanSelect, on
                 </div>
 
                 {visibleServices.length === 1 ? (
-                  <div className="grid gap-8 md:grid-cols-3">
+                  <div className="grid gap-5 sm:gap-8 md:grid-cols-3">
                     <div className="md:col-start-2">
                       <IndependentServiceCard service={visibleServices[0]} onCtaClick={onServiceCtaClick} />
                     </div>
@@ -177,7 +180,7 @@ export const PricingSection: React.FC<PricingSectionProps> = ({ onPlanSelect, on
                 ) : (
                   <div
                     className={cn(
-                      'grid gap-8 items-stretch',
+                      'grid gap-5 sm:gap-8 items-stretch',
                       visibleServices.length === 2
                         ? 'grid-cols-1 md:grid-cols-2'
                         : 'grid-cols-1 md:grid-cols-2 xl:grid-cols-3'

@@ -82,28 +82,28 @@ export const Hero: React.FC = () => {
       <div className="absolute -bottom-8 left-1/3 w-72 h-72 bg-yellow-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
           <div className="text-center lg:text-left">
-            <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight mb-5 sm:mb-6">
               打造你的
               <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent block">
                 技术生涯
               </span>
             </h1>
             
-            <p className="text-xl text-gray-600 mb-10 leading-relaxed">
+            <p className="text-base sm:text-xl text-gray-600 mb-8 sm:mb-10 leading-relaxed">
               加入我们的技术社区，与专业开发者一起学习、成长、分享
             </p>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-8">
+            <div className="grid grid-cols-3 gap-3 sm:gap-8">
               {stats.map((stat, index) => (
                 <div key={index} className="text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl mb-2">
-                    <stat.icon className="h-6 w-6 text-orange-600" />
+                  <div className="inline-flex items-center justify-center w-10 h-10 sm:h-12 sm:w-12 bg-gradient-to-r from-yellow-100 to-orange-100 rounded-xl mb-2">
+                    <stat.icon className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
                   </div>
-                  <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                  <div className="text-sm text-gray-600">{stat.label}</div>
+                  <div className="text-xl sm:text-2xl font-bold text-gray-900">{stat.value}</div>
+                  <div className="text-xs sm:text-sm text-gray-600">{stat.label}</div>
                 </div>
               ))}
             </div>
@@ -128,7 +128,7 @@ export const Hero: React.FC = () => {
 
           {/* Hero Image */}
           <div className="relative">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 transform rotate-3 hover:rotate-0 transition-transform duration-300">
+            <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-8 transform sm:rotate-3 hover:rotate-0 transition-transform duration-300">
               <img
                 src="/duck-learning-hero.jpg"
                 alt="敲鸭社区学习插画"
@@ -137,7 +137,7 @@ export const Hero: React.FC = () => {
                 loading="eager"
                 decoding="async"
                 fetchPriority="high"
-                className="w-full h-64 object-contain rounded-xl"
+                className="w-full h-52 sm:h-64 object-contain rounded-xl"
               />
               <div className="mt-6">
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -150,14 +150,14 @@ export const Hero: React.FC = () => {
             </div>
             
             {/* Floating cards */}
-            <div className="absolute -top-4 -right-4 bg-white rounded-xl shadow-lg p-4 animate-float">
+            <div className="absolute -top-4 -right-4 hidden sm:block bg-white rounded-xl shadow-lg p-4 animate-float">
               <div className="flex items-center space-x-2">
                 <Code className="h-5 w-5 text-blue-500" />
                 <span className="text-sm font-medium">实战项目</span>
               </div>
             </div>
             
-            <div className="absolute -bottom-4 -left-4 bg-white rounded-xl shadow-lg p-4 animate-float animation-delay-2000">
+            <div className="absolute -bottom-4 -left-4 hidden sm:block bg-white rounded-xl shadow-lg p-4 animate-float animation-delay-2000">
               <div className="flex items-center space-x-2">
                 <MessageSquare className="h-5 w-5 text-orange-500" />
                 <span className="text-sm font-medium">技术分享</span>

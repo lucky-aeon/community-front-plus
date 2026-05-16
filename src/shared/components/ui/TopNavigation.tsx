@@ -470,6 +470,8 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
               size="icon"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden h-10 w-10 rounded-full hover:bg-honey-100"
+              aria-label={isMobileMenuOpen ? '关闭导航菜单' : '打开导航菜单'}
+              aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
@@ -478,15 +480,15 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
 
         {/* Mobile Menu - 使用 Dialog 抽屉，避免遮罩层层级造成的点击失效 */}
         <Dialog open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-          <DialogContent hideClose className="p-0 max-w-[320px] left-0 top-0 bottom-0 translate-x-0 translate-y-0 h-screen w-[85vw] sm:w-[360px] rounded-none border-r lg:hidden">
+          <DialogContent hideClose aria-label="移动侧边导航" className="p-0 max-w-[320px] left-0 top-0 bottom-0 translate-x-0 translate-y-0 h-dvh w-[85vw] sm:w-[360px] rounded-none border-r lg:hidden">
             <div className="h-full flex flex-col bg-white">
               {/* Header */}
               <div className="px-4 py-3 border-b border-honey-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded object-cover" />
+                  <img src="/logo.jpg" alt="敲鸭社区" width={32} height={32} className="h-8 w-8 rounded object-cover" />
                   <span className="font-bold">敲鸭</span>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>
+                <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)} aria-label="关闭导航菜单">
                   <X className="h-4 w-4" />
                 </Button>
               </div>

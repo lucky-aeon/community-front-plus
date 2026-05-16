@@ -65,16 +65,16 @@ export const CourseGrid: React.FC<CourseGridProps> = () => {
   };
 
   const header = useMemo(() => (
-    <div className="text-center mb-16">
-      <h2 className="text-4xl font-bold text-gray-900 mb-4">精选课程目录</h2>
-      <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+    <div className="text-center mb-10 sm:mb-16">
+      <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">精选课程目录</h2>
+      <p className="text-base sm:text-xl text-gray-600 max-w-2xl mx-auto">
         覆盖工程化与真实业务场景的高质量课程，助你系统提升。
       </p>
     </div>
   ), []);
 
   return (
-    <section id="courses" className="py-20 bg-gray-50">
+    <section id="courses" className="py-14 sm:py-20 bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {header}
 
@@ -88,7 +88,7 @@ export const CourseGrid: React.FC<CourseGridProps> = () => {
         )}
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8 items-stretch">
             {Array.from({ length: 6 }).map((_, i) => (
               <Card key={i} className="overflow-hidden">
                 <Skeleton className="h-48 w-full" />
@@ -105,7 +105,7 @@ export const CourseGrid: React.FC<CourseGridProps> = () => {
             ))}
           </div>
         ) : courses.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 lg:gap-8 items-stretch">
             {courses.map((course) => (
               <CourseCard
                 key={course.id}
@@ -120,7 +120,7 @@ export const CourseGrid: React.FC<CourseGridProps> = () => {
             ))}
           </div>
         ) : (
-          <Card className="p-12 text-center">
+          <Card className="p-8 sm:p-12 text-center">
             <p className="text-warm-gray-600">暂无课程</p>
           </Card>
         )}
