@@ -9,10 +9,13 @@ import type { CodexPublicInstanceDTO, AiToolSummaryDTO } from '@shared/types';
 export class AppCodexPersistentService {
   private static readonly BASE = '/app/codex-p';
 
-  static async getInfo(): Promise<AiToolSummaryDTO> {
+  static async getInfo(): Promise<AiToolSummaryDTO | null> {
     const resp = await apiClient.get<ApiResponse<any>>(`${this.BASE}/info`);
     const body = resp.data as ApiResponse<any> | undefined;
-    const d = body?.data || {};
+    const d = body?.data;
+    if (!d) {
+      return null;
+    }
     const parse = (s?: string) => {
       const n = Number(String(s || '').trim());
       return isNaN(n) ? 0 : n;
@@ -49,7 +52,6 @@ export class AppCodexPersistentService {
       usageFetchFailed: Boolean(d.usageFetchFailed === true),
       weeklyWindowStart: d.weeklyWindowStart ? String(d.weeklyWindowStart) : undefined,
       weeklyWindowEnd: d.weeklyWindowEnd ? String(d.weeklyWindowEnd) : undefined,
-    }));
+    })).filter((item) => item.apiKey);
   }
 }
-

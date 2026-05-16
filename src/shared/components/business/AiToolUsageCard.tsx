@@ -20,11 +20,9 @@ interface AiToolUsageCardProps {
 
 /**
  * 首页卡片：AI 工具使用（共享 Key）
- * - 目前使用本地 mock 数据演示布局
- * - 后端接口就绪后，替换为 AppAiToolService.getSummary()
  */
 export const AiToolUsageCard: React.FC<AiToolUsageCardProps> = ({ className, initialData, docsUrl }) => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [fatal, setFatal] = useState<string | null>(null);
   // 多实例列表
   const [instances, setInstances] = useState<CodexPublicInstanceDTO[]>([]);
@@ -53,25 +51,28 @@ export const AiToolUsageCard: React.FC<AiToolUsageCardProps> = ({ className, ini
         setFatal(null);
       } else {
         const single = await AppCodexPersistentService.getInfo();
-        setInstances([{ id: 'default', name: '默认实例', ...single }]);
+        setInstances(single?.apiKey ? [{ id: 'default', name: '默认实例', ...single }] : []);
         setFatal(null);
       }
     } catch (e: any) {
-      // 静默失败（toast 由拦截器兜底），但提供友好说明
-      setFatal('AI 工具用量数据获取异常，请稍后再试或联系管理员修复');
+      console.error('加载 Codex 配置失败', e);
+      setInstances([]);
+      setFatal(null);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    // 初次渲染拉一次（mock）
-    // 后端就绪后替换为真实请求
     void refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fmtUsd = (n: number) => `$${(Number(n) || 0).toFixed(2)}`;
+
+  if (instances.length === 0) {
+    return null;
+  }
 
   return (
     <Card className={cn('p-5 border-0 shadow-lg bg-gradient-to-br from-honey-50 to-honey-100/40', className)}>

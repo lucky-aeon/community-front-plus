@@ -6,7 +6,7 @@ import type { AiToolSummaryDTO } from '@shared/types';
  * - GET /app/codex/info
  */
 export class AppCodexService {
-  static async getInfo(): Promise<AiToolSummaryDTO> {
+  static async getInfo(): Promise<AiToolSummaryDTO | null> {
     const resp = await apiClient.get<ApiResponse<{
       apiKey?: string;
       weeklySpentUsd?: string;
@@ -23,7 +23,10 @@ export class AppCodexService {
       (err as any).__codexErrorCode = 9503;
       throw err;
     }
-    const d = body?.data || {};
+    const d = body?.data;
+    if (!d) {
+      return null;
+    }
     const parse = (s?: string) => {
       const n = Number(String(s || '').trim());
       return isNaN(n) ? 0 : n;
