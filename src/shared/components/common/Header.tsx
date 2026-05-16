@@ -71,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <img src="/brand/qiaoya-handdrawn-logo.png" alt="Logo" className="h-8 w-8 rounded" />
+            <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded object-cover" />
             <h1 className="text-2xl font-bold text-yellow-400">
               敲鸭
             </h1>

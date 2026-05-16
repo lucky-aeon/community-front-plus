@@ -130,7 +130,7 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                 {/* 头部：Logo + 社区名 + 徽章 */}
                 <div className="flex items-center gap-2.5 mb-3">
                   <img
-                    src="/brand/qiaoya-handdrawn-logo.png"
+                    src="/logo.jpg"
                     alt="logo"
                     className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                   />

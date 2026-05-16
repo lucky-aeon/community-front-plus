@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import { ProtectedRoute, PublicOnlyRoute } from '@shared/routes/ProtectedRoute';
 import { MarketingPage } from '@apps/marketing/components/MarketingPage';
 import { AboutPage } from '@apps/marketing/components/AboutPage';
+import { MobileDownloadPage } from '@apps/marketing/components/MobileDownloadPage';
 import { LoginPage } from '@apps/marketing/components/LoginPage';
 import { Dashboard } from '@apps/user-portal/components/Dashboard';
 import { AdminBackend } from '@admin-backend/components/AdminBackend';
@@ -42,6 +43,16 @@ const AppContent: React.FC = () => {
       <Route
         path="/about"
         element={<AboutPage />}
+      />
+
+      <Route
+        path="/mobile"
+        element={<MobileDownloadPage />}
+      />
+
+      <Route
+        path="/download"
+        element={<Navigate to="/mobile" replace />}
       />
 
       {/* 公开路由 - 登录页 */}

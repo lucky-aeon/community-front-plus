@@ -32,6 +32,7 @@ export { LikesService, type LikeStatusDTO } from './likes.service';
 export { UserFollowsService } from './user-follows.service';
 export { PublicCoursesService } from './public-courses.service';
 export { PublicStatsService } from './public-stats.service';
+export { MobileReleaseService, type MobileReleaseDTO } from './mobile-release.service';
 export { apiClient, type ApiResponse } from './config';
 export { UserSubscriptionService } from './user-subscription.service';
 export { AdminAiNewsService } from './admin-ai-news.service';

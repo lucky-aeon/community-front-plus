@@ -406,7 +406,7 @@ export const changelogEntries: ChangelogEntry[] = [
     author: {
       id: 'admin-1',
       name: '巧牙团队',
-      avatar: '/brand/qiaoya-handdrawn-logo.png'
+      avatar: '/logo.jpg'
     },
     viewCount: 1247,
     feedbackCount: 45,
@@ -468,7 +468,7 @@ export const changelogEntries: ChangelogEntry[] = [
     author: {
       id: 'admin-1',
       name: '巧牙团队',
-      avatar: '/brand/qiaoya-handdrawn-logo.png'
+      avatar: '/logo.jpg'
     },
     viewCount: 892,
     feedbackCount: 23,
@@ -523,7 +523,7 @@ export const changelogEntries: ChangelogEntry[] = [
     author: {
       id: 'admin-1',
       name: '巧牙团队',
-      avatar: '/brand/qiaoya-handdrawn-logo.png'
+      avatar: '/logo.jpg'
     },
     viewCount: 1567,
     feedbackCount: 78,
@@ -578,7 +578,7 @@ export const changelogEntries: ChangelogEntry[] = [
     author: {
       id: 'admin-1',
       name: '巧牙团队',
-      avatar: '/brand/qiaoya-handdrawn-logo.png'
+      avatar: '/logo.jpg'
     },
     viewCount: 743,
     feedbackCount: 19,
@@ -626,7 +626,7 @@ export const changelogEntries: ChangelogEntry[] = [
     author: {
       id: 'admin-1',
       name: '巧牙团队',
-      avatar: '/brand/qiaoya-handdrawn-logo.png'
+      avatar: '/logo.jpg'
     },
     viewCount: 3247,
     feedbackCount: 156,

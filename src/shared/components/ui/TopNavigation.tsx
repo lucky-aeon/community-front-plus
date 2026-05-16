@@ -240,7 +240,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
               className="flex items-center space-x-3 hover:opacity-80 transition-opacity"
             >
               <img
-                src="/brand/qiaoya-handdrawn-logo.png"
+                src="/logo.jpg"
                 alt="敲鸭社区"
                 className="h-10 w-10 rounded-xl"
               />
@@ -483,7 +483,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
               {/* Header */}
               <div className="px-4 py-3 border-b border-honey-border flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <img src="/brand/qiaoya-handdrawn-logo.png" alt="Logo" className="h-8 w-8 rounded" />
+                  <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded object-cover" />
                   <span className="font-bold">敲鸭</span>
                 </div>
                 <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(false)}>

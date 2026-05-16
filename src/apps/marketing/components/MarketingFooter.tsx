@@ -19,7 +19,7 @@ export const MarketingFooter: React.FC<MarketingFooterProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <img src="/brand/qiaoya-handdrawn-logo.png" alt="Logo" className="h-8 w-8 rounded" />
+              <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded object-cover" />
               <h3 className="text-2xl font-bold">敲鸭</h3>
             </div>
             <p className="text-gray-400 mb-4">
@@ -53,6 +53,7 @@ export const MarketingFooter: React.FC<MarketingFooterProps> = ({
             <ul className="space-y-2 text-gray-400">
               <li><a href="/#courses" className="hover:text-white transition-colors">课程</a></li>
               <li><a href="/about" className="hover:text-white transition-colors">关于我</a></li>
+              <li><a href="/mobile" className="hover:text-white transition-colors">移动端下载</a></li>
               <li><a href="/#pricing" className="hover:text-white transition-colors">会员与服务</a></li>
             </ul>
           </div>
