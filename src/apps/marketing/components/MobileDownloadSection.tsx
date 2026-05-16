@@ -1,8 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import {
   AlertCircle,
-  Bot,
   Box,
   Download,
   FileText,
@@ -56,18 +55,9 @@ export const MobileDownloadSection: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
 
-  const pageUrl = useMemo(() => {
-    if (typeof window === 'undefined') {
-      return '';
-    }
-    return window.location.href;
-  }, []);
-
   const apkUrl = release?.apkUrl;
   const versionText = release ? `v${release.versionName}` : loading ? '加载中' : '暂无版本';
-  const releaseNotes = release?.releaseNotes?.length
-    ? release.releaseNotes.slice(0, 2)
-    : ['新版发布后，这里会自动更新下载信息。'];
+  const releaseNotes = release?.releaseNotes?.slice(0, 2) ?? [];
 
   useEffect(() => {
     let cancelled = false;
@@ -99,10 +89,11 @@ export const MobileDownloadSection: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (!pageUrl) {
+    if (!apkUrl) {
+      setQrCodeUrl('');
       return;
     }
-    QRCode.toDataURL(pageUrl, {
+    QRCode.toDataURL(apkUrl, {
       width: 208,
       margin: 1,
       color: {
@@ -110,7 +101,7 @@ export const MobileDownloadSection: React.FC = () => {
         light: '#ffffff',
       },
     }).then(setQrCodeUrl).catch(() => setQrCodeUrl(''));
-  }, [pageUrl]);
+  }, [apkUrl]);
 
   return (
     <section className="relative overflow-hidden bg-[#fff8ed] py-14 sm:py-16 lg:py-20">
@@ -134,25 +125,6 @@ export const MobileDownloadSection: React.FC = () => {
           </p>
 
           <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-            {apkUrl ? (
-              <a
-                href={apkUrl}
-                className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-orange-600 px-7 text-base font-black text-white shadow-lg shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-200 sm:text-lg"
-              >
-                <Bot className="h-6 w-6" />
-                下载 Android App
-              </a>
-            ) : (
-              <button
-                type="button"
-                disabled
-                className="inline-flex min-h-14 cursor-not-allowed items-center justify-center gap-3 rounded-2xl bg-orange-300 px-7 text-base font-black text-white sm:text-lg"
-              >
-                <Loader2 className="h-6 w-6 animate-spin" />
-                正在获取版本
-              </button>
-            )}
-
             <a
               href="/"
               className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-7 text-base font-black text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:border-orange-200 hover:text-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-100 sm:text-lg"
@@ -237,16 +209,18 @@ export const MobileDownloadSection: React.FC = () => {
             </ol>
           </div>
 
-          <div className="mt-6 border-t border-orange-100 pt-5">
-            <ul className="space-y-2 text-sm font-medium leading-6 text-slate-500">
-              {releaseNotes.map((note, index) => (
-                <li key={`${note}-${index}`} className="flex gap-2">
-                  <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
-                  <span>{note}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {releaseNotes.length > 0 ? (
+            <div className="mt-6 border-t border-orange-100 pt-5">
+              <ul className="space-y-2 text-sm font-medium leading-6 text-slate-500">
+                {releaseNotes.map((note, index) => (
+                  <li key={`${note}-${index}`} className="flex gap-2">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                    <span>{note}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>

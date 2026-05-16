@@ -8,6 +8,7 @@ export const API_BASE_URL = '/api';
 // 创建 axios 实例
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     'Accept': '*/*',

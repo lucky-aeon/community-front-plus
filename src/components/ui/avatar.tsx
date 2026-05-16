@@ -3,6 +3,7 @@ import * as AvatarPrimitive from "@radix-ui/react-avatar"
 
 import { cn } from "@shared/utils/cn"
 import { getAvatarUrl } from "@shared/utils/avatar"
+import { ResourceAccessService } from "@shared/services/api/resource-access.service"
 
 type AvatarProps = React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root> & {
   shape?: 'circle' | 'rounded' | 'square';
@@ -48,13 +49,24 @@ Avatar.displayName = AvatarPrimitive.Root.displayName
 const AvatarImage = React.forwardRef<
   React.ElementRef<typeof AvatarPrimitive.Image>,
   React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image>
->(({ className, src, ...props }, ref) => {
-  const resolvedSrc = React.useMemo(() => getAvatarUrl(src as string | undefined), [src]);
+>(({ className, src, onError, ...props }, ref) => {
+  const [retryKey, setRetryKey] = React.useState<number | undefined>();
+  const resolvedSrc = React.useMemo(() => getAvatarUrl(src as string | undefined, { refreshKey: retryKey }), [src, retryKey]);
   return (
     <AvatarPrimitive.Image
       ref={ref}
       className={cn("aspect-square h-full w-full", className)}
       src={resolvedSrc}
+      onError={async (event) => {
+        onError?.(event);
+        if (retryKey) return;
+        try {
+          await ResourceAccessService.ensureSession(true);
+          setRetryKey(Date.now());
+        } catch {
+          // Let Radix show AvatarFallback.
+        }
+      }}
       {...props}
     />
   );

@@ -8,6 +8,7 @@ import { UploadService } from '@shared/services/api/upload.service';
 import { NO_LIMIT_UPLOAD_CONFIG } from '@shared/types/upload.types';
 import { ResourceAccessService } from '@shared/services/api/resource-access.service';
 import { ExpressionsService, type ExpressionTypeDTO } from '@shared/services/api/expressions.service';
+import { MarkdownContent } from './MarkdownContent';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { showToast } from '@shared/utils/toast';
@@ -81,6 +82,10 @@ function MarkdownEditorImpl(
 
   // 动态加载 echarts
   useEffect(() => {
+    if (previewOnly) {
+      setIsEchartsLoaded(true);
+      return;
+    }
     const loadEcharts = async () => {
       try {
         // 检查是否已经加载
@@ -104,7 +109,7 @@ function MarkdownEditorImpl(
     };
 
     loadEcharts();
-  }, []);
+  }, [previewOnly]);
 
   // ESC键盘支持
   useEffect(() => {
@@ -695,6 +700,7 @@ function MarkdownEditorImpl(
 
   // 初始化Cherry编辑器
   useEffect(() => {
+    if (previewOnly) return;
     // 只有在容器可用且 echarts 加载完成后才初始化
     if (!containerRef.current || !isEchartsLoaded) return;
 
@@ -726,7 +732,7 @@ function MarkdownEditorImpl(
         cherryInstanceRef.current = null;
       }
     };
-  }, [getCherryConfig, isEchartsLoaded]);
+  }, [getCherryConfig, isEchartsLoaded, previewOnly]);
 
   // 加载表情列表（需登录；游客跳过以避免 401）
   useEffect(() => {
@@ -874,6 +880,10 @@ function MarkdownEditorImpl(
       } catch { /* ignore */ }
     }
   }), [value, onChange]);
+
+  if (previewOnly) {
+    return <MarkdownContent content={value || ''} className={className} />;
+  }
 
   return (
     <div 

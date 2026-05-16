@@ -6,6 +6,9 @@ import { PagedResourceResponse, ResourceQueryRequest } from '@shared/types/uploa
  * 负责资源的访问、查询和管理
  */
 export class ResourceAccessService {
+  private static sessionRefreshPromise: Promise<void> | null = null;
+  private static lastSessionRefreshAt = 0;
+
   /**
    * 若传入的是资源ID，则转换为可访问URL；若已是URL，原样返回；为空返回空
    */
@@ -58,10 +61,33 @@ export class ResourceAccessService {
    * - 需要 Bearer 认证，后端据此签发资源访问票据（RAUTH）
    * - 跨域部署时需 withCredentials 以接收 Set-Cookie
    */
-  static async ensureSession(): Promise<void> {
-    // 已改为登录时下发 Cookie 的模式，不再需要单独建立资源访问会话
-    // 这里保持函数存在以兼容既有调用，但不做任何网络请求
-    return Promise.resolve();
+  static async ensureSession(force = false): Promise<void> {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    const now = Date.now();
+    if (!force && now - this.lastSessionRefreshAt < 60_000) {
+      return;
+    }
+    if (this.sessionRefreshPromise) {
+      return this.sessionRefreshPromise;
+    }
+
+    this.sessionRefreshPromise = apiClient.get<ApiResponse<void>>('/user/heartbeat', {
+      withCredentials: true,
+      headers: {
+        'X-Skip-Auth-Logout': 'true',
+        'X-Skip-Error-Toast': 'true',
+      },
+    } as any).then(() => {
+      this.lastSessionRefreshAt = Date.now();
+    }).catch(() => {
+      // 资源 Cookie 续签是被动兜底，不在这里打断页面渲染。
+    }).finally(() => {
+      this.sessionRefreshPromise = null;
+    });
+
+    return this.sessionRefreshPromise;
   }
 
   /**
