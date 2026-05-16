@@ -2,12 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import QRCode from 'qrcode';
 import {
   AlertCircle,
+  Bot,
   Box,
   Download,
   FileText,
   Globe2,
   Loader2,
-  MonitorSmartphone,
   ShieldCheck,
   Smartphone,
 } from 'lucide-react';
@@ -39,8 +39,8 @@ interface InfoCardProps {
 }
 
 const InfoCard: React.FC<InfoCardProps> = ({ icon, label, value }) => (
-  <div className="flex min-h-[88px] items-center gap-4 rounded-2xl border border-orange-100 bg-[#fffaf3] px-5 py-4 shadow-[0_12px_34px_rgba(251,146,60,0.08)]">
-    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-orange-600">
+  <div className="flex min-h-[84px] items-center gap-3 rounded-2xl border border-orange-100 bg-[#fffaf3] px-4 py-4 shadow-sm">
+    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-orange-600">
       {icon}
     </div>
     <div>
@@ -50,11 +50,7 @@ const InfoCard: React.FC<InfoCardProps> = ({ icon, label, value }) => (
   </div>
 );
 
-interface MobileDownloadSectionProps {
-  compact?: boolean;
-}
-
-export const MobileDownloadSection: React.FC<MobileDownloadSectionProps> = () => {
+export const MobileDownloadSection: React.FC = () => {
   const [release, setRelease] = useState<MobileReleaseDTO | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [loading, setLoading] = useState(true);
@@ -117,47 +113,40 @@ export const MobileDownloadSection: React.FC<MobileDownloadSectionProps> = () =>
   }, [pageUrl]);
 
   return (
-    <section className="relative min-h-[calc(100dvh-96px)] overflow-hidden bg-[#fff7e8] px-5 pb-16 pt-8 sm:px-8 lg:px-12">
+    <section className="relative overflow-hidden bg-[#fff8ed] py-14 sm:py-16 lg:py-20">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_4%_92%,rgba(254,215,170,0.72)_0,rgba(254,215,170,0.28)_12%,transparent_28%),radial-gradient(circle_at_36%_86%,rgba(251,146,60,0.18)_0,transparent_22%),linear-gradient(115deg,#fff2d9_0%,#fffaf3_52%,#ffffff_100%)]" />
       <div className="pointer-events-none absolute bottom-[-110px] left-[28%] h-64 w-64 rounded-full bg-orange-200/25 blur-3xl" />
 
-      <div className="relative mx-auto flex max-w-7xl items-center justify-between">
-        <a href="/" className="inline-flex items-center gap-3 rounded-2xl px-1 py-1 text-slate-950 transition hover:opacity-80">
-          <img src="/logo.jpg" alt="敲鸭社区" className="h-11 w-11 rounded-2xl object-cover shadow-sm" />
-          <span className="text-2xl font-black tracking-tight">敲鸭社区</span>
-        </a>
-      </div>
-
-      <div className="relative mx-auto mt-12 grid max-w-7xl gap-10 lg:mt-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center xl:gap-16">
+      <div className="relative mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:px-8 xl:gap-12">
         <div className="max-w-2xl">
-          <div className="inline-flex min-h-12 items-center gap-2 rounded-full border border-orange-200 bg-white/70 px-5 text-sm font-black text-orange-600 shadow-[0_12px_30px_rgba(251,146,60,0.12)] backdrop-blur">
+          <div className="inline-flex min-h-11 items-center gap-2 rounded-full border border-orange-200 bg-white/70 px-4 text-sm font-bold text-orange-600 shadow-sm backdrop-blur">
             <Smartphone className="h-4 w-4" />
             手机访问更方便
           </div>
 
-          <h1 className="mt-10 text-5xl font-black leading-[1.08] tracking-[-0.06em] text-slate-950 sm:text-6xl lg:text-7xl">
+          <h1 className="mt-8 text-4xl font-black leading-tight tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
             在手机上继续逛
             <span className="block text-orange-600">敲鸭社区</span>
           </h1>
 
-          <p className="mt-7 max-w-xl text-lg leading-9 text-slate-600 sm:text-xl">
+          <p className="mt-6 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">
             Android 用户可以下载敲鸭社区 App，在手机上看课程、读文章、收消息。iPhone 用户可以继续使用网页版。
           </p>
 
-          <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+          <div className="mt-8 flex flex-col gap-4 sm:flex-row">
             {apkUrl ? (
               <a
                 href={apkUrl}
-                className="inline-flex min-h-16 items-center justify-center gap-3 rounded-2xl bg-orange-600 px-8 text-lg font-black text-white shadow-[0_18px_36px_rgba(234,88,12,0.32)] transition hover:-translate-y-0.5 hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-200"
+                className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl bg-orange-600 px-7 text-base font-black text-white shadow-lg shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-200 sm:text-lg"
               >
-                <MonitorSmartphone className="h-7 w-7" />
+                <Bot className="h-6 w-6" />
                 下载 Android App
               </a>
             ) : (
               <button
                 type="button"
                 disabled
-                className="inline-flex min-h-16 cursor-not-allowed items-center justify-center gap-3 rounded-2xl bg-orange-300 px-8 text-lg font-black text-white"
+                className="inline-flex min-h-14 cursor-not-allowed items-center justify-center gap-3 rounded-2xl bg-orange-300 px-7 text-base font-black text-white sm:text-lg"
               >
                 <Loader2 className="h-6 w-6 animate-spin" />
                 正在获取版本
@@ -166,36 +155,36 @@ export const MobileDownloadSection: React.FC<MobileDownloadSectionProps> = () =>
 
             <a
               href="/"
-              className="inline-flex min-h-16 items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-8 text-lg font-black text-slate-950 shadow-[0_16px_30px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:border-orange-200 hover:text-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-100"
+              className="inline-flex min-h-14 items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white/80 px-7 text-base font-black text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:border-orange-200 hover:text-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-100 sm:text-lg"
             >
-              <Globe2 className="h-7 w-7" />
+              <Globe2 className="h-6 w-6" />
               继续使用网页版
             </a>
           </div>
 
-          <div className="mt-8 flex items-start gap-2 text-sm font-medium leading-6 text-slate-500">
+          <div className="mt-6 flex items-start gap-2 text-sm font-medium leading-6 text-slate-500">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
             如果下载没有开始，可扫码或稍后重试。
           </div>
         </div>
 
-        <div className="rounded-[2rem] bg-white/90 p-6 shadow-[0_32px_90px_rgba(120,53,15,0.16)] ring-1 ring-white/80 backdrop-blur md:rounded-[2.5rem] md:p-8">
-          <div className="flex flex-col gap-8 border-b border-orange-100 pb-8 sm:flex-row sm:items-start sm:justify-between">
+        <div className="rounded-[2rem] bg-white/90 p-5 shadow-2xl shadow-orange-200/30 ring-1 ring-white/80 backdrop-blur md:p-7">
+          <div className="flex flex-col gap-6 border-b border-orange-100 pb-6 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <div className="text-xl font-black text-slate-900">当前最新版本</div>
-              <div className="mt-7 bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-6xl font-black leading-none tracking-[-0.06em] text-transparent sm:text-7xl">
+              <div className="text-lg font-black text-slate-900 sm:text-xl">当前最新版本</div>
+              <div className="mt-5 bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-5xl font-black leading-none tracking-tight text-transparent sm:text-6xl">
                 {versionText}
               </div>
-              <div className="mt-5 text-sm font-semibold text-slate-500">发布时间：{formatDate(release?.publishedAt)}</div>
+              <div className="mt-4 text-sm font-semibold text-slate-500">发布时间：{formatDate(release?.publishedAt)}</div>
             </div>
 
-            <div className="w-fit rounded-3xl border-2 border-orange-300 bg-white p-4 text-center shadow-sm">
+            <div className="w-fit rounded-2xl border-2 border-orange-300 bg-white p-3 text-center shadow-sm">
               {qrCodeUrl ? (
-                <img src={qrCodeUrl} alt="扫码在手机上下载敲鸭社区 App" className="h-40 w-40" />
+                <img src={qrCodeUrl} alt="扫码在手机上下载敲鸭社区 App" className="h-32 w-32 sm:h-36 sm:w-36" />
               ) : (
-                <div className="h-40 w-40 rounded-2xl bg-slate-100" />
+                <div className="h-32 w-32 rounded-2xl bg-slate-100 sm:h-36 sm:w-36" />
               )}
-              <div className="mt-3 text-sm font-black text-slate-600">扫码在手机上下载</div>
+              <div className="mt-2 text-sm font-black text-slate-600">扫码在手机上下载</div>
             </div>
           </div>
 
@@ -206,37 +195,37 @@ export const MobileDownloadSection: React.FC<MobileDownloadSectionProps> = () =>
             </div>
           ) : null}
 
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            <InfoCard icon={<Box className="h-8 w-8" />} label="安装包大小" value={formatFileSize(release?.fileSize)} />
-            <InfoCard icon={<Smartphone className="h-8 w-8" />} label="适用设备" value="Android 手机" />
-            <InfoCard icon={<ShieldCheck className="h-8 w-8" />} label="系统要求" value="Android 8.0 及以上" />
+          <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <InfoCard icon={<Box className="h-7 w-7" />} label="安装包大小" value={formatFileSize(release?.fileSize)} />
+            <InfoCard icon={<Smartphone className="h-7 w-7" />} label="适用设备" value="Android 手机" />
+            <InfoCard icon={<ShieldCheck className="h-7 w-7" />} label="系统要求" value="Android 8.0 及以上" />
           </div>
 
           {apkUrl ? (
             <a
               href={apkUrl}
-              className="mt-7 inline-flex min-h-16 w-full items-center justify-center gap-3 rounded-2xl bg-orange-600 px-6 text-xl font-black text-white shadow-[0_18px_38px_rgba(234,88,12,0.28)] transition hover:-translate-y-0.5 hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-200"
+              className="mt-6 inline-flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl bg-orange-600 px-6 text-lg font-black text-white shadow-lg shadow-orange-200 transition hover:-translate-y-0.5 hover:bg-orange-700 focus:outline-none focus:ring-4 focus:ring-orange-200"
             >
-              <Download className="h-7 w-7" />
+              <Download className="h-6 w-6" />
               下载 Android 安装包 (.apk)
             </a>
           ) : (
             <button
               type="button"
               disabled
-              className="mt-7 inline-flex min-h-16 w-full cursor-not-allowed items-center justify-center gap-3 rounded-2xl bg-orange-300 px-6 text-xl font-black text-white"
+              className="mt-6 inline-flex min-h-14 w-full cursor-not-allowed items-center justify-center gap-3 rounded-2xl bg-orange-300 px-6 text-lg font-black text-white"
             >
-              <Loader2 className="h-7 w-7 animate-spin" />
+              <Loader2 className="h-6 w-6 animate-spin" />
               正在获取下载地址
             </button>
           )}
 
-          <div className="mt-7 rounded-2xl border border-orange-200 bg-[#fffaf3] p-6">
+          <div className="mt-6 rounded-2xl border border-orange-200 bg-[#fffaf3] p-5">
             <div className="mb-4 flex items-center gap-3 text-lg font-black text-slate-950">
               <FileText className="h-6 w-6 text-orange-600" />
               安装说明
             </div>
-            <ol className="space-y-3 text-base font-semibold leading-7 text-slate-600">
+            <ol className="space-y-3 text-sm font-semibold leading-7 text-slate-600 sm:text-base">
               <li className="flex gap-3">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-orange-600 text-sm font-black text-white">1</span>
                 下载完成后，点击安装包并按提示完成安装。
