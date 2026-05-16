@@ -74,7 +74,7 @@ export const Hero: React.FC = () => {
   ];
 
   return (
-    <section className="relative bg-gradient-to-br from-yellow-50 via-white to-orange-50 pt-20 pb-32 overflow-hidden">
+    <section className="relative overflow-hidden bg-gradient-to-br from-yellow-50 via-white to-orange-50 pt-16 pb-24 sm:pt-20 sm:pb-32">
       {/* Background decoration */}
       <div className="absolute inset-0 bg-grid-pattern opacity-5" />
       <div className="absolute top-0 left-1/4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob" />
@@ -132,6 +132,11 @@ export const Hero: React.FC = () => {
               <img
                 src="/duck-learning-hero.jpg"
                 alt="敲鸭社区学习插画"
+                width={768}
+                height={512}
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
                 className="w-full h-64 object-contain rounded-xl"
               />
               <div className="mt-6">

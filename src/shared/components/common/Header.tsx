@@ -71,7 +71,7 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded object-cover" />
+            <img src="/logo.jpg" alt="敲鸭社区" width={32} height={32} className="h-8 w-8 rounded object-cover" />
             <h1 className="text-2xl font-bold text-yellow-400">
               敲鸭
             </h1>
@@ -126,8 +126,12 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
 
             {/* Mobile Menu Button */}
             <button
+              type="button"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="md:hidden min-h-11 min-w-11 rounded-lg p-2 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-honey-500"
+              aria-label={isMenuOpen ? '关闭导航菜单' : '打开导航菜单'}
+              aria-expanded={isMenuOpen}
+              aria-controls="marketing-mobile-menu"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -136,13 +140,13 @@ export const Header: React.FC<HeaderProps> = ({ onAuthClick }) => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
+          <div id="marketing-mobile-menu" className="md:hidden py-4 border-t border-gray-200">
             <nav className="flex flex-col space-y-4">
               {navItems.map((item) => (
                 <a
                   key={item.label}
                   href={item.href}
-                  className="text-gray-600 hover:text-gray-900 transition-colors duration-200 font-medium px-2 py-1"
+                  className="rounded-md px-2 py-3 font-medium text-gray-600 transition-colors duration-200 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-honey-500"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.label}

@@ -19,7 +19,7 @@ export const LoadingPage: React.FC<LoadingPageProps> = ({
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+    <div className="flex min-h-dvh flex-col items-center justify-center bg-gray-50" role="status" aria-live="polite">
       <div className="flex items-center space-x-3">
         <div className={cn(
           'border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin',

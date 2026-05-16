@@ -46,6 +46,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
   const [isAdmin, setIsAdmin] = useState(false);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const { isAllowed } = useUserMenuCodes();
+  const userId = user?.id;
 
   const handleBackToFrontend = () => {
     navigate('/dashboard');
@@ -78,13 +79,11 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
     };
     fetchRole();
     return () => { cancelled = true; };
-  }, [user?.id]);
+  }, [userId, user]);
 
   // 轮询未读数量，用于导航栏小红点
   useEffect(() => {
     let cancelled = false;
-    let timer: number | undefined;
-
     const fetchUnread = async () => {
       try {
         if (!user) return;
@@ -97,7 +96,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
 
     // 首次加载 + 轮询
     fetchUnread();
-    timer = window.setInterval(fetchUnread, 60_000);
+    const timer = window.setInterval(fetchUnread, 60_000);
 
     // 监听通知变更事件（标记已读/清空等后立即刷新）
     const onChanged = () => { void fetchUnread(); };
@@ -105,10 +104,10 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
 
     return () => {
       cancelled = true;
-      if (timer) window.clearInterval(timer);
+      window.clearInterval(timer);
       window.removeEventListener('notifications:changed', onChanged as EventListener);
     };
-  }, [user?.id]);
+  }, [userId, user]);
 
   const navigationSections = [
     {
@@ -150,7 +149,7 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
   // 删除未使用的颜色函数
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-dvh bg-gray-50 flex">
       {/* Mobile sidebar backdrop */}
       {isSidebarOpen && (
         <div 
@@ -168,9 +167,11 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <button
+              type="button"
               onClick={handleBackToFrontend}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="min-h-11 min-w-11 rounded-lg p-2 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500"
               title="返回前台"
+              aria-label="返回前台"
             >
               <ArrowLeft className="h-5 w-5 text-gray-600" />
             </button>
@@ -179,9 +180,11 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
           <div className="flex items-center gap-2">
             {/* 消息铃铛 */}
             <button
+              type="button"
               onClick={() => navigate('/dashboard/user-backend/messages')}
-              className="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="relative min-h-11 min-w-11 rounded-lg p-2 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500"
               title="消息中心"
+              aria-label={unreadCount > 0 ? `消息中心，${unreadCount > 99 ? '99条以上' : `${unreadCount}条`}未读消息` : '消息中心'}
             >
               <Bell className="h-5 w-5 text-gray-700" />
               {unreadCount > 0 && (
@@ -194,8 +197,10 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
             </button>
             {/* 抽屉关闭（仅移动端显示） */}
             <button
+              type="button"
               onClick={() => setIsSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
+              className="min-h-11 min-w-11 rounded-lg p-2 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 lg:hidden"
+              aria-label="关闭用户中心导航"
             >
               <X className="h-5 w-5" />
             </button>
@@ -301,8 +306,9 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
               {/* 管理员后台入口 */}
               {isAdmin && (
                 <button
+                  type="button"
                   onClick={handleGoToAdmin}
-                  className="w-full flex items-center px-3 py-2 text-sm font-medium text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors duration-200"
+                  className="flex min-h-11 w-full items-center rounded-lg px-3 py-2 text-sm font-medium text-yellow-600 transition-colors duration-200 hover:bg-yellow-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500"
                 >
                   <Shield className="h-5 w-5 mr-3" />
                   <span>管理员后台</span>
@@ -310,8 +316,9 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
               )}
               
               <button
+                type="button"
                 onClick={handleLogout}
-                className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                className="flex min-h-11 w-full items-center rounded-lg px-3 py-2 text-sm font-medium text-red-600 transition-colors duration-200 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
               >
                 <LogOut className="h-5 w-5 mr-3" />
                 <span>退出登录</span>
@@ -327,16 +334,21 @@ export const UserBackendLayout: React.FC<UserBackendLayoutProps> = ({
         <div className="lg:hidden bg-white shadow-sm border-b border-gray-200 px-4 py-3">
           <div className="flex items-center justify-between">
             <button
+              type="button"
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 rounded-lg hover:bg-gray-100"
+              className="min-h-11 min-w-11 rounded-lg p-2 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500"
+              aria-label="打开用户中心导航"
+              aria-expanded={isSidebarOpen}
             >
               <Menu className="h-6 w-6" />
             </button>
             <h2 className="text-lg font-semibold text-gray-900">用户中心</h2>
             <button
+              type="button"
               onClick={() => navigate('/dashboard/user-backend/messages')}
-              className="relative p-2 rounded-lg hover:bg-gray-100"
+              className="relative min-h-11 min-w-11 rounded-lg p-2 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500"
               title="消息中心"
+              aria-label={unreadCount > 0 ? `消息中心，${unreadCount > 99 ? '99条以上' : `${unreadCount}条`}未读消息` : '消息中心'}
             >
               <Bell className="h-5 w-5 text-gray-700" />
               {unreadCount > 0 && (

@@ -104,7 +104,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-muted/20 flex">
+    <div className="min-h-dvh bg-muted/20 flex">
       {/* Desktop sidebar */}
       <div className="hidden lg:block shrink-0 relative z-10">
         <Sidebar collapsed={isCollapsed} className="shadow-sm">
@@ -116,11 +116,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               </div>
               <div className="shrink-0">
                 {!isCollapsed ? (
-                  <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(true)}>
+                  <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(true)} aria-label="收起侧边栏">
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                 ) : (
-                  <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(false)} title="展开">
+                  <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(false)} title="展开" aria-label="展开侧边栏">
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 )}
@@ -188,7 +188,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
           </SidebarContent>
           <SidebarFooter className={isCollapsed ? 'px-2' : undefined}>
             {isCollapsed ? (
-              <Button variant="outline" size="icon" className="w-full" onClick={handleBackToFrontend} title="返回前台">
+              <Button variant="outline" size="icon" className="w-full" onClick={handleBackToFrontend} title="返回前台" aria-label="返回前台">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             ) : (
@@ -202,7 +202,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
       <div className="flex-1 flex flex-col min-w-0">
         <div className="lg:hidden bg-background border-b px-4 py-3">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
+            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)} aria-label="打开管理后台导航" aria-expanded={isSidebarOpen}>
               <Menu className="h-5 w-5" />
             </Button>
             <div className="font-semibold">管理后台</div>
@@ -211,7 +211,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         </div>
 
         <Dialog open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-          <DialogContent className="p-0 max-w-[320px] left-0 top-0 bottom-0 translate-x-0 translate-y-0 h-screen w-[80vw] sm:w-[360px] rounded-none border-r">
+          <DialogContent className="p-0 max-w-[320px] left-0 top-0 bottom-0 translate-x-0 translate-y-0 h-dvh w-[80vw] sm:w-[360px] rounded-none border-r">
             {/* 无障碍要求：为 Dialog 提供可读标题（隐藏可视显示） */}
             <DialogHeader className="sr-only">
               <DialogTitle>移动侧边导航</DialogTitle>
@@ -220,7 +220,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
               <SidebarHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <img src="/logo.jpg" className="h-8 w-8 rounded object-cover" />
+                    <img src="/logo.jpg" alt="敲鸭管理后台" width={32} height={32} className="h-8 w-8 rounded object-cover" />
                     <span className="font-bold">管理后台</span>
                   </div>
                 </div>

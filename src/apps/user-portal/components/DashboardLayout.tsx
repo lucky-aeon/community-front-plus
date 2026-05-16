@@ -38,7 +38,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
   const confirmLogout = () => logout();
 
   return (
-    <div className="min-h-screen bg-muted/20 flex">
+    <div className="min-h-dvh bg-muted/20 flex">
       {/* Desktop sidebar */}
       <div className="hidden lg:block">
         <Sidebar collapsed={isCollapsed} className="shadow-sm">
@@ -50,11 +50,11 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
               </div>
               <div className="shrink-0">
                 {!isCollapsed ? (
-                  <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(true)}>
+                  <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(true)} aria-label="收起侧边栏">
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
                 ) : (
-                  <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(false)} title="展开">
+                  <Button variant="ghost" size="icon" onClick={() => setIsCollapsed(false)} title="展开" aria-label="展开侧边栏">
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 )}
@@ -124,7 +124,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
           </SidebarContent>
           <SidebarFooter className={isCollapsed ? 'px-2' : undefined}>
             {isCollapsed ? (
-              <Button variant="outline" size="icon" className="w-full" onClick={handleLogout} title="退出登录">
+              <Button variant="outline" size="icon" className="w-full" onClick={handleLogout} title="退出登录" aria-label="退出登录">
                 <LogOut className="h-4 w-4" />
               </Button>
             ) : (
@@ -138,7 +138,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
       <div className="flex-1 flex flex-col min-w-0">
         <div className="lg:hidden bg-background border-b px-4 py-3">
           <div className="flex items-center justify-between">
-            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)}>
+            <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(true)} aria-label="打开导航菜单" aria-expanded={isSidebarOpen}>
               <Menu className="h-5 w-5" />
             </Button>
             <div className="font-semibold">敲鸭</div>
@@ -147,12 +147,12 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) =>
         </div>
 
         <Dialog open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
-          <DialogContent hideClose className="p-0 max-w-[320px] left-0 top-0 bottom-0 translate-x-0 translate-y-0 h-screen w-[80vw] sm:w-[360px] rounded-none border-r">
+          <DialogContent hideClose aria-label="移动侧边导航" className="p-0 max-w-[320px] left-0 top-0 bottom-0 translate-x-0 translate-y-0 h-dvh w-[80vw] sm:w-[360px] rounded-none border-r">
             <Sidebar className="h-full" collapsed={false}>
               <SidebarHeader>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2"><img src="/logo.jpg" className="h-8 w-8 rounded object-cover" /><span className="font-bold">敲鸭</span></div>
-                  <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)}><X className="h-4 w-4" /></Button>
+                  <div className="flex items-center gap-2"><img src="/logo.jpg" alt="敲鸭社区" width={32} height={32} className="h-8 w-8 rounded object-cover" /><span className="font-bold">敲鸭</span></div>
+                  <Button variant="ghost" size="icon" onClick={() => setIsSidebarOpen(false)} aria-label="关闭导航菜单"><X className="h-4 w-4" /></Button>
                 </div>
               </SidebarHeader>
               <SidebarContent>
