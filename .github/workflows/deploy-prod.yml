@@ -150,19 +150,24 @@ jobs:
               RUN_IMAGE="$IMAGE"
             fi
 
+            cleanup() {
+              docker rm -f "$EXTRACT_CONTAINER" >/dev/null 2>&1 || true
+              rm -rf "$TMP_DIR"
+            }
+
             rm -rf "$TMP_DIR"
             mkdir -p "$TMP_DIR" "$TARGET_DIR"
-            trap 'docker rm -f "$EXTRACT_CONTAINER" >/dev/null 2>&1 || true; rm -rf "$TMP_DIR"' EXIT
+            trap cleanup EXIT
             docker rm -f "$EXTRACT_CONTAINER" >/dev/null 2>&1 || true
             docker create --name "$EXTRACT_CONTAINER" "$RUN_IMAGE" >/dev/null
             docker cp "$EXTRACT_CONTAINER:/dist/." "$TMP_DIR/"
             docker rm -f "$EXTRACT_CONTAINER" >/dev/null
 
             if command -v rsync >/dev/null 2>&1; then
-              rsync -a --delete --exclude='.user.ini' "$TMP_DIR"/ "$TARGET_DIR"/
+              rsync -a --delete --exclude=.user.ini "$TMP_DIR"/ "$TARGET_DIR"/
             else
               echo "WARN: rsync not found, fallback to copy" >&2
-              find "$TARGET_DIR" -mindepth 1 -not -name '.user.ini' -exec rm -rf {} +
+              find "$TARGET_DIR" -mindepth 1 ! -name .user.ini -exec rm -rf {} \;
               cp -a "$TMP_DIR"/. "$TARGET_DIR"/
             fi
             echo "[deploy] Done. Synced $RUN_IMAGE to $TARGET_DIR"
