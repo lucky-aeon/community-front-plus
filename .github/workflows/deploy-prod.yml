@@ -92,6 +92,7 @@ jobs:
   deploy:
     name: Deploy static files (prod)
     runs-on: ubuntu-latest
+    timeout-minutes: 12
     needs: build-and-push
     environment:
       name: prod
@@ -110,6 +111,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
+          timeout: 30s
+          command_timeout: 10m
           script_stop: true
           envs: IMAGE,PULL_IMAGE,BASE_DIR,TARGET_NAME,EXTRACT_CONTAINER
           script: |
