@@ -1,17 +1,86 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Filter, FileText, Clock } from 'lucide-react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import { Search, Filter, FileText, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ChangelogCard } from '@shared/components/business/ChangelogCard';
-import { changelogEntries } from '@shared/constants/mockData';
+import { UpdateLogService } from '@shared/services/api/update-log.service';
+import type { ChangeType, ChangelogEntry, UpdateLogDTO } from '@shared/types';
 
-type FilterId = 'all' | 'important' | 'feature' | 'improvement' | 'bugfix';
+type FilterId = 'all' | 'important' | 'feature' | 'improvement' | 'bugfix' | 'breaking' | 'security' | 'other';
+type ChangelogChangeType = ChangelogEntry['changes'][number]['type'];
+
+const changeTypeMap: Record<ChangeType, ChangelogChangeType> = {
+  FEATURE: 'feature',
+  IMPROVEMENT: 'improvement',
+  BUGFIX: 'bugfix',
+  BREAKING: 'breaking',
+  SECURITY: 'security',
+  OTHER: 'other',
+};
+
+const toDate = (value?: string) => {
+  const date = value ? new Date(value) : new Date(0);
+  return Number.isNaN(date.getTime()) ? new Date(0) : date;
+};
+
+const mapUpdateLogToChangelogEntry = (log: UpdateLogDTO): ChangelogEntry => {
+  const changeDetails = log.changes || log.changeDetails || [];
+  const releaseDate = toDate(log.publishTime || log.createTime);
+
+  return {
+    id: log.id,
+    version: log.version,
+    title: log.title,
+    description: log.description || '',
+    releaseDate,
+    changes: changeDetails.map((change, index) => ({
+      id: change.id || `${log.id}-${index}`,
+      type: changeTypeMap[change.type] || 'other',
+      title: change.title,
+      description: change.description || '',
+      category: change.category,
+    })),
+    status: log.status === 'PUBLISHED' ? 'published' : 'draft',
+    isImportant: Boolean(log.isImportant),
+    author: {
+      id: log.authorId || '',
+      name: log.authorName || '敲鸭社区',
+      avatar: '',
+    },
+    viewCount: 0,
+    feedbackCount: 0,
+    createdAt: toDate(log.createTime),
+    updatedAt: toDate(log.updateTime),
+  };
+};
 
 export const ChangelogPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterId>('all');
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  const [changelogEntries, setChangelogEntries] = useState<ChangelogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const fetchChangelogs = useCallback(async () => {
+    setLoading(true);
+    setErrorMessage(null);
+    try {
+      const logs = await UpdateLogService.getPublicUpdateLogs();
+      setChangelogEntries(logs.map(mapUpdateLogToChangelogEntry));
+    } catch (error) {
+      console.error('加载平台更新日志失败:', error);
+      setErrorMessage('更新日志暂时无法加载，请稍后再试');
+      setChangelogEntries([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchChangelogs();
+  }, [fetchChangelogs]);
 
   // 筛选和搜索逻辑
   const filteredChangelogs = useMemo(() => {
@@ -35,7 +104,7 @@ export const ChangelogPage: React.FC = () => {
 
       return matchesSearch && matchesFilter && changelog.status === 'published';
     }).sort((a, b) => b.releaseDate.getTime() - a.releaseDate.getTime());
-  }, [searchTerm, activeFilter]);
+  }, [changelogEntries, searchTerm, activeFilter]);
 
   const handleToggleExpand = (changelogId: string) => {
     setExpandedCards(prev => {
@@ -62,16 +131,28 @@ export const ChangelogPage: React.FC = () => {
     const bugfixes = changelogEntries.filter(c => 
       c.status === 'published' && c.changes.some(change => change.type === 'bugfix')
     ).length;
+    const breaking = changelogEntries.filter(c =>
+      c.status === 'published' && c.changes.some(change => change.type === 'breaking')
+    ).length;
+    const security = changelogEntries.filter(c =>
+      c.status === 'published' && c.changes.some(change => change.type === 'security')
+    ).length;
+    const other = changelogEntries.filter(c =>
+      c.status === 'published' && c.changes.some(change => change.type === 'other')
+    ).length;
 
-    return { total, important, features, improvements, bugfixes };
-  }, []);
+    return { total, important, features, improvements, bugfixes, breaking, security, other };
+  }, [changelogEntries]);
 
   const filterTabs: { id: FilterId; name: string; count: number; icon: typeof FileText | typeof Clock | null }[] = [
     { id: 'all', name: '全部更新', count: stats.total, icon: FileText },
     { id: 'important', name: '重要更新', count: stats.important, icon: Clock },
     { id: 'feature', name: '新功能', count: stats.features, icon: null },
     { id: 'improvement', name: '优化改进', count: stats.improvements, icon: null },
-    { id: 'bugfix', name: '问题修复', count: stats.bugfixes, icon: null }
+    { id: 'bugfix', name: '问题修复', count: stats.bugfixes, icon: null },
+    { id: 'breaking', name: '重要变更', count: stats.breaking, icon: null },
+    { id: 'security', name: '安全更新', count: stats.security, icon: null },
+    { id: 'other', name: '其他', count: stats.other, icon: null }
   ];
 
   return (
@@ -142,7 +223,29 @@ export const ChangelogPage: React.FC = () => {
 
       {/* 更新日志列表 */}
       <div className="space-y-6">
-        {filteredChangelogs.length > 0 ? (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="h-16 w-16 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <RefreshCw className="h-8 w-8 text-orange-500 animate-spin" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">正在加载更新日志</h3>
+            <p className="text-gray-600">请稍候</p>
+          </div>
+        ) : errorMessage ? (
+          <div className="text-center py-12">
+            <div className="h-16 w-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="h-8 w-8 text-red-500" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{errorMessage}</h3>
+            <Button
+              variant="outline"
+              onClick={() => void fetchChangelogs()}
+              className="mt-4"
+            >
+              重新加载
+            </Button>
+          </div>
+        ) : filteredChangelogs.length > 0 ? (
           filteredChangelogs.map((changelog) => (
             <ChangelogCard
               key={changelog.id}
@@ -174,7 +277,7 @@ export const ChangelogPage: React.FC = () => {
       </div>
 
       {/* 底部提示 */}
-      {filteredChangelogs.length > 0 && (
+      {!loading && !errorMessage && filteredChangelogs.length > 0 && (
         <div className="text-center py-8">
           <p className="text-gray-500 text-sm">
             显示了 {filteredChangelogs.length} 个版本更新 • 

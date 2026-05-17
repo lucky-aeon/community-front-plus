@@ -13,13 +13,20 @@ import type {
  */
 export class UpdateLogService {
 
+  private static normalizeUpdateLog(data: UpdateLogDTO): UpdateLogDTO {
+    if (data.changes && !data.changeDetails) {
+      data.changeDetails = data.changes;
+    }
+    return data;
+  }
+
   /**
    * 获取公开发布的更新日志列表（用户端）
    * @returns 更新日志列表
    */
   static async getPublicUpdateLogs(): Promise<UpdateLogDTO[]> {
     const response = await apiClient.get<ApiResponse<UpdateLogDTO[]>>('/app/update-logs');
-    return response.data.data;
+    return (response.data.data || []).map(item => this.normalizeUpdateLog(item));
   }
 
   /**
@@ -28,11 +35,7 @@ export class UpdateLogService {
    */
   static async getPublicUpdateLogDetail(id: string): Promise<UpdateLogDTO> {
     const response = await apiClient.get<ApiResponse<UpdateLogDTO>>(`/app/update-logs/${encodeURIComponent(id)}`);
-    const data = response.data.data;
-    if (data.changes && !data.changeDetails) {
-      data.changeDetails = data.changes;
-    }
-    return data;
+    return this.normalizeUpdateLog(response.data.data);
   }
 
   /**
@@ -69,14 +72,7 @@ export class UpdateLogService {
    */
   static async getUpdateLog(id: string): Promise<UpdateLogDTO> {
     const response = await apiClient.get<ApiResponse<UpdateLogDTO>>(`/admin/update-logs/${id}`);
-    const data = response.data.data;
-
-    // 确保字段兼容性：如果 changes 存在但 changeDetails 不存在，则映射字段
-    if (data.changes && !data.changeDetails) {
-      data.changeDetails = data.changes;
-    }
-
-    return data;
+    return this.normalizeUpdateLog(response.data.data);
   }
 
   /**
@@ -102,10 +98,7 @@ export class UpdateLogService {
     // 确保字段兼容性：为每个记录映射 changes 到 changeDetails
     if (data.records) {
       data.records = data.records.map(item => {
-        if (item.changes && !item.changeDetails) {
-          item.changeDetails = item.changes;
-        }
-        return item;
+        return this.normalizeUpdateLog(item);
       });
     }
 

@@ -1,9 +1,11 @@
 import React from 'react';
-import { Sparkles, Wrench, Bug, AlertTriangle, Shield } from 'lucide-react';
+import { Sparkles, Wrench, Bug, AlertTriangle, Shield, FileText } from 'lucide-react';
 import { cn } from '@shared/utils/cn';
 
+export type ChangelogChangeType = 'feature' | 'improvement' | 'bugfix' | 'breaking' | 'security' | 'other';
+
 interface ChangeTypeIconProps {
-  type: 'feature' | 'improvement' | 'bugfix' | 'breaking' | 'security';
+  type: ChangelogChangeType;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
@@ -44,6 +46,11 @@ export const ChangeTypeIcon: React.FC<ChangeTypeIconProps> = ({
       icon: Shield,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100'
+    },
+    other: {
+      icon: FileText,
+      color: 'text-gray-600',
+      bgColor: 'bg-gray-100'
     }
   };
 
@@ -63,13 +70,14 @@ export const ChangeTypeIcon: React.FC<ChangeTypeIconProps> = ({
   );
 };
 
-export const getChangeTypeLabel = (type: 'feature' | 'improvement' | 'bugfix' | 'breaking' | 'security'): string => {
+export const getChangeTypeLabel = (type: ChangelogChangeType): string => {
   const labels = {
     feature: '新功能',
     improvement: '优化改进',
     bugfix: '问题修复',
     breaking: '重要变更',
-    security: '安全更新'
+    security: '安全更新',
+    other: '其他更新'
   };
   return labels[type];
 };

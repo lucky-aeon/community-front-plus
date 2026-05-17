@@ -141,7 +141,7 @@ export interface ChangelogEntry {
 
 export interface ChangelogChange {
   id: string;
-  type: 'feature' | 'improvement' | 'bugfix' | 'breaking' | 'security';
+  type: 'feature' | 'improvement' | 'bugfix' | 'breaking' | 'security' | 'other';
   title: string;
   description: string;
   category?: string;
@@ -1919,6 +1919,8 @@ export interface ChangeDetailDTO {
   type: ChangeType;                    // 变更类型，必填
   title: string;                       // 变更标题，必填，最大200字符
   description: string;                 // 变更描述，必填，最大2000字符
+  category?: string;                    // 变更分类
+  sortOrder?: number;                   // 排序
 }
 
 // 更新日志数据传输对象

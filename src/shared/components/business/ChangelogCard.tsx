@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Calendar, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { VersionBadge } from './VersionBadge';
-import { ChangeTypeIcon, getChangeTypeLabel } from './ChangeTypeIcon';
-import { ChangelogEntry, type ChangeType } from '@shared/types';
+import { ChangeTypeIcon, getChangeTypeLabel, type ChangelogChangeType } from './ChangeTypeIcon';
+import { ChangelogEntry } from '@shared/types';
 import { cn } from '@shared/utils/cn';
 
 interface ChangelogCardProps {
@@ -85,9 +85,9 @@ export const ChangelogCard: React.FC<ChangelogCardProps> = ({
           <div className="space-y-2">
             {Object.entries(changesByType).slice(0, 2).map(([type, changes]) => (
               <div key={type} className="flex items-center space-x-2">
-                <ChangeTypeIcon type={type as ChangeType} size="sm" />
+                <ChangeTypeIcon type={type as ChangelogChangeType} size="sm" />
                 <span className="text-sm font-medium text-gray-700">
-                  {getChangeTypeLabel(type as ChangeType)}
+                  {getChangeTypeLabel(type as ChangelogChangeType)}
                 </span>
                 <Badge variant="secondary" size="sm">
                   {changes.length}项
@@ -106,9 +106,9 @@ export const ChangelogCard: React.FC<ChangelogCardProps> = ({
             {Object.entries(changesByType).map(([type, changes]) => (
               <div key={type} className="space-y-3">
                 <div className="flex items-center space-x-3">
-                  <ChangeTypeIcon type={type as ChangeType} />
+                  <ChangeTypeIcon type={type as ChangelogChangeType} />
                   <h4 className="text-lg font-semibold text-gray-800">
-                    {getChangeTypeLabel(type as ChangeType)}
+                    {getChangeTypeLabel(type as ChangelogChangeType)}
                   </h4>
                 </div>
                 <div className="space-y-2 ml-8">
@@ -138,16 +138,9 @@ export const ChangelogCard: React.FC<ChangelogCardProps> = ({
         )}
       </div>
 
-      {/* 底部统计和操作 */}
+      {/* 底部操作 */}
       <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center text-sm text-gray-500">
-            <div className="flex items-center space-x-1">
-              <MessageSquare className="h-4 w-4" />
-              <span>{changelog.feedbackCount} 反馈</span>
-            </div>
-          </div>
-          
+        <div className="flex items-center justify-end">
           <button
             onClick={handleToggleExpand}
             className="flex items-center space-x-1 text-sm text-blue-600 hover:text-blue-700 transition-colors"

@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Clock,
   Copy,
+  ExternalLink,
   FileText,
   Key,
   MessageSquare,
@@ -100,12 +101,6 @@ const formatRelativeTime = (date?: string) => {
   if (days > 0) return `${days}天前`;
   if (hours > 0) return `${hours}小时前`;
   return '刚刚';
-};
-
-const maskKey = (key?: string) => {
-  if (!key) return '暂无 Key';
-  if (key.length <= 12) return key;
-  return `${key.slice(0, 7)}...${key.slice(-4)}`;
 };
 
 const SectionTitle: React.FC<{
@@ -239,10 +234,26 @@ export const HomePortalDashboard: React.FC<HomePortalDashboardProps> = ({ userNa
       .catch(e => console.error('首页加载AI日报失败:', e))
       .finally(() => { if (!cancelled) setDone('aiDaily'); });
 
-    void AppCodexPersistentService.listInfos()
-      .then(list => { if (!cancelled) setCodexInstances(Array.isArray(list) ? list : []); })
-      .catch(e => console.error('首页加载Codex配置失败:', e))
-      .finally(() => { if (!cancelled) setDone('codex'); });
+    void (async () => {
+      try {
+        const list = await AppCodexPersistentService.listInfos();
+        if (cancelled) return;
+
+        if (Array.isArray(list) && list.length > 0) {
+          setCodexInstances(list);
+          return;
+        }
+
+        const single = await AppCodexPersistentService.getInfo();
+        if (!cancelled) {
+          setCodexInstances(single?.apiKey ? [{ id: 'default', name: '默认实例', ...single }] : []);
+        }
+      } catch (e) {
+        console.error('首页加载Codex配置失败:', e);
+      } finally {
+        if (!cancelled) setDone('codex');
+      }
+    })();
 
     void UpdateLogService.getPublicUpdateLogs()
       .then(list => { if (!cancelled) setLogs((list || []).slice(0, 3)); })
@@ -773,32 +784,87 @@ const ToolsAndAnnouncementsCard: React.FC<{
   onOpenAiNews,
   onOpenChangelog,
 }) => {
-  const firstCodex = codexInstances[0];
+  const visibleCodexInstances = codexInstances.slice(0, 3);
   return (
     <Card className="h-full border-gray-100 p-5 shadow-sm">
       <SectionTitle icon={Key} title="工具与公告" />
       <div className="mt-4 space-y-3">
-        <div className="rounded-lg border border-gray-100 p-4">
-          <div className="flex items-center gap-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-orange-50 text-orange-500">
+        <div className="rounded-lg border border-orange-100 bg-gradient-to-br from-orange-50/80 to-white p-4">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-orange-500 shadow-sm ring-1 ring-orange-100">
               <Key className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-semibold text-gray-950">AI 工具 Key</div>
-              {isLoadingCodex ? <Skeleton className="mt-2 h-4 w-24" /> : (
-                <p className="mt-1 truncate font-mono text-xs text-warm-gray-500">
-                  {firstCodex?.apiKey ? maskKey(firstCodex.apiKey) : '暂无可用 Key'}
-                </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="text-sm font-semibold text-gray-950">AI 工具 Key</div>
+                {!isLoadingCodex && codexInstances.length > 0 && (
+                  <Badge variant="secondary" className="bg-orange-100 text-orange-700">
+                    {codexInstances.length} 个可用
+                  </Badge>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-warm-gray-500">
+                按工具实例复制 Key，并查看对应使用文档。
+              </p>
+
+              {isLoadingCodex ? (
+                <div className="mt-3 space-y-2">
+                  <Skeleton className="h-14 w-full" />
+                  <Skeleton className="h-14 w-full" />
+                </div>
+              ) : visibleCodexInstances.length > 0 ? (
+                <div className="mt-3 space-y-2">
+                  {visibleCodexInstances.map((instance) => (
+                    <div
+                      key={instance.id}
+                      className="rounded-lg border border-orange-100 bg-white/80 p-3 shadow-sm"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <div className="truncate text-sm font-medium text-gray-950">
+                              {instance.name || '默认实例'}
+                            </div>
+                          </div>
+                          <div className="mt-1 text-xs text-warm-gray-500">
+                            查看文档后复制对应 Key 使用
+                          </div>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                          {instance.usageDocUrl ? (
+                            <Button variant="outline" size="sm" asChild>
+                              <a href={instance.usageDocUrl} target="_blank" rel="noreferrer">
+                                <ExternalLink className="h-4 w-4" />
+                                文档
+                              </a>
+                            </Button>
+                          ) : (
+                            <Button variant="outline" size="sm" disabled>
+                              <FileText className="h-4 w-4" />
+                              未配置文档
+                            </Button>
+                          )}
+                          <Button variant="primary" size="sm" onClick={() => onCopyKey(instance.apiKey)}>
+                            <Copy className="h-4 w-4" />
+                            复制 Key
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {codexInstances.length > visibleCodexInstances.length && (
+                    <p className="text-xs text-warm-gray-500">
+                      还有 {codexInstances.length - visibleCodexInstances.length} 个实例，可到管理端查看完整配置。
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-3 rounded-lg border border-dashed border-orange-200 bg-white/60 p-3 text-sm text-warm-gray-500">
+                  暂无可用 Key
+                </div>
               )}
             </div>
-            <Button variant="primary" size="sm" onClick={() => onCopyKey(firstCodex?.apiKey)} disabled={!firstCodex?.apiKey}>
-              <Copy className="h-4 w-4" />
-              复制
-            </Button>
           </div>
-          {!isLoadingCodex && firstCodex?.usageFetchFailed && (
-            <p className="mt-3 text-xs text-orange-700">用量暂不可用，但 Key 可正常复制使用。</p>
-          )}
         </div>
 
         <div className="rounded-lg border border-gray-100 p-4" data-plus-guide="home-ai-daily">
