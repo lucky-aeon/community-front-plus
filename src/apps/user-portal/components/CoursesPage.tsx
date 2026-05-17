@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
+import { Button } from '@/components/ui/button';
 
 // 无排序需求
 
@@ -22,6 +23,7 @@ export const CoursesPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [showArchived, setShowArchived] = useState(false);
   const pageSize = 12;
 
   // 无搜索/筛选
@@ -34,6 +36,7 @@ export const CoursesPage: React.FC = () => {
       const params: AppCourseQueryRequest = {
         pageNum: currentPage,
         pageSize,
+        archived: showArchived,
       };
       const response = await CoursesService.getFrontCoursesList(params);
       setCourses(response.records);
@@ -45,7 +48,7 @@ export const CoursesPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, pageSize]);
+  }, [currentPage, pageSize, showArchived]);
 
   useEffect(() => {
     loadCourses();
@@ -57,6 +60,11 @@ export const CoursesPage: React.FC = () => {
 
   const handleCardClick = (courseId: string) => {
     navigate(routeUtils.getCourseDetailRoute(courseId));
+  };
+
+  const switchArchiveView = (archived: boolean) => {
+    setShowArchived(archived);
+    setCurrentPage(1);
   };
 
   const pageNumbers = useMemo(() => {
@@ -91,6 +99,14 @@ export const CoursesPage: React.FC = () => {
 
       {/* 课程网格 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6" data-plus-guide="courses-list">
+        <div className="mb-5 flex items-center gap-2">
+          <Button variant={!showArchived ? 'default' : 'outline'} onClick={() => switchArchiveView(false)}>
+            当前课程
+          </Button>
+          <Button variant={showArchived ? 'default' : 'outline'} onClick={() => switchArchiveView(true)}>
+            已归档
+          </Button>
+        </div>
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             {Array.from({ length: pageSize }).map((_, i) => (
@@ -124,7 +140,7 @@ export const CoursesPage: React.FC = () => {
           </div>
         ) : (
           <Card className="p-12 text-center">
-            <p className="text-warm-gray-600">暂无课程</p>
+            <p className="text-warm-gray-600">{showArchived ? '暂无归档课程' : '暂无课程'}</p>
           </Card>
         )}
 

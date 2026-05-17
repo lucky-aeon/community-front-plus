@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Clock, ChevronRight } from 'lucide-react';
+import { AlertTriangle, BookOpen, Clock, ChevronRight } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -107,6 +107,12 @@ export const RecentCourseChapters: React.FC<RecentCourseChaptersProps> = ({
                     <h4 className="text-sm font-medium text-gray-900 leading-snug line-clamp-2 group-hover:text-blue-600">
                       {item.title}
                     </h4>
+                    {((isChapterMode && ((item as LatestChapterDTO).archived || (item as LatestChapterDTO).courseArchived)) || (!isChapterMode && (item as FrontCourseDTO).archived)) && (
+                      <div className="inline-flex items-center gap-1 text-xs text-amber-700">
+                        <AlertTriangle className="h-3 w-3" />
+                        <span>已归档</span>
+                      </div>
+                    )}
 
                     {/* 元信息行：章节模式仅显示课程名；课程模式显示时间 */}
                     <div className="flex items-center gap-2 text-xs text-warm-gray-500">

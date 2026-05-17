@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, Star, BookOpen, ExternalLink, Award } from 'lucide-react';
+import { AlertTriangle, Clock, Star, BookOpen, ExternalLink, Award } from 'lucide-react';
 import { FrontCourseDTO } from '@shared/types';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -129,10 +129,15 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
       <div className={cn("p-6 gap-4 flex-1 flex flex-col")}> 
         {/* 当隐藏Hero时，单独展示状态徽章 */}
         {hideHero && !hideStatus && (
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <Badge className={cn("border text-xs font-semibold", getStatusColor(course.status))}>
               {getStatusText(course.status)}
             </Badge>
+            {course.archived && (
+              <Badge className="bg-amber-50 text-amber-700 border-amber-200 text-xs font-semibold">
+                已归档
+              </Badge>
+            )}
           </div>
         )}
         {/* Rating 和（可选）作者 */}
@@ -155,6 +160,12 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
           <h3 className="text-lg font-bold text-gray-900 leading-tight line-clamp-2 group-hover:text-honey-700 transition-colors">
             {course.title}
           </h3>
+          {course.archived && (
+            <div className="flex items-start gap-1.5 text-xs text-amber-700">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              <span className="line-clamp-2">{course.archiveReason || '该课程已归档，内容可能已经过时。'}</span>
+            </div>
+          )}
           {!hideContent && (
             <p className="text-warm-gray-600 text-sm leading-relaxed line-clamp-2">
               {course.description}

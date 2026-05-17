@@ -6,10 +6,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RefreshCw, Plus, Pencil, Trash2, GripVertical, Search, XCircle } from 'lucide-react';
+import { Archive, RefreshCw, Plus, Pencil, Trash2, GripVertical, Search, XCircle, RotateCcw } from 'lucide-react';
 import { MarkdownEditor, MarkdownEditorHandle } from '@shared/components/ui/MarkdownEditor';
 import { ResourcePicker } from '@shared/components/business/ResourcePicker';
 import { Rating } from '@/components/ui/rating';
@@ -33,13 +34,14 @@ import AdminPagination from '@shared/components/AdminPagination';
 import { ImageUpload } from '@shared/components/common/ImageUpload';
 import { ResourceAccessService } from '@shared/services/api/resource-access.service';
 
-type Filters = { pageNum: number; pageSize: number; keyword: string; status?: CourseStatus };
+type ArchiveFilter = 'all' | 'active' | 'archived';
+type Filters = { pageNum: number; pageSize: number; keyword: string; status?: CourseStatus; archived: ArchiveFilter };
 
 export const CoursesPage: React.FC = () => {
   const [courses, setCourses] = useState<CourseDTO[]>([]);
   const [loading, setLoading] = useState(false);
   const [pagination, setPagination] = useState({ current: 1, size: 10, total: 0, pages: 0 });
-  const [filters, setFilters] = useState<Filters>({ pageNum: 1, pageSize: 10, keyword: '' });
+  const [filters, setFilters] = useState<Filters>({ pageNum: 1, pageSize: 10, keyword: '', archived: 'all' });
   // 资源库弹窗与编辑器目标
   const [showResourcePicker, setShowResourcePicker] = useState(false);
   const [pickerTarget, setPickerTarget] = useState<'course' | 'chapter' | null>(null);
@@ -69,6 +71,14 @@ export const CoursesPage: React.FC = () => {
 
   // 删除
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; item?: CourseDTO }>({ open: false });
+  const [archiveDialog, setArchiveDialog] = useState<{
+    open: boolean;
+    type: 'course' | 'chapter';
+    item?: CourseDTO | ChapterDTO;
+    chapterIndex?: number;
+    reason: string;
+    submitting: boolean;
+  }>({ open: false, type: 'course', reason: '', submitting: false });
 
   const loadCourses = useCallback(async (pageNum?: number, pageSize?: number) => {
     try {
@@ -77,7 +87,8 @@ export const CoursesPage: React.FC = () => {
         pageNum: pageNum ?? filters.pageNum,
         pageSize: pageSize ?? filters.pageSize,
         ...(filters.status && { status: filters.status }),
-        ...(filters.keyword && { keyword: filters.keyword })
+        ...(filters.keyword && { keyword: filters.keyword }),
+        ...(filters.archived !== 'all' && { archived: filters.archived === 'archived' })
       };
       const res: PageResponse<CourseDTO> = await CoursesService.getCoursesList(req);
       setCourses(res.records);
@@ -87,7 +98,7 @@ export const CoursesPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [filters.pageNum, filters.pageSize, filters.status, filters.keyword]);
+  }, [filters.pageNum, filters.pageSize, filters.status, filters.keyword, filters.archived]);
 
   useEffect(() => { loadCourses(); }, [loadCourses]);
 
@@ -99,10 +110,11 @@ export const CoursesPage: React.FC = () => {
       list = list.filter(c => c.title.toLowerCase().includes(kw) || c.description?.toLowerCase().includes(kw));
     }
     if (filters.status) list = list.filter(c => c.status === filters.status);
+    if (filters.archived !== 'all') list = list.filter(c => Boolean(c.archived) === (filters.archived === 'archived'));
     return list;
-  }, [courses, filters.keyword, filters.status]);
+  }, [courses, filters.keyword, filters.status, filters.archived]);
 
-  const handleReset = () => setFilters({ pageNum: 1, pageSize: 10, keyword: '', status: undefined });
+  const handleReset = () => setFilters({ pageNum: 1, pageSize: 10, keyword: '', status: undefined, archived: 'all' });
   const handlePageChange = (p: number) => setFilters(prev => ({ ...prev, pageNum: p }));
   const handleRefresh = () => loadCourses(pagination.current, pagination.size);
   const handleQuery = () => { setFilters(prev => ({ ...prev, pageNum: 1 })); loadCourses(1, pagination.size); };
@@ -176,6 +188,68 @@ export const CoursesPage: React.FC = () => {
       await loadCourses();
     } catch (e) {
       console.error('删除课程失败', e);
+    }
+  };
+
+  const openCourseArchive = (item: CourseDTO) => {
+    setArchiveDialog({ open: true, type: 'course', item, reason: '', submitting: false });
+  };
+
+  const unarchiveCourse = async (item: CourseDTO) => {
+    try {
+      await CoursesService.unarchiveCourse(item.id);
+      await loadCourses();
+    } catch (e) {
+      console.error('取消课程归档失败', e);
+    }
+  };
+
+  const openChapterArchive = (item: ChapterDTO, index: number) => {
+    setArchiveDialog({ open: true, type: 'chapter', item, chapterIndex: index, reason: '', submitting: false });
+  };
+
+  const unarchiveChapter = async (item: ChapterDTO, index: number) => {
+    try {
+      setChapterDialog(prev => ({ ...prev, saving: true }));
+      const updated = await ChaptersService.unarchiveChapter(item.id);
+      const next = [...chapterDialog.items];
+      next[index] = updated;
+      setChapterDialog(prev => ({ ...prev, saving: false, items: next }));
+      setChapterTranscripts(prev => ({
+        ...prev,
+        [updated.id]: updated.transcript || prev[updated.id] || { chapterId: updated.id, status: 'NOT_GENERATED' } as AdminChapterTranscriptDTO,
+      }));
+    } catch (e) {
+      console.error('取消章节归档失败', e);
+      setChapterDialog(prev => ({ ...prev, saving: false }));
+    }
+  };
+
+  const submitArchive = async () => {
+    if (!archiveDialog.item || !archiveDialog.reason.trim()) return;
+    try {
+      setArchiveDialog(prev => ({ ...prev, submitting: true }));
+      if (archiveDialog.type === 'course') {
+        await CoursesService.archiveCourse(archiveDialog.item.id, archiveDialog.reason.trim());
+        setArchiveDialog({ open: false, type: 'course', reason: '', submitting: false });
+        await loadCourses();
+        return;
+      }
+
+      const updated = await ChaptersService.archiveChapter(archiveDialog.item.id, archiveDialog.reason.trim());
+      if (archiveDialog.chapterIndex !== undefined) {
+        const next = [...chapterDialog.items];
+        next[archiveDialog.chapterIndex] = updated;
+        setChapterDialog(prev => ({ ...prev, items: next }));
+        setChapterTranscripts(prev => ({
+          ...prev,
+          [updated.id]: updated.transcript || prev[updated.id] || { chapterId: updated.id, status: 'NOT_GENERATED' } as AdminChapterTranscriptDTO,
+        }));
+      }
+      setArchiveDialog({ open: false, type: 'course', reason: '', submitting: false });
+    } catch (e) {
+      console.error('归档失败', e);
+      setArchiveDialog(prev => ({ ...prev, submitting: false }));
     }
   };
 
@@ -361,8 +435,14 @@ export const CoursesPage: React.FC = () => {
           <GripVertical className="h-4 w-4" />
         </button>
         <div className="flex-1 min-w-0">
-          <div className="font-medium truncate">{item.title}</div>
+          <div className="flex items-center gap-2">
+            <div className="font-medium truncate">{item.title}</div>
+            {item.archived && <Badge variant="secondary">已归档</Badge>}
+          </div>
           <div className="text-xs text-muted-foreground">阅读时长：{ChaptersService.formatReadingTime(item.readingTime || 0)} · 排序：{item.sortOrder}</div>
+          {item.archived && item.archiveReason && (
+            <div className="text-xs text-amber-700 truncate" title={item.archiveReason}>归档原因：{item.archiveReason}</div>
+          )}
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <Badge variant={transcript?.status === 'SUCCEEDED' ? 'default' : 'secondary'}>{chapterTranscriptText(transcript?.status)}</Badge>
             {transcript?.model && <span>模型：{transcript.model}</span>}
@@ -370,12 +450,21 @@ export const CoursesPage: React.FC = () => {
             {transcript?.errorMessage && <span className="text-red-600 truncate max-w-[280px]">{transcript.errorMessage}</span>}
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap justify-end gap-2">
           {transcript?.status === 'FAILED' && (
             <Button variant="outline" size="sm" onClick={() => retryTranscript(item.id)} disabled={chapterDialog.saving}>重试</Button>
           )}
           <Button variant="outline" size="sm" onClick={() => regenerateTranscript(item.id)} disabled={chapterDialog.saving}>重新生成</Button>
           <Button variant="outline" size="sm" onClick={() => openChapterEdit(index)}>编辑</Button>
+          {item.archived ? (
+            chapterDialog.course?.archived ? (
+              <Button variant="outline" size="sm" disabled>随课程归档</Button>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => unarchiveChapter(item, index)} disabled={chapterDialog.saving}>取消归档</Button>
+            )
+          ) : (
+            <Button variant="outline" size="sm" onClick={() => openChapterArchive(item, index)} disabled={chapterDialog.saving}>归档</Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -404,6 +493,14 @@ export const CoursesPage: React.FC = () => {
                 <SelectItem value="PENDING">待更新</SelectItem>
                 <SelectItem value="IN_PROGRESS">更新中</SelectItem>
                 <SelectItem value="COMPLETED">已完成</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={filters.archived} onValueChange={(v) => setFilters(prev => ({ ...prev, archived: v as ArchiveFilter }))}>
+              <SelectTrigger><SelectValue placeholder="归档状态" /></SelectTrigger>
+              <SelectContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+                <SelectItem value="all">全部归档状态</SelectItem>
+                <SelectItem value="active">未归档</SelectItem>
+                <SelectItem value="archived">已归档</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -438,7 +535,7 @@ export const CoursesPage: React.FC = () => {
                   <TableHead className="min-w-[120px]">标签</TableHead>
                   <TableHead className="min-w-[140px]">总阅读时长</TableHead>
                   <TableHead className="min-w-[160px]">创建时间</TableHead>
-                  <TableHead className="text-right min-w-[260px]">操作</TableHead>
+                  <TableHead className="text-right min-w-[340px]">操作</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -452,15 +549,21 @@ export const CoursesPage: React.FC = () => {
                   ))
                 ) : filtered.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">暂无数据</TableCell>
+                    <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">暂无数据</TableCell>
                   </TableRow>
                 ) : (
                   filtered.map(item => (
                     <TableRow key={item.id}>
                       <TableCell>
-                        <div className="font-medium line-clamp-1" title={item.title}>{item.title}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="font-medium line-clamp-1" title={item.title}>{item.title}</div>
+                          {item.archived && <Badge variant="secondary">已归档</Badge>}
+                        </div>
                         {item.description && (
                           <div className="text-sm text-muted-foreground line-clamp-1" title={item.description}>{item.description}</div>
+                        )}
+                        {item.archived && item.archiveReason && (
+                          <div className="text-xs text-amber-700 line-clamp-1" title={item.archiveReason}>归档原因：{item.archiveReason}</div>
                         )}
                       </TableCell>
                       <TableCell>{statusBadge(item.status)}</TableCell>
@@ -476,8 +579,13 @@ export const CoursesPage: React.FC = () => {
                       <TableCell>{CoursesService.formatReadingTime(item.totalReadingTime)}</TableCell>
                       <TableCell className="text-xs">{new Date(item.createTime).toLocaleString('zh-CN')}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
+                        <div className="flex flex-wrap justify-end gap-2">
                           <Button variant="outline" size="sm" onClick={() => openEdit(item)}><Pencil className="w-4 h-4 mr-2" /> 编辑</Button>
+                          {item.archived ? (
+                            <Button variant="outline" size="sm" onClick={() => unarchiveCourse(item)}><RotateCcw className="w-4 h-4 mr-2" /> 取消归档</Button>
+                          ) : (
+                            <Button variant="outline" size="sm" onClick={() => openCourseArchive(item)}><Archive className="w-4 h-4 mr-2" /> 归档</Button>
+                          )}
                           <Button variant="outline" size="sm" className="text-red-600" onClick={() => confirmDelete(item)}><Trash2 className="w-4 h-4 mr-2" /> 删除</Button>
                           <Button variant="outline" size="sm" onClick={() => openChapters(item)}>章节管理</Button>
                         </div>
@@ -653,6 +761,38 @@ export const CoursesPage: React.FC = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialog({ open: false, mode: 'create', submitting: false, form: { title: '', description: '', status: '' as CourseStatus | '', price: '', originalPrice: '', rating: 0, tags: [], techStack: [], sortOrder: '' } })} disabled={editDialog.submitting}>取消</Button>
             <Button onClick={submitEdit} disabled={editDialog.submitting}>{editDialog.submitting ? '保存中...' : '保存'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={archiveDialog.open} onOpenChange={(open) => {
+        if (!archiveDialog.submitting) {
+          setArchiveDialog(prev => ({ ...prev, open }));
+          if (!open) setArchiveDialog({ open: false, type: 'course', reason: '', submitting: false });
+        }
+      }}>
+        <DialogContent className="data-[state=open]:animate-none data-[state=closed]:animate-none">
+          <DialogHeader>
+            <DialogTitle>{archiveDialog.type === 'course' ? '归档课程' : '归档章节'}</DialogTitle>
+            <DialogDescription>
+              归档后内容仍可访问，但前台会提示用户该内容可能已经过时。
+              {archiveDialog.type === 'course' ? '课程归档会同步归档该课程下所有章节。' : ''}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label>归档原因</Label>
+            <Textarea
+              value={archiveDialog.reason}
+              onChange={(e) => setArchiveDialog(prev => ({ ...prev, reason: e.target.value }))}
+              placeholder="说明内容过时的原因，例如技术栈版本过旧、章节对应功能已废弃等"
+              rows={4}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setArchiveDialog({ open: false, type: 'course', reason: '', submitting: false })} disabled={archiveDialog.submitting}>取消</Button>
+            <Button onClick={submitArchive} disabled={archiveDialog.submitting || !archiveDialog.reason.trim()}>
+              {archiveDialog.submitting ? '归档中...' : '确认归档'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

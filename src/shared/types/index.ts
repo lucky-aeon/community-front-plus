@@ -695,6 +695,9 @@ export interface CourseDTO {
   createTime: string;            // 创建时间
   updateTime: string;            // 更新时间
   likeCount?: number;            // 点赞数（管理端返回）
+  archived?: boolean;            // 是否归档
+  archiveReason?: string;        // 归档原因
+  archivedAt?: string;           // 归档时间
 }
 
 // 创建课程请求参数
@@ -737,6 +740,7 @@ export interface CourseQueryRequest {
   pageSize?: number;             // 每页大小，默认为10
   status?: CourseStatus;         // 状态筛选，可选
   keyword?: string;              // 关键词搜索，可选
+  archived?: boolean;            // 归档状态筛选，可选
 }
 
 // ================ 管理员文章管理相关接口定义 ================
@@ -782,6 +786,9 @@ export interface ChapterDTO {
   updateTime: string;            // 更新时间
   likeCount?: number;            // 点赞数（管理端返回/统计）
   transcript?: AdminChapterTranscriptDTO; // 管理端文字稿状态
+  archived?: boolean;            // 是否归档
+  archiveReason?: string;        // 归档原因
+  archivedAt?: string;           // 归档时间
 }
 
 // 创建课程章节请求参数
@@ -986,6 +993,7 @@ export interface AppCourseQueryRequest {
   keyword?: string;              // 课程标题关键词搜索，可选
   techStack?: string;            // 技术栈筛选，可选
   tags?: string;                 // 标签筛选，可选
+  archived?: boolean;            // 是否查询归档课程，默认 false
 }
 
 // 前台课程列表DTO（API返回的课程数据）
@@ -1008,6 +1016,9 @@ export interface FrontCourseDTO {
   originalPrice?: number;        // 原价（可选）
   createTime: string;            // 创建时间
   likeCount?: number;            // 点赞数（前台列表返回）
+  archived?: boolean;            // 是否归档
+  archiveReason?: string;        // 归档原因
+  archivedAt?: string;           // 归档时间
   // 新增：解锁标记（用于列表页展示）
   unlocked?: boolean;            // 是否已解锁
   // 新增：可解锁的套餐（首页/公开列表可选返回）
@@ -1022,6 +1033,9 @@ export interface FrontChapterDTO {
   readingTime: number;           // 章节阅读时长（分钟）
   createTime: string;            // 章节创建时间
   likeCount?: number;            // 点赞数（详情里的章节列表返回）
+  archived?: boolean;            // 是否归档
+  archiveReason?: string;        // 归档原因
+  archivedAt?: string;           // 归档时间
 }
 
 // 前台课程详情DTO（API返回的课程详细信息）
@@ -1046,6 +1060,9 @@ export interface FrontCourseDetailDTO {
   updateTime: string;            // 更新时间
   chapters: FrontChapterDTO[];   // 章节列表
   likeCount?: number;            // 点赞数（详情返回）
+  archived?: boolean;            // 是否归档
+  archiveReason?: string;        // 归档原因
+  archivedAt?: string;           // 归档时间
   // 新增：解锁信息
   unlocked?: boolean;            // 是否已解锁（可学习）
   unlockPlans?: UnlockPlanDTO[]; // 可解锁的套餐列表（可能为空或未提供）
@@ -1082,6 +1099,9 @@ export interface PublicCourseDTO {
   resources?: CourseResource[];
   createTime: string;
   likeCount?: number;            // 点赞数（公开列表返回）
+  archived?: boolean;            // 是否归档
+  archiveReason?: string;        // 归档原因
+  archivedAt?: string;           // 归档时间
   // 新增：可解锁的套餐（用于首页提示“Plus/Pro 可解锁”）
   unlockPlans?: UnlockPlanDTO[];
 }
@@ -1104,6 +1124,9 @@ export interface PublicCourseDetailDTO {
   updateTime?: string;
   chapters: FrontChapterDTO[];
   likeCount?: number;            // 点赞数（公开详情返回）
+  archived?: boolean;            // 是否归档
+  archiveReason?: string;        // 归档原因
+  archivedAt?: string;           // 归档时间
   // 新增：可解锁的套餐（与课程详情一致）
   unlockPlans?: UnlockPlanDTO[];
 }
@@ -1219,6 +1242,12 @@ export interface FrontChapterDetailDTO {
   updateTime: string;            // 章节更新时间
   likeCount?: number;            // 点赞数（前台章节详情返回）
   contentType?: ChapterContentType; // 章节内容类型：VIDEO 或 TEXT
+  archived?: boolean;            // 是否归档
+  archiveReason?: string;        // 归档原因
+  archivedAt?: string;           // 归档时间
+  courseArchived?: boolean;      // 所属课程是否归档
+  courseArchiveReason?: string;  // 所属课程归档原因
+  courseArchivedAt?: string;     // 所属课程归档时间
 }
 
 export type ChapterTranscriptStatus =
@@ -1856,6 +1885,11 @@ export interface LatestChapterDTO {
   sortOrder: number;             // 章节排序
   readingTime: number;           // 章节阅读时长（分钟）
   createTime: string;            // 章节创建时间
+  archived?: boolean;            // 是否归档
+  archiveReason?: string;        // 归档原因
+  archivedAt?: string;           // 归档时间
+  courseArchived?: boolean;      // 所属课程是否归档
+  courseArchiveReason?: string;  // 所属课程归档原因
 }
 
 // 最新评论DTO（首页展示用）

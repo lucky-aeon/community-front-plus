@@ -28,7 +28,8 @@ export class CoursesService {
       pageSize: params?.pageSize || 10,
       ...(params?.keyword && { keyword: params.keyword }),
       ...(params?.techStack && { techStack: params.techStack }),
-      ...(params?.tags && { tags: params.tags })
+      ...(params?.tags && { tags: params.tags }),
+      ...(typeof params?.archived === 'boolean' && { archived: params.archived })
     });
     const page = response.data.data;
     page.records = page.records.map(c => ({ ...c, coverImage: ResourceAccessService.toAccessUrl(c.coverImage) } as FrontCourseDTO));
@@ -85,6 +86,18 @@ export class CoursesService {
     await apiClient.delete<ApiResponse<null>>(`/admin/courses/${id}`);
   }
 
+  static async archiveCourse(id: string, reason: string): Promise<CourseDTO> {
+    const response = await apiClient.put<ApiResponse<CourseDTO>>(`/admin/courses/${id}/archive`, { reason });
+    const data = response.data.data;
+    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as CourseDTO;
+  }
+
+  static async unarchiveCourse(id: string): Promise<CourseDTO> {
+    const response = await apiClient.put<ApiResponse<CourseDTO>>(`/admin/courses/${id}/unarchive`);
+    const data = response.data.data;
+    return { ...data, coverImage: ResourceAccessService.toAccessUrl(data.coverImage) } as CourseDTO;
+  }
+
   /**
    * 获取课程详情
    * GET /api/admin/courses/{id}
@@ -105,7 +118,8 @@ export class CoursesService {
         pageNum: params?.pageNum || 1,
         pageSize: params?.pageSize || 10,
         ...(params?.status && { status: params.status }),
-        ...(params?.keyword && { keyword: params.keyword })
+        ...(params?.keyword && { keyword: params.keyword }),
+        ...(typeof params?.archived === 'boolean' && { archived: params.archived })
       }
     });
     const page = response.data.data;

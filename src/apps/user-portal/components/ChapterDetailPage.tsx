@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, Clock, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, BookOpen, Clock, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { CoursesService, ChaptersService, AppUnreadService } from '@shared/services/api';
 import { useTextChapterProgress } from '@shared/hooks/useTextChapterProgress';
 import { useVideoChapterProgress } from '@shared/hooks/useVideoChapterProgress';
@@ -205,6 +205,13 @@ export const ChapterDetailPage: React.FC = () => {
     );
   }
 
+  const archiveMessages = [
+    chapterDetail.archived ? (chapterDetail.archiveReason || '该章节内容可能已经过时，仅供参考。') : null,
+    !chapterDetail.archived && (chapterDetail.courseArchived || course.archived)
+      ? (chapterDetail.courseArchiveReason || course.archiveReason || '所属课程已归档，本章节内容可能已经过时。')
+      : null,
+  ].filter(Boolean) as string[];
+
   return (
     <div className="relative">
       {/* 顶部：面包屑与标题 */}
@@ -217,7 +224,12 @@ export const ChapterDetailPage: React.FC = () => {
             <span className="mx-2">/</span>
             <span className="text-warm-gray-700 font-medium">{chapterDetail.title}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{chapterDetail.title}</h1>
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{chapterDetail.title}</h1>
+            {(chapterDetail.archived || chapterDetail.courseArchived || course.archived) && (
+              <Badge className="bg-amber-50 text-amber-700 border-amber-200">已归档</Badge>
+            )}
+          </div>
           <div className="flex items-center gap-3 text-sm text-warm-gray-600">
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
@@ -268,6 +280,16 @@ export const ChapterDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {archiveMessages.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+          <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>章节已归档</AlertTitle>
+            <AlertDescription>{archiveMessages.join('；')}</AlertDescription>
+          </Alert>
+        </div>
+      )}
 
       {/* 主体 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -382,7 +404,13 @@ export const ChapterDetailPage: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-warm-gray-500 w-10 text-left font-mono tabular-nums shrink-0">#{idx + 1}</span>
                       <div className="min-w-0">
-                        <div className="text-sm font-medium text-gray-900 truncate">{ch.title}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-sm font-medium text-gray-900 truncate">{ch.title}</div>
+                          {ch.archived && <Badge variant="secondary" className="shrink-0">已归档</Badge>}
+                        </div>
+                        {ch.archived && ch.archiveReason && (
+                          <div className="text-xs text-amber-700 truncate">{ch.archiveReason}</div>
+                        )}
                         <div className="text-xs text-warm-gray-500">预计 {ch.readingTime} 分钟</div>
                       </div>
                     </div>

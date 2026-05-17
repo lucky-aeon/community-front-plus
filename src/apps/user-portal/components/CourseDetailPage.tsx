@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BookOpen, Clock, ExternalLink, Tags, Star, Lock } from 'lucide-react';
+import { AlertTriangle, BookOpen, Clock, ExternalLink, Tags, Star, Lock } from 'lucide-react';
 import { CoursesService, SubscribeService, AppUnreadService } from '@shared/services/api';
 import { FrontCourseDetailDTO, FrontChapterDTO } from '@shared/types';
 import { Card } from '@/components/ui/card';
@@ -184,6 +184,7 @@ export const CourseDetailPage: React.FC = () => {
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2">
               {statusBadge(course.status)}
+              {course.archived && <Badge className="bg-amber-50 text-amber-700 border-amber-200">已归档</Badge>}
               <span className="text-warm-gray-400 text-sm">创建于 {formatDate(course.createTime)}</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{course.title}</h1>
@@ -246,6 +247,16 @@ export const CourseDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {course.archived && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
+          <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>课程已归档</AlertTitle>
+            <AlertDescription>{course.archiveReason || '该课程内容可能已经过时，仅供参考。'}</AlertDescription>
+          </Alert>
+        </div>
+      )}
 
       {/* 主体内容 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -414,7 +425,13 @@ export const CourseDetailPage: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <span className="text-xs text-warm-gray-500 w-10 text-left font-mono tabular-nums shrink-0">#{idx + 1}</span>
                           <div>
-                            <div className="text-sm font-medium text-gray-900 line-clamp-1">{ch.title}</div>
+                            <div className="flex items-center gap-2">
+                              <div className="text-sm font-medium text-gray-900 line-clamp-1">{ch.title}</div>
+                              {ch.archived && <Badge variant="secondary" className="shrink-0">已归档</Badge>}
+                            </div>
+                            {ch.archived && ch.archiveReason && (
+                              <div className="text-xs text-amber-700 line-clamp-1">{ch.archiveReason}</div>
+                            )}
                             <div className="text-xs text-warm-gray-500 flex items-center gap-1">
                               <Clock className="h-3.5 w-3.5" /> 预计 {ch.readingTime} 分钟
                             </div>

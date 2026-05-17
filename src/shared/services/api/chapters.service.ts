@@ -44,6 +44,16 @@ export class ChaptersService {
     await apiClient.delete<ApiResponse<null>>(`/admin/chapters/${id}`);
   }
 
+  static async archiveChapter(id: string, reason: string): Promise<ChapterDTO> {
+    const response = await apiClient.put<ApiResponse<ChapterDTO>>(`/admin/chapters/${id}/archive`, { reason });
+    return response.data.data;
+  }
+
+  static async unarchiveChapter(id: string): Promise<ChapterDTO> {
+    const response = await apiClient.put<ApiResponse<ChapterDTO>>(`/admin/chapters/${id}/unarchive`);
+    return response.data.data;
+  }
+
   /**
    * 获取章节详情
    * GET /api/admin/chapters/{id}

@@ -37,6 +37,9 @@ export const CourseGrid: React.FC<CourseGridProps> = () => {
     originalPrice: c.originalPrice,
     createTime: c.createTime,
     likeCount: c.likeCount,
+    archived: c.archived,
+    archiveReason: c.archiveReason,
+    archivedAt: c.archivedAt,
     unlockPlans: c.unlockPlans,
   });
 

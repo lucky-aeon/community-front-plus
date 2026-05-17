@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { BookOpen, Clock, ExternalLink, Star, Tags } from 'lucide-react';
+import { AlertTriangle, BookOpen, Clock, ExternalLink, Star, Tags } from 'lucide-react';
 import { PublicCoursesService } from '@shared/services/api';
 import { PublicCourseDetailDTO } from '@shared/types';
 import { CoursesService } from '@shared/services/api';
@@ -116,6 +116,9 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-xl font-bold text-gray-900 line-clamp-2">{detail.title}</h2>
                 <div className="shrink-0 flex items-center gap-2">
+                  {detail.archived && (
+                    <Badge className="bg-amber-50 text-amber-700 border-amber-200">已归档</Badge>
+                  )}
                   {detail.demoUrl && (
                     <Button variant="secondary" size="sm" onClick={() => openUrl(detail.demoUrl)}>
                       <ExternalLink className="h-4 w-4 mr-1" /> 在线演示
@@ -123,6 +126,13 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
                   )}
                 </div>
               </div>
+              {detail.archived && (
+                <Alert className="border-amber-200 bg-amber-50 text-amber-900">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertTitle>课程已归档</AlertTitle>
+                  <AlertDescription>{detail.archiveReason || '该课程内容可能已经过时，仅供参考。'}</AlertDescription>
+                </Alert>
+              )}
               <div className="flex items-center gap-3 text-sm text-warm-gray-600">
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 text-yellow-500" />
@@ -246,7 +256,13 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-warm-gray-500 w-10 text-left font-mono tabular-nums shrink-0">#{idx + 1}</span>
                               <div>
-                                <div className="text-sm font-medium text-gray-900 line-clamp-1">{ch.title}</div>
+                                <div className="flex items-center gap-2">
+                                  <div className="text-sm font-medium text-gray-900 line-clamp-1">{ch.title}</div>
+                                  {ch.archived && <Badge variant="secondary" className="shrink-0">已归档</Badge>}
+                                </div>
+                                {ch.archived && ch.archiveReason && (
+                                  <div className="text-xs text-amber-700 line-clamp-1">{ch.archiveReason}</div>
+                                )}
                                 <div className="text-xs text-warm-gray-500 flex items-center gap-1">
                                   <Clock className="h-3.5 w-3.5" /> 预计 {ch.readingTime} 分钟
                                 </div>

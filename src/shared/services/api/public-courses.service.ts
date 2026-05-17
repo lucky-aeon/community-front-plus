@@ -9,12 +9,13 @@ export class PublicCoursesService {
    * 分页查询公开课程列表
    * POST /api/public/courses/queries
    */
-  static async getPublicCoursesList(params?: { pageNum?: number; pageSize?: number; }): Promise<PageResponse<PublicCourseDTO>> {
+  static async getPublicCoursesList(params?: { pageNum?: number; pageSize?: number; archived?: boolean; }): Promise<PageResponse<PublicCourseDTO>> {
     const response = await apiClient.post<ApiResponse<PageResponse<PublicCourseDTO>>>(
       '/public/courses/queries',
       {
         pageNum: params?.pageNum ?? 1,
         pageSize: params?.pageSize ?? 1000,
+        ...(typeof params?.archived === 'boolean' && { archived: params.archived }),
       }
     );
     return response.data.data;
