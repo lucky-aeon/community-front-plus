@@ -16,11 +16,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
-    environment:
-      name: prod
-      url: ${{ vars.DEPLOY_PUBLIC_URL_PROD }}
+    permissions:
+      contents: read
+      packages: write
+    env:
+      GHCR_IMAGE: ghcr.io/${{ github.repository }}
+      DEPLOY_IMAGE: ghcr.nju.edu.cn/${{ github.repository }}
+    outputs:
+      image: ${{ steps.out-image.outputs.image }}
+      pull_image: ${{ steps.out-image.outputs.pull_image }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,8 +38,8 @@ jobs:
         run: |
           TAG="${{ inputs.target_tag }}"
           if [ -z "$TAG" ]; then TAG="${{ github.ref_name }}"; fi
-          echo "TAG=$TAG" >> $GITHUB_ENV
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
       - name: Checkout target tag
         run: |
@@ -52,55 +58,103 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Add known_hosts
+      - name: Show dist size
+        run: du -sh dist
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build static artifact image
         run: |
-          mkdir -p ~/.ssh
-          chmod 700 ~/.ssh
-          ssh-keyscan -p "${{ secrets.SSH_PORT || 22 }}" ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+          set -e
+          time docker build \
+            -f deploy/Dockerfile.static \
+            -t "${GHCR_IMAGE}:${TAG}" \
+            -t "${GHCR_IMAGE}:prod-latest" \
+            dist
 
-      - name: Prepare tmp dir (prod)
+      - name: Push static artifact image
+        run: |
+          set -e
+          time docker push "${GHCR_IMAGE}:${TAG}"
+          time docker push "${GHCR_IMAGE}:prod-latest"
+
+      - name: Compute image names
+        id: out-image
+        run: |
+          echo "image=${GHCR_IMAGE}:${TAG}" >> "$GITHUB_OUTPUT"
+          echo "pull_image=${DEPLOY_IMAGE}:${TAG}" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy static files (prod)
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    environment:
+      name: prod
+      url: ${{ vars.DEPLOY_PUBLIC_URL_PROD }}
+    steps:
+      - name: Deploy via SSH (prod)
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          IMAGE: ${{ needs.build-and-push.outputs.image }}
+          PULL_IMAGE: ${{ needs.build-and-push.outputs.pull_image }}
+          BASE_DIR: ${{ secrets.PROD_BASE_DIR }}
+          TARGET_NAME: prod
+          EXTRACT_CONTAINER: community-front-plus-extract-${{ github.run_id }}-${{ github.run_number }}
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
+          script_stop: true
+          envs: IMAGE,PULL_IMAGE,BASE_DIR,TARGET_NAME,EXTRACT_CONTAINER
           script: |
             set -euo pipefail
-            BASE_DIR="${{ secrets.PROD_BASE_DIR }}"
-            TMP_DIR="$BASE_DIR/.tmp_prod_${{ github.run_id }}_${{ github.run_number }}"
-            mkdir -p "$TMP_DIR"
 
-      - name: Upload dist to tmp (prod)
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          source: "dist/**"
-          target: "${{ secrets.PROD_BASE_DIR }}/.tmp_prod_${{ github.run_id }}_${{ github.run_number }}"
-          rm: false
+            pull_with_retry() {
+              image="$1"
+              attempt=1
+              while [ "$attempt" -le 3 ]; do
+                if docker pull "$image"; then
+                  return 0
+                fi
+                echo "[deploy] Pull failed for $image (attempt $attempt/3)" >&2
+                sleep $((attempt * 2))
+                attempt=$((attempt + 1))
+              done
+              return 1
+            }
 
-      - name: Sync tmp to target (rsync, keep .user.ini)
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT || 22 }}
-          script: |
-            set -euo pipefail
-            BASE_DIR="${{ secrets.PROD_BASE_DIR }}"
-            TARGET_DIR="$BASE_DIR/prod"
-            TMP_DIR="$BASE_DIR/.tmp_prod_${{ github.run_id }}_${{ github.run_number }}"
+            TARGET_DIR="$BASE_DIR/$TARGET_NAME"
+            TMP_DIR="$BASE_DIR/.tmp_${TARGET_NAME}_${{ github.run_id }}_${{ github.run_number }}"
             case "$TARGET_DIR" in
               "$BASE_DIR"/prod) ;;
               *) echo "Refuse to touch unexpected target: $TARGET_DIR" >&2; exit 1;;
             esac
-            test -d "$TMP_DIR" || { echo "tmp missing: $TMP_DIR" >&2; exit 1; }
-            if [ -d "$TMP_DIR/dist" ]; then mv "$TMP_DIR/dist"/* "$TMP_DIR" && rmdir "$TMP_DIR/dist" || true; fi
-            mkdir -p "$TARGET_DIR"
+
+            echo "[deploy] IMAGE=$IMAGE"
+            echo "[deploy] PULL_IMAGE=$PULL_IMAGE"
+            echo "[deploy] TARGET_DIR=$TARGET_DIR"
+
+            RUN_IMAGE="$PULL_IMAGE"
+            if ! pull_with_retry "$PULL_IMAGE"; then
+              echo "[deploy] Mirror pull failed, falling back to IMAGE=$IMAGE" >&2
+              pull_with_retry "$IMAGE"
+              RUN_IMAGE="$IMAGE"
+            fi
+
+            rm -rf "$TMP_DIR"
+            mkdir -p "$TMP_DIR" "$TARGET_DIR"
+            trap 'docker rm -f "$EXTRACT_CONTAINER" >/dev/null 2>&1 || true; rm -rf "$TMP_DIR"' EXIT
+            docker rm -f "$EXTRACT_CONTAINER" >/dev/null 2>&1 || true
+            docker create --name "$EXTRACT_CONTAINER" "$RUN_IMAGE" >/dev/null
+            docker cp "$EXTRACT_CONTAINER:/dist/." "$TMP_DIR/"
+            docker rm -f "$EXTRACT_CONTAINER" >/dev/null
+
             if command -v rsync >/dev/null 2>&1; then
               rsync -a --delete --exclude='.user.ini' "$TMP_DIR"/ "$TARGET_DIR"/
             else
@@ -108,4 +162,4 @@ jobs:
               find "$TARGET_DIR" -mindepth 1 -not -name '.user.ini' -exec rm -rf {} +
               cp -a "$TMP_DIR"/. "$TARGET_DIR"/
             fi
-            rm -rf "$TMP_DIR"
+            echo "[deploy] Done. Synced $RUN_IMAGE to $TARGET_DIR"

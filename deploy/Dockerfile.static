@@ -1,0 +1,7 @@
+FROM scratch
+
+LABEL org.opencontainers.image.source="https://github.com/lucky-aeon/community-front-plus"
+
+COPY . /dist/
+
+CMD ["/bin/true"]
