@@ -80,10 +80,10 @@ const AboutPageEmpty: React.FC = () => (
             返回首页
           </a>
           <a
-            href="/#pricing"
+            href="/#courses"
             className="inline-flex items-center rounded-full border border-slate-200 px-5 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50"
           >
-            查看会员与服务
+            浏览现有课程
           </a>
         </div>
       </section>

@@ -15,10 +15,9 @@ interface CourseCardProps {
   hideHero?: boolean; // 是否隐藏顶部封面/渐变区
   hideHeroTitle?: boolean; // 是否隐藏封面区域的标题
   hideStatus?: boolean; // 是否隐藏状态徽章
-  hidePrice?: boolean; // 是否隐藏价格
 }
 
-export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAuthor = true, hideContent = false, hideHero = false, hideHeroTitle = false, hideStatus = false, hidePrice = false }) => {
+export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAuthor = true, hideContent = false, hideHero = false, hideHeroTitle = false, hideStatus = false }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PENDING': return 'bg-amber-100 text-amber-800 border-amber-200';
@@ -51,12 +50,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
   };
 
   const hasCover = Boolean(course.coverImage);
-
-  const planNames = (course.unlockPlans || [])
-    .sort((a, b) => a.level - b.level)
-    .map(p => p.name)
-    .filter((v, i, arr) => arr.indexOf(v) === i);
-  const canSinglePurchase = typeof course.price === 'number' && course.price > 0;
 
   return (
     <Card
@@ -222,41 +215,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, onClick, showAut
           </div>
         )}
 
-        {/* Price / Unlock hints and Action */}
+        {/* Action */}
         <div className={cn("space-y-3 mt-auto", hideHero ? "pt-0" : "pt-2 border-t border-warm-gray-100")}>
-          {/* 解锁提示（首页不展示价格时也显示） */}
-          <div className="space-y-1">
-            {planNames.length > 0 && (
-              <div className="text-xs text-warm-gray-600">会员可解锁：{planNames.join(' / ')}</div>
-            )}
-            {canSinglePurchase ? (
-              <div className="text-[12px] text-warm-gray-500">支持单次购买 · 永久观看</div>
-            ) : (
-              <div className="text-[12px] text-warm-gray-500">仅会员可解锁</div>
-            )}
-          </div>
-          {!hidePrice && course.price !== undefined && (
-            <div className="flex items-center justify-between">
-              <div className="flex items-baseline space-x-2">
-                {course.price === 0 ? (
-                  <span className="text-2xl font-bold text-emerald-600">免费</span>
-                ) : (
-                  <span className="text-2xl font-bold text-gray-900">¥{course.price}</span>
-                )}
-                {course.price !== 0 && course.originalPrice !== undefined && course.originalPrice > (course.price ?? 0) && (
-                  <span className="text-sm text-warm-gray-500 line-through">
-                    ¥{course.originalPrice}
-                  </span>
-                )}
-              </div>
-              {course.price !== 0 && course.originalPrice !== undefined && course.originalPrice > (course.price ?? 0) && (
-                <Badge className="bg-red-50 text-red-700 border-red-200 text-xs font-semibold">
-                  限时优惠
-                </Badge>
-              )}
-            </div>
-          )}
-
           <Button
             className={cn(
               "w-full h-11 font-semibold text-sm relative overflow-hidden group",

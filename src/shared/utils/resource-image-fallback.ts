@@ -1,6 +1,6 @@
 /**
  * 资源图片全局兜底：当受保护资源图片加载失败（如 403 无权限）时，
- * 将其替换为带有「无权限，请升级套餐」的占位图，避免免费用户窥视资源内容。
+ * 将其替换为无权限占位图，避免无权限用户查看资源内容。
  *
  * 支持两种 URL 格式：
  * 1. 后端资源访问 URL: /api/public/resource/{id}/access
@@ -35,7 +35,7 @@ export function buildNoPermissionPlaceholder(width = 640, height = 360): string 
 
     // 文字
     const title = '无权限';
-    const subtitle = '请升级套餐后查看';
+    const subtitle = '当前账户没有查看权限';
     ctx.fillStyle = '#6b7280';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -51,12 +51,21 @@ export function buildNoPermissionPlaceholder(width = 640, height = 360): string 
   }
 }
 
+type ResourceFallbackWindow = Window & {
+  __resourceImageFallbackInstalled?: boolean;
+};
+
+type ResourceImageElement = HTMLImageElement & {
+  __resourceFallbackApplied?: boolean;
+  __resourceFallbackProcessing?: boolean;
+};
+
 /**
  * 安装全局图片错误处理：对资源访问 URL 的 <img> 自动替换为占位图
  */
 export function installResourceImageFallback(): void {
   if (typeof window === 'undefined') return;
-  const win = window as any;
+  const win = window as ResourceFallbackWindow;
   if (win.__resourceImageFallbackInstalled) return;
   win.__resourceImageFallbackInstalled = true;
 
@@ -81,8 +90,8 @@ export function installResourceImageFallback(): void {
   };
 
   const onError = async (ev: Event) => {
-    const imgEl = ev.target as unknown;
-    if (!(imgEl instanceof HTMLImageElement)) return;
+    if (!(ev.target instanceof HTMLImageElement)) return;
+    const imgEl = ev.target as ResourceImageElement;
     // effectiveSrc 可能是 302 后的 OSS 最终地址；rawSrc 是最初设置到 <img> 上的值
     const effectiveSrc = (imgEl.currentSrc || imgEl.src || '').toString();
     const rawSrc = (imgEl.getAttribute('src') || '').toString();
@@ -90,8 +99,8 @@ export function installResourceImageFallback(): void {
     if (!(isResourceAccessUrl(rawSrc) || isResourceAccessUrl(effectiveSrc))) return;
 
     // 避免无限循环
-    if ((imgEl as any).__resourceFallbackProcessing) return;
-    (imgEl as any).__resourceFallbackProcessing = true;
+    if (imgEl.__resourceFallbackProcessing) return;
+    imgEl.__resourceFallbackProcessing = true;
 
     try {
       // OSS 签名 URL：图片加载失败直接认为无权限（跨域无法获取最终状态码）
@@ -101,7 +110,7 @@ export function installResourceImageFallback(): void {
         const targetH = Math.max(120, Math.round(rect?.height || imgEl.height || 360));
         const placeholder = buildNoPermissionPlaceholder(targetW, targetH);
         try { imgEl.src = placeholder; } catch { /* ignore */ }
-        (imgEl as any).__resourceFallbackApplied = true;
+        imgEl.__resourceFallbackApplied = true;
         return;
       }
 
@@ -117,7 +126,7 @@ export function installResourceImageFallback(): void {
         const targetH = Math.max(120, Math.round(rect?.height || imgEl.height || 360));
         const placeholder = buildNoPermissionPlaceholder(targetW, targetH);
         try { imgEl.src = placeholder; } catch { /* ignore */ }
-        (imgEl as any).__resourceFallbackApplied = true;
+        imgEl.__resourceFallbackApplied = true;
         return;
       }
 
@@ -128,14 +137,14 @@ export function installResourceImageFallback(): void {
         const targetH = Math.max(120, Math.round(rect?.height || imgEl.height || 360));
         const placeholder = buildNoPermissionPlaceholder(targetW, targetH);
         try { imgEl.src = placeholder; } catch { /* ignore */ }
-        (imgEl as any).__resourceFallbackApplied = true;
+        imgEl.__resourceFallbackApplied = true;
         return;
       }
       // 其他状态：不处理，避免误判
     } catch {
       // 网络异常等：不误判为无权限
     } finally {
-      (imgEl as any).__resourceFallbackProcessing = false;
+      imgEl.__resourceFallbackProcessing = false;
     }
   };
 

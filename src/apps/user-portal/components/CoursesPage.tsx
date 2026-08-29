@@ -134,7 +134,6 @@ export const CoursesPage: React.FC = () => {
                 showAuthor={false}
                 hideContent
                 hideHeroTitle
-                hidePrice
               />
             ))}
           </div>

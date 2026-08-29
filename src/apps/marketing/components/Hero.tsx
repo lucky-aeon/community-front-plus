@@ -136,7 +136,6 @@ export const Hero: React.FC = () => {
                 height={512}
                 loading="eager"
                 decoding="async"
-                fetchPriority="high"
                 className="w-full h-52 sm:h-64 object-contain rounded-xl"
               />
               <div className="mt-6">

@@ -54,7 +54,6 @@ export const MarketingFooter: React.FC<MarketingFooterProps> = ({
               <li><a href="/#courses" className="hover:text-white transition-colors">课程</a></li>
               <li><a href="/about" className="hover:text-white transition-colors">关于我</a></li>
               <li><a href="/mobile" className="hover:text-white transition-colors">移动端下载</a></li>
-              <li><a href="/#pricing" className="hover:text-white transition-colors">会员与服务</a></li>
             </ul>
           </div>
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -40,35 +40,9 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
     fetchDetail();
   }, [open, courseId]);
 
-  const formatDate = (iso?: string) =>
-    iso ? new Date(iso).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '-';
-
-  const firstChapter = useMemo(() => {
-    if (!detail?.chapters?.length) return undefined;
-    // 保持后端顺序，不在前端排序
-    return detail.chapters[0];
-  }, [detail]);
-
   const openUrl = (url?: string | null) => {
     if (!url) return;
     window.open(url, '_blank');
-  };
-
-  const goToMembership = () => {
-    try {
-      // 关闭弹窗
-      onOpenChange(false);
-      // 平滑滚动到定价区
-      setTimeout(() => {
-        const el = document.querySelector('#pricing');
-        if (el && 'scrollIntoView' in el) {
-          (el as HTMLElement).scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-          // 兜底：跳转锚点
-          window.location.hash = '#pricing';
-        }
-      }, 50);
-    } catch { /* ignore */ }
   };
 
   return (
@@ -153,51 +127,8 @@ export const PublicCourseDetailModal: React.FC<PublicCourseDetailModalProps> = (
 
             {/* 主体内容 */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              {/* 左侧：解锁方式 + 简介与标签 */}
+              {/* 左侧：简介与标签 */}
               <Card className="p-4 lg:col-span-2 space-y-3">
-                {/* 解锁方式（若后端返回） */}
-                {(((detail.unlockPlans?.length ?? 0) > 0) || typeof detail.price === 'number') && (
-                  <div className="space-y-2">
-                    <h3 className="text-base font-semibold">解锁方式</h3>
-                    {(detail.unlockPlans?.length ?? 0) > 0 && (
-                      <div>
-                        <div className="text-sm text-warm-gray-600 mb-2">订阅以下任一套餐可解锁本课程：</div>
-                        <div className="space-y-2">
-                          {detail.unlockPlans!.sort((a, b) => a.level - b.level).map((p) => (
-                            <div key={p.id} className="flex items-center justify-between p-3 rounded-lg border bg-white">
-                              <div className="font-medium text-gray-900">{p.name}</div>
-                              <div className="text-right">
-                                <div className="text-base font-semibold text-gray-900">¥{p.price}</div>
-                                {typeof p.originalPrice === 'number' && p.originalPrice > p.price && (
-                                  <div className="text-xs text-warm-gray-500 line-through">¥{p.originalPrice}</div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {typeof detail.price === 'number' && detail.price > 0 && (
-                      <div className="pt-1">
-                        <div className="text-sm text-warm-gray-600 mb-2">或直接购买本课程：</div>
-                        <div className="flex items-center justify-between p-3 rounded-lg border bg-white">
-                          <div className="font-medium text-gray-900">单次购买（永久）</div>
-                          <div className="text-right">
-                            <div className="text-base font-semibold text-gray-900">¥{detail.price}</div>
-                            {typeof detail.originalPrice === 'number' && detail.originalPrice > (detail.price ?? 0) && (
-                              <div className="text-xs text-warm-gray-500 line-through">¥{detail.originalPrice}</div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-2 pt-1">
-                      <button className="px-3 py-2 rounded-md bg-honey-600 text-white" onClick={goToMembership}>开通会员</button>
-                    </div>
-                  </div>
-                )}
                 <h3 className="text-base font-semibold">课程介绍</h3>
                 <div className="prose-content">
                   <MarkdownEditor

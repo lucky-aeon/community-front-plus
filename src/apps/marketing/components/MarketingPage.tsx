@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Header } from '@shared/components/common/Header';
 import { Hero } from '../components/Hero';
+import { CommunityNotice } from './CommunityNotice';
 import { CourseGrid } from '@shared/components/business/CourseGrid';
-import { PricingSection } from '@shared/components/business/PricingSection';
 import { Testimonials } from '../components/Testimonials';
 import { AuthModal } from '@shared/components/business/AuthModal';
-import { PaymentModal } from '@shared/components/business/PaymentModal';
 import { TermsModal, PrivacyModal } from '@shared/components/common/LegalModals';
 import { ContactUsDialog } from '@shared/components/common/ContactUsDialog';
 import { useDocumentTitle } from '@shared/hooks/useDocumentTitle';
@@ -14,7 +13,6 @@ import { MarketingFooter } from './MarketingFooter';
 export const MarketingPage: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
-  const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [isTermsOpen, setIsTermsOpen] = useState(false);
   const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
   const year = new Date().getFullYear();
@@ -32,11 +30,8 @@ export const MarketingPage: React.FC = () => {
       
       <main>
         <Hero />
+        <CommunityNotice />
         <CourseGrid onAuthRequired={handleAuthRequired} />
-        <PricingSection
-          onPlanSelect={() => setIsPaymentOpen(true)}
-          onServiceCtaClick={() => setIsContactOpen(true)}
-        />
         <Testimonials showAvatar={false} />
       </main>
 
@@ -54,7 +49,6 @@ export const MarketingPage: React.FC = () => {
         onClose={() => setIsAuthModalOpen(false)} 
       />
 
-      <PaymentModal open={isPaymentOpen} onOpenChange={setIsPaymentOpen} />
       <TermsModal open={isTermsOpen} onOpenChange={setIsTermsOpen} />
       <PrivacyModal open={isPrivacyOpen} onOpenChange={setIsPrivacyOpen} />
     </div>

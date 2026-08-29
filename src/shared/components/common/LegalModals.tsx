@@ -12,7 +12,7 @@ export const TermsModal: React.FC<LegalModalProps> = ({ open, onOpenChange }) =>
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>服务条款</DialogTitle>
-          <DialogDescription>最近更新：2025年10月9日</DialogDescription>
+          <DialogDescription>最近更新：2026年8月29日</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 text-sm text-gray-700 leading-6">
           <p>
@@ -33,16 +33,15 @@ export const TermsModal: React.FC<LegalModalProps> = ({ open, onOpenChange }) =>
           <h3 className="font-semibold text-gray-900">3. 知识产权</h3>
           <p>本站所有课程、代码、图文、音视频等内容之版权及相关权利归敲鸭社区或相应权利人所有。未经许可，任何人不得以任何方式复制、转载、传播或用于商业用途。</p>
 
-          <h3 className="font-semibold text-gray-900">4. 订阅与付费</h3>
+          <h3 className="font-semibold text-gray-900">4. 已有订阅与历史付款</h3>
           <ul className="list-disc pl-5 space-y-1">
-            <li>订阅价格、有效期、权益以页面展示为准。</li>
+            <li>平台当前不接受会员、课程及相关服务的新付款。</li>
+            <li>已开通服务的有效期和权益以开通记录为准。</li>
             <li>
               本平台提供的是<span className="font-semibold">在线数字内容/会员服务</span>。<span className="font-semibold text-red-600">服务一经开通不支持退款</span>
-              （法律法规另有规定或平台另行承诺的除外）；为确保知情同意，我们会在支付页显著提示并要求确认。
+              （法律法规另有规定或平台另行承诺的除外）。
             </li>
-            <li>
-              <span className="font-semibold">价格调整保护：</span>平台保留调整订阅价格的权利。价格调整仅适用于调整生效后新购买的订阅，已购买的订阅在其有效期内不受价格调整影响，仍按原购买时的价格与权益执行。
-            </li>
+            <li>停止新增付费不影响此前已经开通且仍在有效期内的权益。</li>
             <li>如遇<span className="font-semibold">重复支付、无法开通、重大服务故障</span>等情形，请联系微信 <span className="font-mono">xhyQAQ250</span> 协助处理。</li>
             <li>如发现违规使用（如账号共享、恶意爬取、传播课程），平台有权采取限制或终止服务等措施。</li>
           </ul>
@@ -70,7 +69,7 @@ export const PrivacyModal: React.FC<LegalModalProps> = ({ open, onOpenChange }) 
       <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>隐私政策</DialogTitle>
-          <DialogDescription>最近更新：2025年10月9日</DialogDescription>
+          <DialogDescription>最近更新：2026年8月29日</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 text-sm text-gray-700 leading-6">
           <p>
@@ -81,7 +80,7 @@ export const PrivacyModal: React.FC<LegalModalProps> = ({ open, onOpenChange }) 
           <ul className="list-disc pl-5 space-y-1">
             <li>账户信息：邮箱、昵称、头像等；</li>
             <li>使用数据：访问日志、设备信息、浏览与学习记录；</li>
-            <li>支付相关：目前采用线下转账方式，不采集支付敏感信息。若需您提供转账截图，仅用于核验开通，处理完毕即删除或最小化保留。</li>
+            <li>历史付款核验：平台当前不接受新付款。若历史交易需要您提供转账截图，仅用于核验记录，处理完毕即删除或最小化保留。</li>
             <li>通信信息：您与我们的沟通内容（客服/反馈）。</li>
           </ul>
 
@@ -94,7 +93,7 @@ export const PrivacyModal: React.FC<LegalModalProps> = ({ open, onOpenChange }) 
           </ul>
 
           <h3 className="font-semibold text-gray-900">3. 信息共享与第三方</h3>
-          <p>为实现必要功能，我们可能与第三方服务商（如对象存储、统计分析、邮件/短信、支付渠道）合作，严格按照最小必要原则共享，并与其签署数据保护协议。</p>
+          <p>为实现必要功能，我们可能与第三方服务商（如对象存储、统计分析、邮件或短信服务）合作，并按照最小必要原则共享相关信息。</p>
 
           <h3 className="font-semibold text-gray-900">4. 数据存储与安全</h3>
           <ul className="list-disc pl-5 space-y-1">

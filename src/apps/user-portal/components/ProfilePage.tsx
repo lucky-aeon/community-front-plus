@@ -204,9 +204,6 @@ export const ProfilePage: React.FC = () => {
                     <h3 className="text-lg font-bold">{displayPlanName}</h3>
                     {user?.membershipTier === 'vip' && <Crown className="h-5 w-5" />}
                   </div>
-                  {currentPlan?.price !== undefined && (
-                    <p className="text-2xl font-bold">¥{currentPlan.price}<span className="text-sm font-normal">/月</span></p>
-                  )}
                 </div>
 
                 <div className="space-y-3">
@@ -226,10 +223,6 @@ export const ProfilePage: React.FC = () => {
                     <span className="text-gray-600">到期时间</span>
                     <span className="font-medium">{formatDate(user?.membershipExpiry)}</span>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-gray-600">自动续费</span>
-                    <Badge variant="success">已开启</Badge>
-                  </div>
                 </div>
 
                 <div className="pt-4 border-t border-gray-200">
@@ -244,14 +237,6 @@ export const ProfilePage: React.FC = () => {
                   </ul>
                 </div>
 
-                <div className="flex space-x-3">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    管理套餐
-                  </Button>
-                  <Button size="sm" className="flex-1">
-                    升级套餐
-                  </Button>
-                </div>
               </div>
             ) : (
               <div className="text-center py-6">
@@ -259,8 +244,7 @@ export const ProfilePage: React.FC = () => {
                   <Crown className="h-10 w-10 text-gray-400" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">暂无会员套餐</h3>
-                <p className="text-gray-600 mb-4">升级会员解锁更多课程和功能</p>
-                <Button className="w-full">选择套餐</Button>
+                <p className="text-gray-600">当前账户没有可用的会员权益</p>
               </div>
             )}
           </Card>

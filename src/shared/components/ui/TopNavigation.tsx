@@ -425,7 +425,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                         aria-disabled={!isAllowed(MENU_CODE.MEMBERSHIP)}
                       >
                         <Crown className="h-4 w-4" />
-                        <span>会员与服务</span>
+                        <span>会员信息</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => { if (isAllowed(MENU_CODE.REDEEM_CDK)) setIsRedeemOpen(true); }}
@@ -588,7 +588,7 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({ className }) => {
                       disabled={!isAllowed(MENU_CODE.MEMBERSHIP)}
                     >
                       <Crown className="h-5 w-5" />
-                      <span className="text-sm font-medium">会员与服务</span>
+                      <span className="text-sm font-medium">会员信息</span>
                     </button>
 
                     <button
